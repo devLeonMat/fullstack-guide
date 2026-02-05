@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom animations */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Monokai Dark Theme for Code Blocks */
+@layer components {
+  pre {
+    @apply rounded-lg shadow-lg;
+    background: #272822 !important;
+    border: 1px solid #3e3d32;
+    position: relative;
+  }
+
+  pre code {
+    @apply block;
+    color: #f8f8f2;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', 'Courier New', monospace;
+    line-height: 1.6;
+    font-size: 0.875rem;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Better scrollbar for code blocks */
+  pre::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+
+  pre::-webkit-scrollbar-track {
+    background: #1e1f1c;
+    border-radius: 4px;
+  }
+
+  pre::-webkit-scrollbar-thumb {
+    background: #3e3d32;
+    border-radius: 4px;
+  }
+
+  pre::-webkit-scrollbar-thumb:hover {
+    background: #49483e;
+  }
+
+  /* Enhanced code block styling with gradient top border */
+  .code-block-wrapper {
+    @apply relative overflow-hidden rounded-lg;
+  }
+
+  .code-block-wrapper::before {
+    content: '';
+    @apply absolute top-0 left-0 w-full h-1 z-10;
+    background: linear-gradient(90deg, #f92672, #66d9ef, #a6e22e, #e6db74);
+  }
+}
+
+/* Custom Dark Scrollbar */
+@layer base {
+
+  /* For Webkit browsers (Chrome, Safari, Edge) */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 5px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #475569, #334155);
+    border-radius: 5px;
+    border: 2px solid #0f172a;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #64748b, #475569);
+  }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #475569 #0f172a;
+  }
+}

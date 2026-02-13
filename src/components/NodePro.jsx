@@ -2,8 +2,24 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Server, Zap, MessageCircleQuestion } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function NodePro() {
+  const { language } = useLanguage();
+  const tx = (es, en) => (language === 'en' ? en : es);
+  const pickPipe = (text) => {
+    if (typeof text !== 'string') return text;
+    const parts = text.split(' | ');
+    if (parts.length < 2) return text;
+    return language === 'en' ? parts[1] : parts[0];
+  };
+  const pickSlash = (text) => {
+    if (typeof text !== 'string') return text;
+    const parts = text.split(' / ');
+    if (parts.length < 2) return text;
+    return language === 'en' ? parts[0] : parts[1];
+  };
   const [activeSection, setActiveSection] = useState('fundamentals');
   const [expandedFundamentals, setExpandedFundamentals] = useState({
     0: true, // First fundamental open by default
@@ -38,7 +54,7 @@ function NodePro() {
   const sections = {
     fundamentals: {
       id: 'fundamentals',
-      title: 'Fundamentos / Fundamentals',
+      title: tx('Fundamentos', 'Fundamentals'),
       subtitle: 'Event Loop, Modules, NPM, Streams & Core Concepts',
       icon: Server,
       content: [
@@ -396,7 +412,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
     interview: {
       id: 'interview',
       title: 'Interview Questions',
-      subtitle: 'Preguntas frecuentes por nivel',
+      subtitle: tx('Preguntas frecuentes por nivel', 'Frequently asked questions by level'),
       icon: MessageCircleQuestion,
       content: {
         junior: [
@@ -442,7 +458,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
             >
               <div className="flex items-center gap-3">
                 <Server className="w-6 h-6 text-emerald-400" />
-                <h3 className="text-xl font-bold text-emerald-400">{item.topic.split(' / ')[0]}</h3>
+                <h3 className="text-xl font-bold text-emerald-400">{pickSlash(item.topic)}</h3>
               </div>
               <motion.div
                 animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -466,12 +482,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
                 >
                   <div className="px-6 pb-6">
                     <p className="text-slate-400 text-sm mb-4">
-                      {item.description.split(' | ').map((text, i) => (
-                        <span key={i}>
-                          {i === 0 && <span className="text-slate-300">{text}</span>}
-                          {i === 1 && <span className="text-slate-500 block mt-1 text-xs italic">{text}</span>}
-                        </span>
-                      ))}
+                      <span className="text-slate-300">{pickPipe(item.description)}</span>
                     </p>
 
                     <ul className="space-y-2 mb-4">
@@ -479,12 +490,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
                         <li key={pIdx} className="flex items-start gap-2 text-sm">
                           <span className="text-emerald-400 mt-0.5">•</span>
                           <span className="text-slate-300">
-                            {point.split(' | ').map((text, i) => (
-                              <span key={i}>
-                                {i === 0 && <span>{text}</span>}
-                                {i === 1 && <span className="text-slate-500 block mt-1 text-xs italic">{text}</span>}
-                              </span>
-                            ))}
+                            <span>{pickPipe(point)}</span>
                           </span>
                         </li>
                       ))}
@@ -549,7 +555,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
               <div className="flex items-center gap-3">
                 <MessageCircleQuestion className="w-6 h-6 text-emerald-400" />
                 <h3 className="text-2xl font-bold text-emerald-400 capitalize">{level} Level</h3>
-                <span className="text-slate-500 text-sm">({questions.length} questions)</span>
+                <span className="text-slate-500 text-sm">({questions.length} {tx('preguntas', 'questions')})</span>
               </div>
               <motion.div
                 animate={{ rotate: isLevelExpanded ? 180 : 0 }}
@@ -586,7 +592,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
                             <div className="flex items-start gap-2 flex-1 min-w-0">
                               <span className="text-emerald-400 font-bold flex-shrink-0">Q{idx + 1}:</span>
                               <p className="font-semibold text-emerald-300 text-sm">
-                                {item.q.split(' / ')[0]}
+                                {pickSlash(item.q)}
                               </p>
                             </div>
                             <motion.div
@@ -612,22 +618,11 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
                               >
                                 <div className="px-4 pb-4 pt-2">
                                   {/* English Question */}
-                                  {item.q.split(' / ')[1] && (
-                                    <p className="text-slate-500 text-xs italic mb-3 ml-6">
-                                      {item.q.split(' / ')[1]}
-                                    </p>
-                                  )}
-
                                   {/* Answer */}
                                   <div className="flex items-start gap-2 ml-2 bg-slate-900/50 p-3 rounded border-l-2 border-green-400/50">
                                     <span className="text-green-400 font-bold flex-shrink-0">A:</span>
                                     <div className="text-sm">
-                                      {item.a.split(' | ').map((text, i) => (
-                                        <div key={i}>
-                                          {i === 0 && <p className="text-slate-200 leading-relaxed">{text}</p>}
-                                          {i === 1 && <p className="text-slate-500 mt-2 text-xs italic leading-relaxed">{text}</p>}
-                                        </div>
-                                      ))}
+                                      <p className="text-slate-200 leading-relaxed">{pickPipe(item.a)}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -662,7 +657,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
       <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
         <h3 className="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2">
           <Server className="w-6 h-6" />
-          Node.js Pro
+          {t('node', language).title}
         </h3>
         {sectionList.map((section) => {
           const Icon = section.icon;

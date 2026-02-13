@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout, Boxes, Zap, Hexagon, Globe, Smartphone, Server, Cpu, Database, Mail, Settings, Users, Share2, Info, Layers, CloudCog } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 // Componente de Nodo Visual
 const Node = ({ icon: Icon, label, color, description }) => (
@@ -289,6 +291,7 @@ const ServerlessDiagram = () => (
 
 
 function Architecture() {
+    const { language } = useLanguage();
     const [selectedArch, setSelectedArch] = useState('mvc');
     const [isCodeExpanded, setIsCodeExpanded] = useState(false);
 
@@ -763,7 +766,7 @@ functions:
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-cyan-400 mb-4">
-                    Software Architecture
+                    {t('architecture', language).title}
                 </h3>
                 {archList.map((arch) => {
                     const ArchIcon = arch.icon;

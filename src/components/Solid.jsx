@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Box, Lock, FileText, ArrowLeftRight, RotateCcw } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function Solid() {
+  const { language } = useLanguage();
   const [selectedPrinciple, setSelectedPrinciple] = useState('S');
 
   const principles = {
@@ -12,8 +15,8 @@ function Solid() {
       subtitle: 'Una sola razón para cambiar / One reason to change',
       icon: Box,
       color: 'blue',
-      analogy: '🧑‍🍳 Un chef de restaurante: El chef cocina, el mesero sirve, el cajero cobra. Cada uno tiene UNA responsabilidad.',
-      explanation: 'Una clase debe tener una única responsabilidad. Si una clase hace demasiado, es difícil de mantener y probar.',
+      analogy: t('solid', language).s.analogy,
+      explanation: t('solid', language).s.explanation,
       violation: `// ❌ Violación: Clase con múltiples responsabilidades
 class User {
   constructor(name, email) {
@@ -68,8 +71,8 @@ class ReportGenerator {
       subtitle: 'Abierto para extensión, cerrado para modificación',
       icon: Lock,
       color: 'green',
-      analogy: '🔌 Un enchufe eléctrico: Puedes conectar diferentes dispositivos (extensión) sin modificar el enchufe (cerrado).',
-      explanation: 'Las clases deben estar abiertas para extensión pero cerradas para modificación. Usa abstracción y polimorfismo.',
+      analogy: t('solid', language).o.analogy,
+      explanation: t('solid', language).o.explanation,
       violation: `// ❌ Violación: Modificar código existente
 class PaymentProcessor {
   process(type, amount) {
@@ -113,8 +116,8 @@ class CryptoPayment extends Payment {
       subtitle: 'Los subtipos deben ser sustituibles / Subtypes must be substitutable',
       icon: ArrowLeftRight,
       color: 'purple',
-      analogy: '🦆 Si parece un pato y grazna como un pato: Cualquier clase derivada debe poder usarse donde se espera la clase base.',
-      explanation: 'Los objetos de una clase derivada deben poder reemplazar objetos de la clase base sin alterar el comportamiento.',
+      analogy: t('solid', language).l.analogy,
+      explanation: t('solid', language).l.explanation,
       violation: `// ❌ Violación: Rompe el contrato
 class Bird {
   fly() {
@@ -163,8 +166,8 @@ function makeBirdMove(bird) {
       subtitle: 'Interfaces específicas / Specific interfaces',
       icon: FileText,
       color: 'yellow',
-      analogy: '🍽️ Menú de restaurante: Un menú vegetariano no debe mostrar opciones con carne. Interfaces específicas para cada cliente.',
-      explanation: 'No se debe forzar a los clientes a depender de interfaces que no usan. Crea interfaces pequeñas y específicas.',
+      analogy: t('solid', language).i.analogy,
+      explanation: t('solid', language).i.explanation,
       violation: `// ❌ Violación: Interface muy grande
 interface Worker {
   work(): void;
@@ -215,8 +218,8 @@ class Robot implements Workable, Chargeable {
       subtitle: 'Depende de abstracciones / Depend on abstractions',
       icon: RotateCcw,
       color: 'red',
-      analogy: '🔌 Cargador USB: Tu teléfono no depende de un cargador específico, sino del estándar USB (abstracción).',
-      explanation: 'Las clases de alto nivel no deben depender de clases de bajo nivel. Ambas deben depender de abstracciones.',
+      analogy: t('solid', language).d.analogy,
+      explanation: t('solid', language).d.explanation,
       violation: `// ❌ Violación: Dependencia directa
 class MySQLDatabase {
   query(sql) {
@@ -284,7 +287,7 @@ const service = new UserService(new MySQLDatabase());`
       {/* Sidebar */}
       <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
         <h3 className="text-lg font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text mb-4">
-          SOLID Principles
+          {t('solid', language).title}
         </h3>
         {principleList.map((principle) => {
           const PrincipleIcon = principle.icon;
@@ -325,7 +328,7 @@ const service = new UserService(new MySQLDatabase());`
               <h3 className={`text-3xl font-bold ${colors.text}`}>
                 {current.letter} - {current.title}
               </h3>
-              <p className="text-slate-400 mt-1">{current.subtitle}</p>
+              <p className="text-slate-400 mt-1">{t('solid', language).subtitle}</p>
             </div>
           </div>
 
@@ -347,7 +350,7 @@ const service = new UserService(new MySQLDatabase());`
             <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
               <h4 className="text-red-400 font-semibold mb-3 flex items-center gap-2">
                 <span>❌</span>
-                <span>VIOLACIÓN / VIOLATION</span>
+                <span>{t('common', language).violation}</span>
               </h4>
               <CodeBlock code={current.violation} language="javascript" />
             </div>
@@ -356,7 +359,7 @@ const service = new UserService(new MySQLDatabase());`
             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
               <h4 className="text-green-400 font-semibold mb-3 flex items-center gap-2">
                 <span>✅</span>
-                <span>SOLUCIÓN / SOLUTION</span>
+                <span>{t('common', language).solution}</span>
               </h4>
               <CodeBlock code={current.solution} language="javascript" />
             </div>

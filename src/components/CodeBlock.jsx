@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 // Custom Monokai-inspired theme
 const monokaiTheme = {
@@ -73,37 +75,63 @@ const monokaiTheme = {
 };
 
 function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
-    return (
-        <div className="relative rounded-lg overflow-hidden shadow-lg">
-            {/* Gradient top border */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-cyan-400 to-green-400 z-10"></div>
+    const { language: currentLanguage } = useLanguage();
+    const [isOpen, setIsOpen] = useState(false);
+    const common = t('common', currentLanguage);
 
-            {/* Language badge */}
-            <div className="absolute top-3 right-3 z-10">
-                <span className="px-2 py-1 bg-slate-800/80 backdrop-blur-sm text-slate-300 text-xs font-semibold rounded border border-slate-700">
-                    {language.toUpperCase()}
-                </span>
-            </div>
-
-            {/* Code block */}
-            <SyntaxHighlighter
-                language={language}
-                style={monokaiTheme}
-                showLineNumbers={showLineNumbers}
-                customStyle={{
-                    margin: 0,
-                    paddingTop: '2rem',
-                    background: '#272822',
-                    fontSize: '0.875rem',
-                }}
-                codeTagProps={{
-                    style: {
-                        fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
-                    }
-                }}
+    if (!isOpen) {
+        return (
+            <button
+                onClick={() => setIsOpen(true)}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 transition-colors"
             >
-                {code}
-            </SyntaxHighlighter>
+                <span className="text-slate-400">▶</span>
+                <span>{common.showExample}</span>
+            </button>
+        );
+    }
+
+    return (
+        <div className="space-y-2">
+            <button
+                onClick={() => setIsOpen(false)}
+                className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 transition-colors"
+            >
+                <span className="text-slate-400">▼</span>
+                <span>{common.hideExample}</span>
+            </button>
+
+            <div className="relative rounded-lg overflow-hidden shadow-lg">
+                {/* Gradient top border */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-cyan-400 to-green-400 z-10"></div>
+
+                {/* Language badge */}
+                <div className="absolute top-3 right-3 z-10">
+                    <span className="px-2 py-1 bg-slate-800/80 backdrop-blur-sm text-slate-300 text-xs font-semibold rounded border border-slate-700">
+                        {language.toUpperCase()}
+                    </span>
+                </div>
+
+                {/* Code block */}
+                <SyntaxHighlighter
+                    language={language}
+                    style={monokaiTheme}
+                    showLineNumbers={showLineNumbers}
+                    customStyle={{
+                        margin: 0,
+                        paddingTop: '2rem',
+                        background: '#272822',
+                        fontSize: '0.875rem',
+                    }}
+                    codeTagProps={{
+                        style: {
+                            fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+                        }
+                    }}
+                >
+                    {code}
+                </SyntaxHighlighter>
+            </div>
         </div>
     );
 }

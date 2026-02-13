@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import { Triangle, Blocks, Layers, Workflow } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function AngularPro() {
+    const { language } = useLanguage();
+    const tx = (es, en) => (language === 'en' ? en : es);
     const [activeSection, setActiveSection] = useState('blocks');
 
     const sections = {
         blocks: {
             title: 'Building Blocks',
-            subtitle: 'Components, Modules, Directives, Pipes',
+            subtitle: tx('Componentes, módulos, directivas y pipes', 'Components, modules, directives, pipes'),
             content: [
                 {
                     topic: 'Components',
@@ -194,8 +198,8 @@ export class FilterPipe implements PipeTransform {
             ]
         },
         reactivity: {
-            title: 'Reactivity',
-            subtitle: 'Signals vs Zone.js & Change Detection',
+            title: tx('Reactividad', 'Reactivity'),
+            subtitle: tx('Signals vs Zone.js y detección de cambios', 'Signals vs Zone.js & Change Detection'),
             content: [
                 {
                     topic: 'Signals (Nuevo Estándar)',
@@ -357,8 +361,8 @@ export class SignalUserComponent {
             ]
         },
         rxjs: {
-            title: 'RxJS & Data',
-            subtitle: 'Observables, Subjects & Servicios',
+            title: tx('RxJS y Datos', 'RxJS & Data'),
+            subtitle: tx('Observables, subjects y servicios', 'Observables, Subjects & Services'),
             content: [
                 {
                     topic: 'Observables Basics',
@@ -615,7 +619,7 @@ export class UsersComponent {
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-red-400 mb-4 flex items-center gap-2">
                     <Triangle className="w-6 h-6" />
-                    Angular Pro
+                    {t('angular', language).title}
                 </h3>
                 {sectionList.map((section) => {
                     const Icon = section.id === 'blocks' ? Blocks : section.id === 'reactivity' ? Layers : Workflow;

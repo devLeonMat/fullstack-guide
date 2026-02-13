@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Atom, Layers, Puzzle, MessageCircleQuestion } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function ReactPro() {
+  const { language } = useLanguage();
+  const tx = (es, en) => (language === 'en' ? en : es);
   const [activeSection, setActiveSection] = useState('core');
   const [expandedFundamentals, setExpandedFundamentals] = useState({
     0: true, // First fundamental open by default
@@ -37,8 +41,8 @@ function ReactPro() {
 
   const sections = {
     core: {
-      title: 'Core Concepts',
-      subtitle: 'Fundamentos de React',
+      title: tx('Conceptos Core', 'Core Concepts'),
+      subtitle: tx('Fundamentos de React', 'React fundamentals'),
       content: [
         {
           topic: 'Virtual DOM',
@@ -161,8 +165,8 @@ function Child({ data, onChange }) {
       ]
     },
     hooks: {
-      title: 'Hooks Mastery',
-      subtitle: 'Domina los hooks de React',
+      title: tx('Dominio de Hooks', 'Hooks Mastery'),
+      subtitle: tx('Domina los hooks de React', 'Master React hooks'),
       content: [
         {
           topic: 'useState',
@@ -325,7 +329,7 @@ function ThemedButton() {
     },
     patterns: {
       title: 'Patterns',
-      subtitle: 'Patrones avanzados de React',
+      subtitle: tx('Patrones avanzados de React', 'Advanced React patterns'),
       content: [
         {
           topic: 'Higher-Order Components (HOC)',
@@ -551,7 +555,7 @@ function Layout({ header, sidebar, content, footer }) {
       <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
         <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
           <Atom className="w-6 h-6" />
-          React Pro
+          {t('react', language).title}
         </h3>
         {sectionList.map((section) => {
           const Icon = section.id === 'core' ? Layers : section.id === 'hooks' ? Atom : Puzzle;

@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Command } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function SearchBar({ isOpen, onClose, onSearch, results }) {
+    const { language } = useLanguage();
+    const common = t('common', language);
     const [query, setQuery] = useState('');
     const inputRef = useRef(null);
 
@@ -52,7 +56,7 @@ function SearchBar({ isOpen, onClose, onSearch, results }) {
                         type="text"
                         value={query}
                         onChange={(e) => handleSearch(e.target.value)}
-                        placeholder="Buscar en todos los conceptos... (Ctrl/Cmd + K)"
+                        placeholder={common.searchPlaceholder}
                         className="flex-1 bg-transparent text-slate-100 placeholder-slate-500 outline-none text-lg"
                     />
                     <button
@@ -68,12 +72,12 @@ function SearchBar({ isOpen, onClose, onSearch, results }) {
                     {query.length === 0 ? (
                         <div className="p-8 text-center text-slate-500">
                             <Command className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p>Escribe para buscar en todos los tabs...</p>
-                            <p className="text-sm mt-2">Clean Code, SOLID, Patterns, Architecture, Java, Spring, React, Angular</p>
+                            <p>{common.searchHint}</p>
+                            <p className="text-sm mt-2">{common.searchTabsList}</p>
                         </div>
                     ) : results.length === 0 ? (
                         <div className="p-8 text-center text-slate-500">
-                            <p>No se encontraron resultados para "{query}"</p>
+                            <p>{common.noResultsFor} "{query}"</p>
                         </div>
                     ) : (
                         <div className="divide-y divide-slate-800">
@@ -103,7 +107,7 @@ function SearchBar({ isOpen, onClose, onSearch, results }) {
                 {/* Footer hint */}
                 {query.length > 0 && (
                     <div className="px-4 py-2 bg-slate-950 border-t border-slate-800 text-xs text-slate-500 text-center">
-                        {results.length} resultado{results.length !== 1 ? 's' : ''} encontrado{results.length !== 1 ? 's' : ''}
+                        {results.length} {results.length !== 1 ? common.resultsPlural : common.resultsSingular}
                     </div>
                 )}
             </div>

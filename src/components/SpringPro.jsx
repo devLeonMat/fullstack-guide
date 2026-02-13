@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Leaf, Database, Zap, MessageCircleQuestion } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function SpringPro() {
+    const { language } = useLanguage();
+    const tx = (es, en) => (language === 'en' ? en : es);
     const [activeSection, setActiveSection] = useState('core');
     const [expandedFundamentals, setExpandedFundamentals] = useState({
         0: true, // First fundamental open by default
@@ -39,7 +43,7 @@ function SpringPro() {
         core: {
             id: 'core',
             title: 'Core (DI & IoC)',
-            subtitle: 'Dependency Injection & Inversion of Control',
+            subtitle: tx('Inyección de dependencias e inversión de control', 'Dependency Injection & Inversion of Control'),
             icon: Leaf,
             content: [
                 {
@@ -134,7 +138,7 @@ public class DatabaseConnection {
         data: {
             id: 'data',
             title: 'Data (JPA & Transactions)',
-            subtitle: 'Spring Data JPA & Transaction Management',
+            subtitle: tx('Spring Data JPA y manejo de transacciones', 'Spring Data JPA & Transaction Management'),
             icon: Database,
             content: [
                 {
@@ -256,7 +260,7 @@ public class Student {
         boot: {
             id: 'boot',
             title: 'Boot (Starters & AutoConfig)',
-            subtitle: 'Spring Boot Starters & Auto-Configuration',
+            subtitle: tx('Starters y autoconfiguración de Spring Boot', 'Spring Boot Starters & Auto-Configuration'),
             icon: Zap,
             content: [
                 {
@@ -378,7 +382,7 @@ public class UserController {
         webflux: {
             id: 'webflux',
             title: 'WebFlux (Reactive)',
-            subtitle: 'Reactive Programming with Spring WebFlux',
+            subtitle: tx('Programación reactiva con Spring WebFlux', 'Reactive Programming with Spring WebFlux'),
             icon: Zap,
             content: [
                 {
@@ -553,7 +557,7 @@ public class UserService {
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-green-400 mb-4 flex items-center gap-2">
                     <Leaf className="w-6 h-6" />
-                    Spring Pro
+                    {t('spring', language).title}
                 </h3>
                 {sectionList.map((section) => {
                     const Icon = section.icon;

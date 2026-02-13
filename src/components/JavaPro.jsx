@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Coffee, Cpu, Layers, MessageCircleQuestion } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import { useLanguage } from '../contexts/LanguageContext';
+import { t } from '../translations';
 
 function JavaPro() {
+    const { language } = useLanguage();
     const [activeSection, setActiveSection] = useState('features');
     const [expandedFeatures, setExpandedFeatures] = useState({});
     const [expandedVersions, setExpandedVersions] = useState({
@@ -777,7 +780,7 @@ class Heavy {
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-orange-400 mb-4 flex items-center gap-2">
                     <Coffee className="w-6 h-6" />
-                    Java Pro
+                    {t('java', language).title}
                 </h3>
                 {sectionList.map((section) => {
                     const Icon = section.icon;

@@ -506,8 +506,96 @@ function Layout({ header, sidebar, content, footer }) {
           ]
         }
       ]
+    },
+    versions: {
+      title: tx('Historial de Versiones', 'Version History'),
+      subtitle: tx('React 16 → 19: Principales evoluciones', 'React 16 → 19: Key evolutions'),
+      isVersionSection: true,
+      content: [
+        {
+          version: 'React 19',
+          date: tx('Diciembre 2024', 'December 2024'),
+          badge: 'Latest',
+          badgeColor: 'bg-cyan-500',
+          features: [
+            { label: tx('Server Components Estables', 'Stable Server Components'), desc: tx('Los React Server Components (RSC) dejan preview y son estables. Renderizan en el servidor sin JS en cliente.', 'React Server Components (RSC) leave preview and are stable. They render on the server without JS on the client.') },
+            { label: 'Actions', desc: tx('useActionState() y useFormStatus() integran formularios y mutaciones asíncronas con el modelo React.', 'useActionState() and useFormStatus() integrate forms and async mutations with the React model.') },
+            { label: 'useOptimistic()', desc: tx('Hook oficial para mostrar estado optimista inmediatamente mientras una mutación termina en el servidor.', 'Official hook to immediately show optimistic state while a mutation finishes on the server.') },
+            { label: 'use() Hook', desc: tx('Permite consumir Promises y Context dentro del render con Suspense automático.', 'Allows consuming Promises and Context inside render with automatic Suspense.') },
+            { label: 'ref como Prop', desc: tx('Ya no hace falta forwardRef(). Las referencias se pasan directamente como prop ref.', 'forwardRef() is no longer needed. References are passed directly as the ref prop.') },
+            { label: 'Context como Provider', desc: tx('<Context> funciona directamente como provider sin necesitar <Context.Provider>.', '<Context> works directly as a provider without needing <Context.Provider>.') },
+          ]
+        },
+        {
+          version: 'React 18',
+          date: tx('Marzo 2022', 'March 2022'),
+          badge: 'LTS',
+          badgeColor: 'bg-blue-600',
+          features: [
+            { label: tx('Concurrent Mode Estable', 'Stable Concurrent Mode'), desc: tx('React puede interrumpir, pausar y reanudar renders. Base de features futuras.', 'React can interrupt, pause, and resume renders. Base for future features.') },
+            { label: 'useTransition & useDeferredValue', desc: tx('Marca actualizaciones de baja prioridad para no bloquear la UI durante renders costosos.', 'Marks low-priority updates to avoid blocking the UI during expensive renders.') },
+            { label: 'Automatic Batching', desc: tx('Múltiples setState dentro de async/await o eventos nativos se agrupan en un solo render.', 'Multiple setStates inside async/await or native events are batched into a single render.') },
+            { label: tx('Suspense para Data Fetching', 'Suspense for Data Fetching'), desc: tx('Suspense funciona con librerías de fetching (React Query, SWR, Relay) para mostrar fallback mientras carga.', 'Suspense works with fetching libraries (React Query, SWR, Relay) to show fallback while loading.') },
+            { label: 'useId()', desc: tx('Genera IDs únicos y estables entre server y client, resolviendo problemas de hidratación.', 'Generates unique and stable IDs between server and client, solving hydration issues.') },
+          ]
+        },
+        {
+          version: 'React 17',
+          date: tx('Octubre 2020', 'October 2020'),
+          badge: 'Stable',
+          badgeColor: 'bg-slate-500',
+          features: [
+            { label: tx('Nuevo JSX Transform', 'New JSX Transform'), desc: tx('Ya no es necesario importar React en cada archivo JSX. El compilador inyecta la importación automáticamente.', 'No longer necessary to import React in every JSX file. Compiler injects import automatically.') },
+            { label: tx('Event Delegation Cambia', 'Event Delegation Changes'), desc: tx('Los eventos ya no se delegan al document sino al root DOM node, solucionando conflictos con jQuery u otras libs.', 'Events are no longer delegated to the document but to the root DOM node, solving conflicts with jQuery or other libs.') },
+            { label: tx('Versión de Transición', 'Transition Version'), desc: tx('Sin cambios de API. Permite migrar apps gradualmente de v16 a v18 sin romper dependencias.', 'No API changes. Allows for gradual app migration from v16 to v18 without breaking dependencies.') },
+            { label: 'Async Stack Traces', desc: tx('Mejoras en el stack de errores para código async, facilitando el debugging.', 'Improved error stack for async code, making debugging easier.') },
+          ]
+        },
+        {
+          version: 'React 16',
+          date: tx('Septiembre 2017', 'September 2017'),
+          badge: 'Foundation',
+          badgeColor: 'bg-purple-700',
+          features: [
+            { label: 'Fiber Rewrite', desc: tx('Reescritura completa del motor de reconciliación (Fiber). Base de todo el concurrent model futuro.', 'Complete rewrite of the reconciliation engine (Fiber). Base for all future concurrent models.') },
+            { label: 'Error Boundaries', desc: tx('componentDidCatch y getDerivedStateFromError permiten capturar errores y mostrar UI alternativa.', 'componentDidCatch and getDerivedStateFromError allow catching errors and showing fallback UI.') },
+            { label: 'Portals', desc: tx('ReactDOM.createPortal() renderiza hijos fuera del árbol DOM del componente padre. Ideal para modales.', 'ReactDOM.createPortal() renders children outside the parent component DOM tree. Ideal for modals.') },
+            { label: 'Fragments', desc: tx('<></> permite retornar múltiples elementos sin wrapper div, evitando nodos DOM innecesarios.', '<></> allows returning multiple elements without wrapper div, avoiding unnecessary DOM nodes.') },
+            { label: 'Context API (v2)', desc: tx('Nueva Context API con React.createContext() reemplaza la experimental y mejora drásticamente el DX.', 'New Context API with React.createContext() replaces the experimental one and drastically improves DX.') },
+          ]
+        }
+      ]
     }
   };
+
+  const renderVersionContent = (content) => (
+    <div className="space-y-5">
+      {content.map((v, idx) => (
+        <div key={idx} className="bg-slate-900/50 border border-blue-500/20 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-lg font-bold text-blue-300">{v.version}</h3>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full text-white ${v.badgeColor}`}>{v.badge}</span>
+              </div>
+              <p className="text-slate-500 text-sm">{v.date}</p>
+            </div>
+          </div>
+          <ul className="space-y-2">
+            {v.features.map((f, fIdx) => (
+              <li key={fIdx} className="flex items-start gap-2">
+                <span className="text-blue-400 mt-0.5 text-xs">▸</span>
+                <div>
+                  <span className="font-semibold text-slate-200 text-sm">{f.label}: </span>
+                  <span className="text-slate-400 text-sm">{f.desc}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
 
   const renderSectionContent = (content) => {
     return (

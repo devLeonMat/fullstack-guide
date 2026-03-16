@@ -583,54 +583,54 @@ export class UsersComponent {
             content: [
                 {
                     version: 'Angular 20',
-                    date: 'Mayo 2025',
+                    date: tx('Mayo 2025', 'May 2025'),
                     badge: 'Latest',
                     badgeColor: 'bg-red-500',
                     features: [
-                        { label: 'Signal APIs Estables', desc: 'toSignal(), toObservable(), input(), output() y viewChild() llegan a estabilidad total.' },
-                        { label: 'Zoneless por Defecto (Opt-in)', desc: 'Angular puede funcionar sin Zone.js en proyectos nuevos, reduciendo el bundle ~20KB.' },
-                        { label: 'Resource API', desc: 'Nueva API experimental resource() para cargar datos asíncronos integrada con signals.' },
-                        { label: 'Hydration Incremental Estable', desc: 'Hidratación selectiva de partes del DOM, mejorando drásticamente el LCP en SSR.' },
-                        { label: 'Test Improvements', desc: 'Nuevas utilidades de testing para signals sin necesidad de fakeAsync.' },
+                        { label: tx('Signal APIs Estables', 'Stable Signal APIs'), desc: tx('toSignal(), toObservable(), input(), output() y viewChild() llegan a estabilidad total.', 'toSignal(), toObservable(), input(), output() and viewChild() reach full stability.') },
+                        { label: tx('Zoneless por Defecto (Opt-in)', 'Zoneless by Default (Opt-in)'), desc: tx('Angular puede funcionar sin Zone.js en proyectos nuevos, reduciendo el bundle ~20KB.', 'Angular can work without Zone.js in new projects, reducing the bundle by ~20KB.') },
+                        { label: 'Resource API', desc: tx('Nueva API experimental resource() para cargar datos asíncronos integrada con signals.', 'New experimental resource() API for loading async data integrated with signals.') },
+                        { label: tx('Hydration Incremental Estable', 'Stable Incremental Hydration'), desc: tx('Hidratación selectiva de partes del DOM, mejorando drásticamente el LCP en SSR.', 'Selective hydration of DOM parts, drastically improving LCP in SSR.') },
+                        { label: 'Test Improvements', desc: tx('Nuevas utilidades de testing para signals sin necesidad de fakeAsync.', 'New testing utilities for signals without needing fakeAsync.') },
                     ]
                 },
                 {
                     version: 'Angular 19',
-                    date: 'Noviembre 2024',
+                    date: tx('Noviembre 2024', 'November 2024'),
                     badge: 'Stable',
                     badgeColor: 'bg-emerald-600',
                     features: [
-                        { label: 'linkedSignal()', desc: 'Signal derivado que puede ser modificado. Permite state local que se resetea cuando una dependencia cambia.' },
-                        { label: 'Hydration Incremental (Preview)', desc: 'Hidratación lazy con @defer: partes del HTML se cargan solo cuando son necesarias.' },
-                        { label: 'HMR para Templates y Estilos', desc: 'Hot Module Replacement completo: los cambios en HTML y CSS se reflejan sin recarga total.' },
-                        { label: 'Strict Standalone por Defecto', desc: 'Todos los componentes nuevos son standalone=true por defecto. NgModules opcionales.' },
-                        { label: 'effect() Estable', desc: 'La API de efectos reactivos llega a estabilidad tras múltiples iteraciones de preview.' },
+                        { label: 'linkedSignal()', desc: tx('Signal derivado que puede ser modificado. Permite state local que se resetea cuando una dependencia cambia.', 'Modifiable derived signal. Allows local state that resets when a dependency changes.') },
+                        { label: tx('Hydration Incremental (Preview)', 'Incremental Hydration (Preview)'), desc: tx('Hidratación lazy con @defer: partes del HTML se cargan solo cuando son necesarias.', 'Lazy hydration with @defer: parts of HTML load only when necessary.') },
+                        { label: tx('HMR para Templates y Estilos', 'HMR for Templates and Styles'), desc: tx('Hot Module Replacement completo: los cambios en HTML y CSS se reflejan sin recarga total.', 'Full Hot Module Replacement: HTML and CSS changes reflect without full reload.') },
+                        { label: tx('Strict Standalone por Defecto', 'Strict Standalone by Default'), desc: tx('Todos los componentes nuevos son standalone=true por defecto. NgModules opcionales.', 'All new components are standalone=true by default. NgModules are optional.') },
+                        { label: tx('effect() Estable', 'Stable effect()'), desc: tx('La API de efectos reactivos llega a estabilidad tras múltiples iteraciones de preview.', 'Reactive effects API reaches stability after multiple preview iterations.') },
                     ]
                 },
                 {
                     version: 'Angular 18',
-                    date: 'Mayo 2024',
+                    date: tx('Mayo 2024', 'May 2024'),
                     badge: 'LTS',
                     badgeColor: 'bg-blue-600',
                     features: [
-                        { label: 'Zoneless (Experimental)', desc: 'Primera versión con soporte experimental para correr Angular completamente sin Zone.js.' },
-                        { label: 'Material 3 Estable', desc: 'Angular Material con diseño M3 (Material You) como opción estable.' },
-                        { label: 'Fallback para ng-content', desc: 'ng-content ahora soporta contenido por defecto cuando no se provee ningún slot.' },
-                        { label: 'TypeScript 5.4', desc: 'Soporte completo con mejoras de inferencia de tipos y NoInfer<T>.' },
-                        { label: 'Route Redirect como Función', desc: 'redirectTo puede ser una función, permitiendo redirects condicionales según contexto.' },
+                        { label: tx('Zoneless (Experimental)', 'Zoneless (Experimental)'), desc: tx('Primera versión con soporte experimental para correr Angular completamente sin Zone.js.', 'First version with experimental support to run Angular completely without Zone.js.') },
+                        { label: tx('Material 3 Estable', 'Stable Material 3'), desc: tx('Angular Material con diseño M3 (Material You) como opción estable.', 'Angular Material with M3 design (Material You) as a stable option.') },
+                        { label: tx('Fallback para ng-content', 'Fallback for ng-content'), desc: tx('ng-content ahora soporta contenido por defecto cuando no se provee ningún slot.', 'ng-content now supports default content when no slot is provided.') },
+                        { label: 'TypeScript 5.4', desc: tx('Soporte completo con mejoras de inferencia de tipos y NoInfer<T>.', 'Full support with type inference improvements and NoInfer<T>.') },
+                        { label: tx('Route Redirect como Función', 'Route Redirect as Function'), desc: tx('redirectTo puede ser una función, permitiendo redirects condicionales según contexto.', 'redirectTo can be a function, allowing conditional redirects based on context.') },
                     ]
                 },
                 {
                     version: 'Angular 17',
-                    date: 'Noviembre 2023',
+                    date: tx('Noviembre 2023', 'November 2023'),
                     badge: 'Foundation',
                     badgeColor: 'bg-purple-600',
                     features: [
-                        { label: 'Nueva Sintaxis de Control de Flujo', desc: '@if, @for, @switch en templates — más performante y sin *ngIf ni *ngFor.' },
-                        { label: 'Bloque @defer', desc: 'Lazy loading declarativo: @defer (on viewport), @loading, @error, @placeholder integrados.' },
-                        { label: 'Signals Estables (Core)', desc: 'signal(), computed(), effect() llegan a estabilidad como sistema reactivo principal.' },
-                        { label: 'Nuevo angular.dev', desc: 'Sitio de documentación rediseñado con tutoriales interactivos.' },
-                        { label: 'SSR Mejorado', desc: 'Hydration no destructiva estable. SSR habilitado por defecto en nuevos proyectos.' },
+                        { label: tx('Nueva Sintaxis de Control de Flujo', 'New Control Flow Syntax'), desc: tx('@if, @for, @switch en templates — más performante y sin *ngIf ni *ngFor.', '@if, @for, @switch in templates — more performant and without *ngIf or *ngFor.') },
+                        { label: tx('Bloque @defer', '@defer Block'), desc: tx('Lazy loading declarativo: @defer (on viewport), @loading, @error, @placeholder integrados.', 'Declarative lazy loading: integrated @defer (on viewport), @loading, @error, @placeholder.') },
+                        { label: tx('Signals Estables (Core)', 'Stable Signals (Core)'), desc: tx('signal(), computed(), effect() llegan a estabilidad como sistema reactivo principal.', 'signal(), computed(), effect() reach stability as the primary reactive system.') },
+                        { label: tx('Nuevo angular.dev', 'New angular.dev'), desc: tx('Sitio de documentación rediseñado con tutoriales interactivos.', 'Redesigned documentation site with interactive tutorials.') },
+                        { label: tx('SSR Mejorado', 'Improved SSR'), desc: tx('Hydration no destructiva estable. SSR habilitado por defecto en nuevos proyectos.', 'Stable non-destructive hydration. SSR enabled by default in new projects.') },
                     ]
                 }
             ]

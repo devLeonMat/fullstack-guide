@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Code, Box, Puzzle, Network, Coffee, Leaf, Atom, Triangle, Search, Server, Cloud, Terminal } from 'lucide-react';
+import { Code, Box, Puzzle, Network, Search, Cloud, Coffee } from 'lucide-react';
+import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript } from 'react-icons/si';
 import CleanCode from './components/CleanCode';
 import Solid from './components/Solid';
 import Patterns from './components/Patterns';
@@ -37,14 +38,14 @@ function App() {
     { id: 'solid', category: 'fundamentals', name: 'SOLID', icon: Box, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'patterns', category: 'fundamentals', name: 'Patterns', icon: Puzzle, color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
     { id: 'architecture', category: 'fundamentals', name: 'Architecture', icon: Network, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
-    { id: 'jsts', category: 'languages', name: t('common', language).tabJsTs, icon: Code, color: 'text-yellow-300', bgColor: 'bg-yellow-500/10' },
-    { id: 'node', category: 'backend', name: 'Node.js Pro', icon: Server, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
+    { id: 'jsts', category: 'languages', name: t('common', language).tabJsTs, icon: SiJavascript, color: 'text-yellow-300', bgColor: 'bg-yellow-500/10' },
+    { id: 'node', category: 'backend', name: 'Node.js Pro', icon: SiNodedotjs, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
     { id: 'java', category: 'languages', name: 'Java Pro', icon: Coffee, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
-    { id: 'spring', category: 'backend', name: 'Spring Pro', icon: Leaf, color: 'text-green-400', bgColor: 'bg-green-500/10' },
-    { id: 'react', category: 'frontend', name: 'React Pro', icon: Atom, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
-    { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: Triangle, color: 'text-red-400', bgColor: 'bg-red-500/10' },
+    { id: 'spring', category: 'backend', name: 'Spring Pro', icon: SiSpring, color: 'text-green-400', bgColor: 'bg-green-500/10' },
+    { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
+    { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
     { id: 'cloud', category: 'clouddevops', name: t('common', language).tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
-    { id: 'containers', category: 'clouddevops', name: t('common', language).tabContainers, icon: Terminal, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
+    { id: 'containers', category: 'clouddevops', name: t('common', language).tabContainers, icon: SiDocker, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
   ], [language]);
   const visibleTabs = tabs.filter((tab) => tab.category === activeCategory);
 
@@ -130,12 +131,20 @@ function App() {
     { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Stream API', preview: 'Procesamiento de colecciones funcional' },
     { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Records', preview: 'Clases de datos inmutables en Java 17+' },
     { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Virtual Threads', preview: 'Concurrencia ligera en Java 21' },
+    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Compact Source Files', preview: 'Java 25 LTS - programas sin boilerplate, sin public static void main' },
+    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Compact Object Headers', preview: 'Java 25 - headers de objeto reducidos de 128 a 64 bits, mejor rendimiento de memoria' },
+    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Primitive Types in Patterns', preview: 'Java 25 - pattern matching extendido a tipos primitivos (JEP 507)' },
+    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Scoped Values Final', preview: 'Java 25 - Scoped Values estable, alternativa inmutable y eficiente a ThreadLocal' },
 
     // Spring
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Core', title: 'Dependency Injection', preview: 'Inyección de dependencias en Spring' },
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Core', title: 'Bean Scopes', preview: 'Singleton, Prototype, Request, Session' },
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Data', title: 'JPA Repositories', preview: 'CRUD sin escribir SQL' },
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Boot', title: 'Spring Boot Starters', preview: 'Dependencias pre-configuradas' },
+    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Virtual Threads Out-of-the-Box', preview: 'Spring Boot 4 - soporte nativo de Project Loom, spring.threads.virtual.enabled=true' },
+    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Jakarta EE 11', preview: 'Spring Boot 4 - usa jakarta.* (no javax.*), requiere JDK 17+, idealmente JDK 25 LTS' },
+    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Null Safety con JSpecify', preview: 'Spring Framework 7 - @NullMarked, @Nullable, @NonNull para null-safety en compile-time' },
+    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Resilience Built-in', preview: 'Spring Framework 7 - @Retryable, @ConcurrencyLimit nativos sin Resilience4j externo' },
 
     // React
     { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Core', title: 'Virtual DOM', preview: 'Representación en memoria del DOM real' },

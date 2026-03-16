@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Triangle, Blocks, Layers, Workflow } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Blocks, Layers, Workflow } from 'lucide-react';
+import { SiAngular } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
@@ -573,8 +575,96 @@ export class UsersComponent {
                     ]
                 }
             ]
+        },
+        versions: {
+            title: tx('Últimas Versiones', 'Version History'),
+            subtitle: tx('Angular 17 → 20: Principales mejoras', 'Angular 17 → 20: Key improvements'),
+            isVersionSection: true,
+            content: [
+                {
+                    version: 'Angular 20',
+                    date: 'Mayo 2025',
+                    badge: 'Latest',
+                    badgeColor: 'bg-red-500',
+                    features: [
+                        { label: 'Signal APIs Estables', desc: 'toSignal(), toObservable(), input(), output() y viewChild() llegan a estabilidad total.' },
+                        { label: 'Zoneless por Defecto (Opt-in)', desc: 'Angular puede funcionar sin Zone.js en proyectos nuevos, reduciendo el bundle ~20KB.' },
+                        { label: 'Resource API', desc: 'Nueva API experimental resource() para cargar datos asíncronos integrada con signals.' },
+                        { label: 'Hydration Incremental Estable', desc: 'Hidratación selectiva de partes del DOM, mejorando drásticamente el LCP en SSR.' },
+                        { label: 'Test Improvements', desc: 'Nuevas utilidades de testing para signals sin necesidad de fakeAsync.' },
+                    ]
+                },
+                {
+                    version: 'Angular 19',
+                    date: 'Noviembre 2024',
+                    badge: 'Stable',
+                    badgeColor: 'bg-emerald-600',
+                    features: [
+                        { label: 'linkedSignal()', desc: 'Signal derivado que puede ser modificado. Permite state local que se resetea cuando una dependencia cambia.' },
+                        { label: 'Hydration Incremental (Preview)', desc: 'Hidratación lazy con @defer: partes del HTML se cargan solo cuando son necesarias.' },
+                        { label: 'HMR para Templates y Estilos', desc: 'Hot Module Replacement completo: los cambios en HTML y CSS se reflejan sin recarga total.' },
+                        { label: 'Strict Standalone por Defecto', desc: 'Todos los componentes nuevos son standalone=true por defecto. NgModules opcionales.' },
+                        { label: 'effect() Estable', desc: 'La API de efectos reactivos llega a estabilidad tras múltiples iteraciones de preview.' },
+                    ]
+                },
+                {
+                    version: 'Angular 18',
+                    date: 'Mayo 2024',
+                    badge: 'LTS',
+                    badgeColor: 'bg-blue-600',
+                    features: [
+                        { label: 'Zoneless (Experimental)', desc: 'Primera versión con soporte experimental para correr Angular completamente sin Zone.js.' },
+                        { label: 'Material 3 Estable', desc: 'Angular Material con diseño M3 (Material You) como opción estable.' },
+                        { label: 'Fallback para ng-content', desc: 'ng-content ahora soporta contenido por defecto cuando no se provee ningún slot.' },
+                        { label: 'TypeScript 5.4', desc: 'Soporte completo con mejoras de inferencia de tipos y NoInfer<T>.' },
+                        { label: 'Route Redirect como Función', desc: 'redirectTo puede ser una función, permitiendo redirects condicionales según contexto.' },
+                    ]
+                },
+                {
+                    version: 'Angular 17',
+                    date: 'Noviembre 2023',
+                    badge: 'Foundation',
+                    badgeColor: 'bg-purple-600',
+                    features: [
+                        { label: 'Nueva Sintaxis de Control de Flujo', desc: '@if, @for, @switch en templates — más performante y sin *ngIf ni *ngFor.' },
+                        { label: 'Bloque @defer', desc: 'Lazy loading declarativo: @defer (on viewport), @loading, @error, @placeholder integrados.' },
+                        { label: 'Signals Estables (Core)', desc: 'signal(), computed(), effect() llegan a estabilidad como sistema reactivo principal.' },
+                        { label: 'Nuevo angular.dev', desc: 'Sitio de documentación rediseñado con tutoriales interactivos.' },
+                        { label: 'SSR Mejorado', desc: 'Hydration no destructiva estable. SSR habilitado por defecto en nuevos proyectos.' },
+                    ]
+                }
+            ]
         }
     };
+
+    const renderVersionContent = (content) => (
+        <div className="space-y-5">
+            {content.map((v, idx) => (
+                <div key={idx} className="bg-slate-900/50 border border-red-500/20 rounded-xl p-5">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-lg font-bold text-red-300">{v.version}</h3>
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full text-white ${v.badgeColor}`}>{v.badge}</span>
+                            </div>
+                            <p className="text-slate-500 text-sm">{v.date}</p>
+                        </div>
+                    </div>
+                    <ul className="space-y-2">
+                        {v.features.map((f, fIdx) => (
+                            <li key={fIdx} className="flex items-start gap-2">
+                                <span className="text-red-400 mt-0.5 text-xs">▸</span>
+                                <div>
+                                    <span className="font-semibold text-slate-200 text-sm">{f.label}: </span>
+                                    <span className="text-slate-400 text-sm">{f.desc}</span>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            ))}
+        </div>
+    );
 
     const renderSectionContent = (content) => {
         return (
@@ -582,7 +672,7 @@ export class UsersComponent {
                 {content.map((item, idx) => (
                     <div key={idx} className="bg-slate-900/50 border border-red-500/30 rounded-xl p-6">
                         <div className="flex items-start gap-3 mb-4">
-                            <Triangle className="w-6 h-6 text-red-400 mt-1" />
+                            <SiAngular className="w-6 h-6 text-red-400 mt-1" />
                             <div className="flex-1">
                                 <h3 className="text-xl font-bold text-red-400">{item.topic}</h3>
                                 <p className="text-slate-400 text-sm">{item.desc}</p>
@@ -618,11 +708,11 @@ export class UsersComponent {
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-red-400 mb-4 flex items-center gap-2">
-                    <Triangle className="w-6 h-6" />
+                    <SiAngular className="w-6 h-6" />
                     {t('angular', language).title}
                 </h3>
                 {sectionList.map((section) => {
-                    const Icon = section.id === 'blocks' ? Blocks : section.id === 'reactivity' ? Layers : Workflow;
+          const Icon = section.id === 'blocks' ? Blocks : section.id === 'reactivity' ? Layers : section.id === 'versions' ? SiAngular : Workflow;
                     return (
                         <button
                             key={section.id}
@@ -649,7 +739,10 @@ export class UsersComponent {
                     <p className="text-slate-400">{currentSection.subtitle}</p>
                 </div>
                 <div className="animate-fade-in">
-                    {renderSectionContent(currentSection.content)}
+                    {currentSection.isVersionSection
+                    ? renderVersionContent(currentSection.content)
+                    : renderSectionContent(currentSection.content)
+                }
                 </div>
             </div>
         </div>

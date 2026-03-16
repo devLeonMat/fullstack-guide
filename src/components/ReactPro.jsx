@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Atom, Layers, Puzzle, MessageCircleQuestion } from 'lucide-react';
+import { Layers, Puzzle, MessageCircleQuestion } from 'lucide-react';
+import { SiReact } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
@@ -514,7 +515,7 @@ function Layout({ header, sidebar, content, footer }) {
         {content.map((item, idx) => (
           <div key={idx} className="bg-slate-900/50 border border-blue-500/30 rounded-xl p-6">
             <div className="flex items-start gap-3 mb-4">
-              <Atom className="w-6 h-6 text-blue-400 mt-1" />
+              <SiReact className="w-6 h-6 text-blue-400 mt-1" />
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-blue-400">{item.topic}</h3>
                 <p className="text-slate-400 text-sm">{item.desc}</p>
@@ -554,11 +555,11 @@ function Layout({ header, sidebar, content, footer }) {
       {/* Sidebar */}
       <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
         <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-          <Atom className="w-6 h-6" />
+          <SiReact className="w-6 h-6" />
           {t('react', language).title}
         </h3>
         {sectionList.map((section) => {
-          const Icon = section.id === 'core' ? Layers : section.id === 'hooks' ? Atom : Puzzle;
+          const Icon = section.id === 'core' ? Layers : section.id === 'hooks' ? SiReact : section.id === 'versions' ? SiReact : Puzzle;
           return (
             <button
               key={section.id}
@@ -585,7 +586,10 @@ function Layout({ header, sidebar, content, footer }) {
           <p className="text-slate-400">{currentSection.subtitle}</p>
         </div>
         <div className="animate-fade-in">
-          {renderSectionContent(currentSection.content)}
+          {currentSection.isVersionSection
+            ? renderVersionContent(currentSection.content)
+            : renderSectionContent(currentSection.content)
+          }
         </div>
       </div>
     </div>

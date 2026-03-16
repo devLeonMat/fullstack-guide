@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Cpu, Layers, MessageCircleQuestion } from 'lucide-react';
+import { Cpu, Layers, MessageCircleQuestion, Coffee } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
@@ -60,7 +60,7 @@ function JavaPro() {
     const sections = {
         features: {
             id: 'features',
-            title: 'Features Java 8-21',
+            title: 'Features Java 8-25',
             subtitle: 'Características modernas / Modern features',
             icon: Coffee,
             content: [
@@ -114,6 +114,19 @@ function JavaPro() {
                         { name: 'Scoped Values (Preview)', desc: 'Alternativa a ThreadLocal', code: 'final static ScopedValue<String> USER =\n  ScopedValue.newInstance();\n\nScopedValue.where(USER, "John")\n  .run(() -> process());' },
                         { name: 'Structured Concurrency (Preview)', desc: 'Gestión estructurada de threads', code: 'try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {\n  Future<String> user = scope.fork(() -> fetchUser());\n  Future<Integer> order = scope.fork(() -> fetchOrder());\n  scope.join();\n}' },
                         { name: 'Generational ZGC', desc: 'ZGC generacional mejorado', code: '-XX:+UseZGC -XX:+ZGenerational' }
+                    ]
+                },
+                {
+                    version: 'Java 25 LTS (2025)',
+                    features: [
+                        { name: 'Compact Source Files (JEP 512)', desc: 'Programas simples sin boilerplate - elimina class, public static void main', code: '// Java 25 - No necesitas class ni public static void main\nvoid main() {\n  System.out.println("Hello, Java 25!");\n}\n\n// Equivalente al clásico:\npublic class HelloWorld {\n  public static void main(String[] args) {\n    System.out.println("Hello, World!");\n  }\n}' },
+                        { name: 'Module Import Declarations (JEP 511)', desc: 'Importar todos los paquetes de un módulo con una sola sentencia', code: '// Importar todo java.base en un solo import\nimport module java.base;\n\n// En lugar de múltiples imports:\n// import java.util.List;\n// import java.util.Map;\n// import java.io.IOException;\n\nvoid main() {\n  var list = List.of("Java", "25");\n  var map = Map.of("version", 25);\n  list.forEach(System.out::println);\n}' },
+                        { name: 'Flexible Constructor Bodies (JEP 513)', desc: 'El constructor es más flexible - super()/this() ya no debe ser la primera línea obligatoria', code: 'class Vehicle {\n  final int speed;\n  Vehicle(int speed) { this.speed = speed; }\n}\n\nclass Car extends Vehicle {\n  Car(int speed) {\n    // Java 25: código ANTES de super()\n    if (speed < 0) throw new IllegalArgumentException("Speed can\'t be negative");\n    int clamped = Math.min(speed, 300);\n    super(clamped); // ya no debe ser la primera línea\n  }\n}' },
+                        { name: 'Primitive Types in Patterns (JEP 507)', desc: 'Pattern matching extendido a tipos primitivos - unifica primitivos y objetos', code: 'Object value = 42;\n\n// Pattern matching con primitivos\nswitch (value) {\n  case int i when i > 0 -> System.out.println("Positive: " + i);\n  case int i            -> System.out.println("Non-positive: " + i);\n  case long l           -> System.out.println("Long: " + l);\n  case String s         -> System.out.println("String: " + s);\n  default               -> System.out.println("Other");\n}\n\n// instanceof con primitivos\nif (value instanceof int i) {\n  System.out.println("It\'s an int: " + i);\n}' },
+                        { name: 'Compact Object Headers (JEP 519)', desc: 'Encabezados de objeto reducidos de 128 a 64 bits - menor huella de memoria, mejor cache', code: '// Comportamiento automático - no requiere cambios en código\n// Antes (Java < 25): objeto ocupa ~16 bytes de overhead (128 bits header)\n// Java 25: objeto ocupa ~8 bytes de overhead (64 bits header)\n\n// Resultado: mejora de densidad en el heap (~10-15%)\n// Más objetos caben en el mismo espacio de memoria\n// Mejor rendimiento de caché L1/L2\n\n// Benchmark aproximado:\n// record Point(int x, int y) {}\n// Antes: ~24 bytes por objeto\n// Java 25: ~16 bytes por objeto - 33% más eficiente' },
+                        { name: 'Scoped Values - Final (JEP 506)', desc: 'Alternativa inmutable a ThreadLocal - ahora feature estable (era Preview en Java 21)', code: '// Scoped Values - ahora ESTABLE en Java 25\nfinal static ScopedValue<String> CURRENT_USER = ScopedValue.newInstance();\nfinal static ScopedValue<String> REQUEST_ID   = ScopedValue.newInstance();\n\n// Compartir datos de forma segura entre threads\nScopedValue\n  .where(CURRENT_USER, "john@example.com")\n  .where(REQUEST_ID, "req-abc-123")\n  .run(() -> {\n    processOrder();       // puede leer CURRENT_USER\n    sendNotification();   // puede leer REQUEST_ID\n  });\n\nvoid processOrder() {\n  String user = CURRENT_USER.get(); // "john@example.com"\n  // thread-safe, inmutable, más eficiente que ThreadLocal\n}' },
+                        { name: 'Structured Concurrency (JEP 505)', desc: '5ta Preview - nuevo API Joiner y factory methods para StructuredTaskScope', code: '// Structured Concurrency - 5ta Preview en Java 25\n// Nuevo: Joiner API y factory methods\ntry (var scope = StructuredTaskScope.open()) {\n  var userFuture  = scope.fork(() -> fetchUser(userId));\n  var orderFuture = scope.fork(() -> fetchOrders(userId));\n  var stockFuture = scope.fork(() -> checkStock(itemId));\n\n  scope.join(); // espera todos los subtasks\n\n  // Si alguno falla, cancela los demás automáticamente\n  User user     = userFuture.get();\n  List orders   = orderFuture.get();\n  int stock     = stockFuture.get();\n}' },
+                        { name: 'Generational Shenandoah GC (JEP 521)', desc: 'Shenandoah GC con modelo generacional - pausas más cortas para objetos de vida corta', code: '// Activar Generational Shenandoah en Java 25\njava -XX:+UseShenandoahGC \\\n     -XX:ShenandoahGCMode=generational \\\n     -Xmx8g MyApp\n\n// Características:\n// - Pausas sub-milisegundo para Young Generation\n// - Compatible con objetos de vida corta (web requests, etc.)\n// - Compactación concurrente sin stop-the-world\n// - Alternativa a ZGC para equipos que prefieren Shenandoah\n\n// Comparativa de pausas (aprox.):\n// G1 GC:              ~100-200ms\n// ZGC Generational:   <10ms\n// Shenandoah Gen:     <5ms' }
                     ]
                 }
             ]

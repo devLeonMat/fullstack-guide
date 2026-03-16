@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, ShipWheel, Terminal } from 'lucide-react';
+import { ShipWheel } from 'lucide-react';
+import { SiDocker, SiKubernetes } from 'react-icons/si';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
 
@@ -9,13 +10,13 @@ function ContainersPro() {
     const [activeSection, setActiveSection] = useState('docker');
 
     const iconMap = {
-        docker: ShipWheel,
-        kubernetes: Box
+        docker: SiDocker,
+        kubernetes: SiKubernetes
     };
 
     const sectionList = Object.values(containersData.sections).map((section) => ({
         ...section,
-        icon: iconMap[section.id] || Terminal
+        icon: iconMap[section.id] || ShipWheel
     }));
     const currentSection = sectionList.find((section) => section.id === activeSection) || sectionList[0];
     const SectionIcon = currentSection.icon;
@@ -24,7 +25,7 @@ function ContainersPro() {
         <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-teal-400 mb-4 flex items-center gap-2">
-                    <Terminal className="w-6 h-6" />
+                    <SiDocker className="w-6 h-6" />
                     {containersData.appTitle}
                 </h3>
                 {sectionList.map((section) => {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Server, Zap, MessageCircleQuestion } from 'lucide-react';
+import { Zap, MessageCircleQuestion } from 'lucide-react';
+import { SiNodedotjs } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
@@ -56,7 +57,7 @@ function NodePro() {
       id: 'fundamentals',
       title: tx('Fundamentos', 'Fundamentals'),
       subtitle: 'Event Loop, Modules, NPM, Streams & Core Concepts',
-      icon: Server,
+      icon: SiNodedotjs,
       content: [
         {
           topic: 'Event Loop & Non-blocking I/O / Event Loop e I/O No Bloqueante',
@@ -457,7 +458,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
               className="w-full flex items-center justify-between p-6 hover:bg-slate-900/70 transition-colors text-left"
             >
               <div className="flex items-center gap-3">
-                <Server className="w-6 h-6 text-emerald-400" />
+                <SiNodedotjs className="w-6 h-6 text-emerald-400" />
                 <h3 className="text-xl font-bold text-emerald-400">{pickSlash(item.topic)}</h3>
               </div>
               <motion.div
@@ -656,7 +657,7 @@ server.listen().then(({ url }) => console.log(\`Server at \${url}\`));`,
       {/* Sidebar */}
       <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
         <h3 className="text-lg font-bold text-emerald-400 mb-4 flex items-center gap-2">
-          <Server className="w-6 h-6" />
+          <SiNodedotjs className="w-6 h-6" />
           {t('node', language).title}
         </h3>
         {sectionList.map((section) => {

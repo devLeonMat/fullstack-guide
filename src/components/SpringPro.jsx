@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Leaf, Database, Zap, MessageCircleQuestion } from 'lucide-react';
+import { Database, Zap, MessageCircleQuestion } from 'lucide-react';
+import { SiSpring } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
@@ -44,7 +45,7 @@ function SpringPro() {
             id: 'core',
             title: 'Core (DI & IoC)',
             subtitle: tx('Inyección de dependencias e inversión de control', 'Dependency Injection & Inversion of Control'),
-            icon: Leaf,
+            icon: SiSpring,
             content: [
                 {
                     topic: 'Dependency Injection',
@@ -544,6 +545,267 @@ public class UserService {
                     ]
                 }
             ]
+        },
+        boot4: {
+            id: 'boot4',
+            title: 'Spring Boot 4 (2025)',
+            subtitle: tx('Novedades de Spring Boot 4 y Spring Framework 7', 'Spring Boot 4 & Spring Framework 7 - Nov 2025'),
+            icon: Zap,
+            content: [
+                {
+                    topic: 'Jakarta EE 11 & Nueva Baseline',
+                    description: tx('Spring Boot 4 requiere mínimo JDK 17, idealmente JDK 25 LTS. Alinea con Jakarta EE 11 (Servlet 6.1, JPA 3.2, Bean Validation 3.1)', 'Spring Boot 4 requires JDK 17 minimum, ideally JDK 25 LTS. Aligns with Jakarta EE 11 (Servlet 6.1, JPA 3.2, Bean Validation 3.1)'),
+                    code: `<!-- pom.xml - Spring Boot 4 -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.0</version>
+</parent>
+
+<properties>
+    <!-- JDK 25 LTS recomendado para aprovechar Virtual Threads -->
+    <java.version>25</java.version>
+</properties>
+
+<!-- Ahora usa Jakarta EE 11 (no javax.*) -->
+<!-- Servlet 6.1, JPA 3.2, Bean Validation 3.1 -->
+<!-- Tomcat 11+ o Jetty 12.1+ requeridos -->
+
+<!-- Kotlin 2.2 soportado nativamente -->
+<dependency>
+    <groupId>org.jetbrains.kotlin</groupId>
+    <artifactId>kotlin-stdlib</artifactId>
+</dependency>`,
+                    points: [
+                        tx('JDK 17 mínimo, JDK 25 LTS recomendado para Virtual Threads', 'JDK 17 minimum, JDK 25 LTS recommended for Virtual Threads'),
+                        tx('Jakarta EE 11: usa jakarta.* en lugar de javax.*', 'Jakarta EE 11: use jakarta.* instead of javax.*'),
+                        tx('Tomcat 11+ o Jetty 12.1+ como servidores embebidos', 'Tomcat 11+ or Jetty 12.1+ as embedded servers'),
+                        tx('Kotlin 2.2: integración mejorada con coroutines', 'Kotlin 2.2: improved coroutine integration'),
+                        tx('Spring Framework 7.0 como base (released Nov 2025)', 'Spring Framework 7.0 as foundation (released Nov 2025)')
+                    ]
+                },
+                {
+                    topic: 'Virtual Threads Out-of-the-Box',
+                    description: tx('Spring Boot 4 soporta Virtual Threads (Project Loom) sin configuración adicional. Maneja millones de requests con menos memoria', 'Spring Boot 4 supports Virtual Threads (Project Loom) out-of-the-box. Handles millions of requests with less memory'),
+                    code: `# application.properties - Spring Boot 4
+# Habilitar Virtual Threads (default en SB4 con JDK 21+)
+spring.threads.virtual.enabled=true
+
+# Tomcat usa Virtual Threads automáticamente
+# No necesitas configurar thread pools manualmente
+
+# Resultado: cada request HTTP corre en un Virtual Thread
+# - Antes (SB3): 200-400 platform threads por instancia
+# - SB4 + Virtual Threads: millones de threads ligeros
+
+// También disponible en código
+@Bean
+public TomcatProtocolHandlerCustomizer<?> protocolHandler() {
+    return handler -> handler
+        .setExecutor(Executors.newVirtualThreadPerTaskExecutor());
+}`,
+                    points: [
+                        tx('spring.threads.virtual.enabled=true - configuración simple', 'spring.threads.virtual.enabled=true - simple config'),
+                        tx('Tomcat y Jetty usan Virtual Threads automáticamente', 'Tomcat and Jetty use Virtual Threads automatically'),
+                        tx('Escala a millones de conexiones concurrentes', 'Scales to millions of concurrent connections'),
+                        tx('Sin cambios en tu código de negocio existente', 'No changes to your existing business code'),
+                        tx('Requiere JDK 21+ (JDK 25 LTS recomendado)', 'Requires JDK 21+ (JDK 25 LTS recommended)')
+                    ]
+                },
+                {
+                    topic: 'Modular Auto-Configuration',
+                    description: tx('Spring Boot 4 carga solo los módulos necesarios - reduce startup time, menor consumo de memoria y gestión de deps más limpia', 'Spring Boot 4 loads only necessary modules — reduces startup time, lower memory and cleaner dependency management'),
+                    code: `// Spring Boot 4 - Auto-Configuration modular
+// Solo carga lo que necesitas (lazy por defecto)
+
+// application.properties
+spring.autoconfigure.lazy=true  // nueva opción
+
+// O excluir módulos específicos:
+@SpringBootApplication(exclude = {
+    DataSourceAutoConfiguration.class,
+    JpaRepositoriesAutoConfiguration.class
+})
+public class Application {
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+}
+
+// Nuevo: Auto-Configuration condicional más granular
+@AutoConfiguration
+@ConditionalOnProperty("feature.payments.enabled")
+public class PaymentAutoConfiguration {
+    @Bean
+    public PaymentService paymentService() {
+        return new StripePaymentService();
+    }
+}`,
+                    points: [
+                        tx('Carga lazy de módulos - solo lo que se usa', 'Lazy loading of modules - only what is used'),
+                        tx('spring.autoconfigure.lazy=true para startup más rápido', 'spring.autoconfigure.lazy=true for faster startup'),
+                        tx('@AutoConfiguration reemplaza @Configuration legacy', '@AutoConfiguration replaces legacy @Configuration'),
+                        tx('Reducción de startup time hasta 40% en apps grandes', 'Up to 40% startup time reduction in large apps'),
+                        tx('Mejor compatibilidad con GraalVM Native Image', 'Better GraalVM Native Image compatibility')
+                    ]
+                },
+                {
+                    topic: 'Null Safety con JSpecify',
+                    description: tx('Spring Framework 7 adopta JSpecify annotations para null-safety completa en compile-time. Menos NullPointerExceptions en producción', 'Spring Framework 7 adopts JSpecify annotations for complete compile-time null-safety. Fewer NullPointerExceptions in production'),
+                    code: `import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+
+// @NullMarked hace toda la clase null-safe por defecto
+@NullMarked
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    
+    // @Nullable marca explícitamente parámetros opcionales
+    @GetMapping
+    public List<User> getUsers(@Nullable String filter) {
+        if (filter == null) return userService.findAll();
+        return userService.findByFilter(filter);
+    }
+    
+    // @NonNull garantiza que no puede ser null
+    @PostMapping
+    public User create(@NonNull @RequestBody User user) {
+        return userService.save(user);
+    }
+}
+
+// El compilador detecta posibles null en compile-time
+// Compatible con Kotlin null-safety (!)`,
+                    points: [
+                        tx('JSpecify: estándar de null-safety para Java', 'JSpecify: null-safety standard for Java'),
+                        tx('@NullMarked, @Nullable, @NonNull annotations', '@NullMarked, @Nullable, @NonNull annotations'),
+                        tx('Detección de nulls en compile-time con tu IDE', 'Compile-time null detection with your IDE'),
+                        tx('Integración perfecta con null-safety de Kotlin', 'Perfect integration with Kotlin null-safety'),
+                        tx('Spring API completa anotada con JSpecify en SF7', 'Spring full API annotated with JSpecify in SF7')
+                    ]
+                },
+                {
+                    topic: 'Versionado de API REST Nativo',
+                    description: tx('Spring Framework 7 incluye soporte nativo para versionar APIs REST con múltiples estrategias built-in', 'Spring Framework 7 includes native REST API versioning with multiple built-in strategies'),
+                    code: `// Spring Framework 7 - API Versioning nativo
+// Estrategia 1: Path-based
+@RestController
+@RequestMapping("/api")
+public class UserController {
+    
+    @GetMapping("/v1/users")
+    @ApiVersion("1.0")
+    public List<UserV1> getUsersV1() { /* ... */ }
+    
+    @GetMapping("/v2/users")
+    @ApiVersion("2.0")
+    public List<UserV2> getUsersV2() { /* ... */ }
+}
+
+// Estrategia 2: Header-based
+// GET /api/users + Header: API-Version: 2.0
+
+// Estrategia 3: Query Parameter
+// GET /api/users?version=2.0
+
+// application.properties
+spring.mvc.versioning.strategy=path  # path | header | query
+spring.mvc.versioning.header=API-Version
+spring.mvc.versioning.default-version=1.0
+
+// Deprecation automática
+@ApiVersion(value = "1.0", deprecated = true, sunset = "2026-01-01")`,
+                    points: [
+                        tx('Soporte nativo sin librerías externas', 'Native support without external libraries'),
+                        tx('Estrategias: path, header, query param, media type', 'Strategies: path, header, query param, media type'),
+                        tx('@ApiVersion: anotación declarativa por endpoint', '@ApiVersion: declarative annotation per endpoint'),
+                        tx('Deprecation handling con fechas sunset automáticas', 'Deprecation handling with automatic sunset dates'),
+                        tx('spring.mvc.versioning.* en application.properties', 'spring.mvc.versioning.* in application.properties')
+                    ]
+                },
+                {
+                    topic: 'Resilience Built-in (SF7)',
+                    description: tx('Spring Framework 7 integra patrones de resiliencia directamente: retry, circuit breaker, rate limiting, sin Resilience4j externo', 'Spring Framework 7 integrates resilience patterns natively: retry, circuit breaker, rate limiting, without external Resilience4j'),
+                    code: `import org.springframework.resilience.annotation.*;
+
+// Spring Framework 7 - Resilience nativo
+@Service
+@EnableResilientMethods
+public class PaymentService {
+    
+    // Retry automático con backoff exponencial
+    @Retryable(
+        retries = 3,
+        delay = 1000L,
+        backoff = @Backoff(multiplier = 2.0)
+    )
+    public Payment processPayment(Order order) {
+        return externalPaymentGateway.charge(order);
+    }
+    
+    // Límite de concurrencia
+    @ConcurrencyLimit(maxConcurrentCalls = 10)
+    public List<Product> fetchFromSlowAPI() {
+        return externalApi.getProducts();
+    }
+    
+    // Fallback automático si falla
+    public Payment fallback(Order order, Exception ex) {
+        return Payment.queued(order); // procesar después
+    }
+}`,
+                    points: [
+                        tx('@Retryable: retry con backoff exponencial nativo', '@Retryable: retry with native exponential backoff'),
+                        tx('@ConcurrencyLimit: rate limiting por método', '@ConcurrencyLimit: method-level rate limiting'),
+                        tx('@EnableResilientMethods: habilita en la clase', '@EnableResilientMethods: enables on class level'),
+                        tx('Fallback methods declarativos por anotación', 'Declarative fallback methods via annotation'),
+                        tx('Sin dependencias externas (Resilience4j opcional)', 'No external dependencies (Resilience4j optional)')
+                    ]
+                },
+                {
+                    topic: 'Observabilidad: Micrometer 2.x + OpenTelemetry',
+                    description: tx('Spring Boot 4 ofrece observabilidad profunda con Micrometer 2.x y OpenTelemetry nativo. Trazas, métricas y logs unificados', 'Spring Boot 4 offers deep observability with Micrometer 2.x and native OpenTelemetry. Traces, metrics and logs unified'),
+                    code: `# application.properties - Observabilidad SB4
+
+# OpenTelemetry nativo (OTLP)
+management.otlp.tracing.endpoint=http://otel-collector:4318/v1/traces
+management.tracing.sampling.probability=1.0
+
+# Micrometer 2.x - exportar métricas
+management.prometheus.metrics.export.enabled=true
+management.endpoints.web.exposure.include=health,metrics,info,prometheus
+
+// En código - Observación automática
+@Service
+public class OrderService {
+    
+    private final ObservationRegistry registry;
+    
+    // @Observed - traza automática sin código extra
+    @Observed(name = "order.process", contextualName = "ProcessOrder")
+    public Order processOrder(OrderRequest req) {
+        // Spring crea spans automáticamente
+        // Logs correlacionados con traceId
+        return createOrder(req);
+    }
+}
+
+// Métricas personalizadas
+Counter.builder("orders.created")
+    .tag("status", "success")
+    .register(registry)
+    .increment();`,
+                    points: [
+                        tx('Micrometer 2.x: API de observabilidad unificada', 'Micrometer 2.x: unified observability API'),
+                        tx('@Observed: tracing automático sin boilerplate', '@Observed: automatic tracing without boilerplate'),
+                        tx('OpenTelemetry OTLP nativo - compatible con Jaeger, Zipkin', 'Native OpenTelemetry OTLP - compatible with Jaeger, Zipkin'),
+                        tx('Logs correlacionados con traceId y spanId', 'Logs correlated with traceId and spanId'),
+                        tx('Exportar a Prometheus, Datadog, New Relic, etc.', 'Export to Prometheus, Datadog, New Relic, etc.')
+                    ]
+                }
+            ]
         }
     };
 
@@ -556,7 +818,7 @@ public class UserService {
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
                 <h3 className="text-lg font-bold text-green-400 mb-4 flex items-center gap-2">
-                    <Leaf className="w-6 h-6" />
+                    <SiSpring className="w-6 h-6" />
                     {t('spring', language).title}
                 </h3>
                 {sectionList.map((section) => {

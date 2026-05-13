@@ -121,7 +121,7 @@ function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
                         margin: 0,
                         paddingTop: '2rem',
                         background: '#272822',
-                        fontSize: '0.875rem',
+                        fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
                     }}
                     codeTagProps={{
                         style: {

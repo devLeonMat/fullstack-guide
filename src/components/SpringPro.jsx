@@ -814,40 +814,42 @@ Counter.builder("orders.created")
     const SectionIcon = currentSection.icon;
 
     return (
-        <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
             {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
-                <h3 className="text-lg font-bold text-green-400 mb-4 flex items-center gap-2">
-                    <SiSpring className="w-6 h-6" />
+            <div className="lg:col-span-1 lg:overflow-y-auto lg:pr-2">
+                <h3 className="text-base lg:text-lg font-bold text-green-400 mb-2 lg:mb-4 flex items-center gap-2">
+                    <SiSpring className="w-5 h-5 lg:w-6 lg:h-6" />
                     {t('spring', language).title}
                 </h3>
+                <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
                 {sectionList.map((section) => {
                     const Icon = section.icon;
                     return (
                         <button
                             key={section.id}
                             onClick={() => setActiveSection(section.id)}
-                            className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${activeSection === section.id
+                            className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all flex items-center gap-2 lg:gap-3 ${activeSection === section.id
                                 ? 'bg-green-500/20 border border-green-500/50 text-green-300'
                                 : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                                 }`}
                         >
-                            <Icon className="w-5 h-5" />
-                            <div className="flex-1">
-                                <div className="font-semibold">{section.title}</div>
-                                <div className="text-xs opacity-70 line-clamp-1">{section.subtitle}</div>
+                            <Icon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-sm lg:text-base whitespace-nowrap lg:whitespace-normal">{section.title}</div>
+                                <div className="hidden lg:block text-xs opacity-70 line-clamp-1">{section.subtitle}</div>
                             </div>
                         </button>
                     );
                 })}
+                </div>
             </div>
 
             {/* Content Panel */}
-            <div className="lg:col-span-3 overflow-y-auto pr-2">
-                <div className="mb-6">
+            <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2">
+                <div className="mb-4 lg:mb-6">
                     <div className="flex items-center gap-3 mb-2">
-                        <SectionIcon className="w-8 h-8 text-green-400" />
-                        <h2 className="text-3xl font-bold text-green-400">{currentSection.title}</h2>
+                        <SectionIcon className="w-6 h-6 lg:w-8 lg:h-8 text-green-400" />
+                        <h2 className="text-xl lg:text-3xl font-bold text-green-400">{currentSection.title}</h2>
                     </div>
                     <p className="text-slate-400">{currentSection.subtitle}</p>
                 </div>

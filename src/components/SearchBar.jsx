@@ -46,7 +46,7 @@ function SearchBar({ isOpen, onClose, onSearch, results }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm pt-20">
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm pt-16 md:pt-20 px-4 md:px-0">
             <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden animate-fade-in">
                 {/* Search Input */}
                 <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700">
@@ -68,7 +68,7 @@ function SearchBar({ isOpen, onClose, onSearch, results }) {
                 </div>
 
                 {/* Results */}
-                <div className="max-h-[500px] overflow-y-auto">
+                <div className="max-h-[60vh] md:max-h-[500px] overflow-y-auto">
                     {query.length === 0 ? (
                         <div className="p-8 text-center text-slate-500">
                             <Command className="w-12 h-12 mx-auto mb-3 opacity-50" />

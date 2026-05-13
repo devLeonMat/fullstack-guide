@@ -745,12 +745,13 @@ const user = new UserBuilder()
   const Icon = currentPattern.icon;
 
   return (
-    <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
       {/* Sidebar */}
-      <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
-        <h3 className="text-lg font-bold text-purple-400 mb-4">
+      <div className="lg:col-span-1 lg:overflow-y-auto lg:pr-2">
+        <h3 className="text-base lg:text-lg font-bold text-purple-400 mb-2 lg:mb-4">
           {t('patterns', language).title}
         </h3>
+        <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
         {patternList.map((pattern) => {
           const PatternIcon = pattern.icon;
           return (
@@ -758,25 +759,26 @@ const user = new UserBuilder()
               key={pattern.id}
               onClick={() => {
                 setSelectedPattern(pattern.id);
-                setIsCodeExpanded(false); // Reset code expansion when changing pattern
+                setIsCodeExpanded(false);
               }}
-              className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${selectedPattern === pattern.id
+              className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all flex items-center gap-2 lg:gap-3 ${selectedPattern === pattern.id
                 ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300'
                 : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                 }`}
             >
-              <PatternIcon className="w-5 h-5" />
-              <div className="flex-1">
-                <div className="font-semibold">{pattern.name}</div>
-                <div className="text-xs opacity-70 line-clamp-1">{pattern.category}</div>
+              <PatternIcon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-sm lg:text-base whitespace-nowrap lg:whitespace-normal">{pattern.name}</div>
+                <div className="hidden lg:block text-xs opacity-70 line-clamp-1">{pattern.category}</div>
               </div>
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Detail Panel */}
-      <div className="lg:col-span-3 overflow-y-auto pr-2">
+      <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2">
         <AnimatePresence mode="wait">
           <motion.div
             key={selectedPattern}
@@ -792,7 +794,7 @@ const user = new UserBuilder()
                 <Icon className="w-10 h-10 text-purple-400" />
               </div>
               <div className="flex-1">
-                <h3 className="text-3xl font-bold text-purple-400">{currentPattern.name}</h3>
+                <h3 className="text-xl lg:text-3xl font-bold text-purple-400">{currentPattern.name}</h3>
                 <p className="text-slate-400 text-sm">{currentPattern.category} Pattern</p>
                 <p className="text-slate-300 mt-2">{currentPattern.description}</p>
               </div>
@@ -807,7 +809,7 @@ const user = new UserBuilder()
             </div>
 
             {/* Advantages, Disadvantages, When to Use */}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Advantages */}
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6">
                 <h4 className="text-green-400 font-bold mb-4 flex items-center gap-2">

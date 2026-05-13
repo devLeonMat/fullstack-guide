@@ -237,9 +237,14 @@ function App() {
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
-                {t('common', language).appTitle}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
+                  {t('common', language).appTitle}
+                </h1>
+                <span className="px-2 py-0.5 text-xs font-mono font-semibold rounded-full bg-slate-800 border border-slate-600 text-slate-400">
+                  v{__APP_VERSION__}
+                </span>
+              </div>
               <p className="text-slate-400 text-sm mt-1">
                 {t('common', language).appSubtitle}
               </p>

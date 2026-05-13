@@ -107,6 +107,83 @@ body {
 [data-theme="light"] ::-webkit-scrollbar-track { background: #e2e8f0 !important; }
 [data-theme="light"] ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #94a3b8, #64748b) !important; border-color: #e2e8f0 !important; }
 
+/* Light mode: strengthen low-opacity accent backgrounds so they're visible */
+[data-theme="light"] .bg-amber-500\/10  { background-color: rgba(245,158,11,0.15) !important; }
+[data-theme="light"] .bg-amber-500\/20  { background-color: rgba(245,158,11,0.25) !important; }
+[data-theme="light"] .bg-green-500\/10  { background-color: rgba(34,197,94,0.15) !important; }
+[data-theme="light"] .bg-green-500\/20  { background-color: rgba(34,197,94,0.25) !important; }
+[data-theme="light"] .bg-blue-500\/10   { background-color: rgba(59,130,246,0.15) !important; }
+[data-theme="light"] .bg-blue-500\/20   { background-color: rgba(59,130,246,0.25) !important; }
+[data-theme="light"] .bg-purple-500\/10 { background-color: rgba(168,85,247,0.15) !important; }
+[data-theme="light"] .bg-purple-500\/20 { background-color: rgba(168,85,247,0.25) !important; }
+[data-theme="light"] .bg-pink-500\/10   { background-color: rgba(236,72,153,0.15) !important; }
+[data-theme="light"] .bg-pink-500\/20   { background-color: rgba(236,72,153,0.25) !important; }
+[data-theme="light"] .bg-red-500\/10    { background-color: rgba(239,68,68,0.15) !important; }
+[data-theme="light"] .bg-red-500\/20    { background-color: rgba(239,68,68,0.25) !important; }
+[data-theme="light"] .bg-cyan-500\/10   { background-color: rgba(6,182,212,0.15) !important; }
+[data-theme="light"] .bg-cyan-500\/20   { background-color: rgba(6,182,212,0.25) !important; }
+[data-theme="light"] .bg-emerald-500\/10 { background-color: rgba(16,185,129,0.15) !important; }
+[data-theme="light"] .bg-emerald-500\/20 { background-color: rgba(16,185,129,0.25) !important; }
+[data-theme="light"] .bg-orange-500\/10 { background-color: rgba(249,115,22,0.15) !important; }
+[data-theme="light"] .bg-orange-500\/20 { background-color: rgba(249,115,22,0.25) !important; }
+[data-theme="light"] .bg-sky-500\/10    { background-color: rgba(14,165,233,0.15) !important; }
+[data-theme="light"] .bg-sky-500\/20    { background-color: rgba(14,165,233,0.25) !important; }
+[data-theme="light"] .bg-teal-500\/10   { background-color: rgba(20,184,166,0.15) !important; }
+[data-theme="light"] .bg-teal-500\/20   { background-color: rgba(20,184,166,0.25) !important; }
+[data-theme="light"] .bg-violet-500\/10 { background-color: rgba(139,92,246,0.15) !important; }
+[data-theme="light"] .bg-violet-500\/20 { background-color: rgba(139,92,246,0.25) !important; }
+[data-theme="light"] .bg-yellow-500\/10 { background-color: rgba(234,179,8,0.15) !important; }
+[data-theme="light"] .bg-yellow-500\/20 { background-color: rgba(234,179,8,0.25) !important; }
+
+/* Light mode: darken all accent text so it contrasts against light backgrounds */
+[data-theme="light"] .text-white { color: #0f172a !important; }
+
+[data-theme="light"] .text-yellow-300,
+[data-theme="light"] .text-yellow-400 { color: #92400e !important; }
+
+[data-theme="light"] .text-amber-200,
+[data-theme="light"] .text-amber-300,
+[data-theme="light"] .text-amber-400 { color: #78350f !important; }
+
+[data-theme="light"] .text-green-300,
+[data-theme="light"] .text-green-400 { color: #14532d !important; }
+
+[data-theme="light"] .text-emerald-300,
+[data-theme="light"] .text-emerald-400 { color: #064e3b !important; }
+
+[data-theme="light"] .text-blue-300,
+[data-theme="light"] .text-blue-400 { color: #1e3a8a !important; }
+
+[data-theme="light"] .text-purple-300,
+[data-theme="light"] .text-purple-400 { color: #581c87 !important; }
+
+[data-theme="light"] .text-violet-300,
+[data-theme="light"] .text-violet-400 { color: #4c1d95 !important; }
+
+[data-theme="light"] .text-indigo-300,
+[data-theme="light"] .text-indigo-400 { color: #312e81 !important; }
+
+[data-theme="light"] .text-cyan-300,
+[data-theme="light"] .text-cyan-400 { color: #164e63 !important; }
+
+[data-theme="light"] .text-teal-300,
+[data-theme="light"] .text-teal-400 { color: #134e4a !important; }
+
+[data-theme="light"] .text-sky-300,
+[data-theme="light"] .text-sky-400 { color: #0c4a6e !important; }
+
+[data-theme="light"] .text-red-300,
+[data-theme="light"] .text-red-400 { color: #7f1d1d !important; }
+
+[data-theme="light"] .text-pink-300,
+[data-theme="light"] .text-pink-400 { color: #831843 !important; }
+
+[data-theme="light"] .text-orange-300,
+[data-theme="light"] .text-orange-400 { color: #7c2d12 !important; }
+
+[data-theme="light"] .text-rose-300,
+[data-theme="light"] .text-rose-400 { color: #881337 !important; }
+
 /* Hide scrollbar but keep scroll functionality */
 @layer utilities {
   .scrollbar-hide {

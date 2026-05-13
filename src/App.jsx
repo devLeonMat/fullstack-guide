@@ -1,27 +1,49 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Code, Box, Puzzle, Network, Search, Cloud, Coffee } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon } from 'lucide-react';
 import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql } from 'react-icons/si';
-import CleanCode from './components/CleanCode';
-import Solid from './components/Solid';
-import Patterns from './components/Patterns';
-import Architecture from './components/Architecture';
-import JavaPro from './components/JavaPro';
-import SpringPro from './components/SpringPro';
-import ReactPro from './components/ReactPro';
-import AngularPro from './components/AngularPro';
-import NodePro from './components/NodePro';
-import GraphQLPro from './components/GraphQLPro';
-import CloudBasics from './components/CloudBasics';
-import ContainersPro from './components/ContainersPro';
-import JSTSPro from './components/JSTSPro';
 import SearchBar from './components/SearchBar';
 import LanguageToggle from './components/LanguageToggle';
 import { useLanguage } from './contexts/LanguageContext';
+import { useTheme } from './contexts/ThemeContext';
+import { useStudyMode } from './contexts/StudyModeContext';
+import { useProgress } from './hooks/useProgress';
+import { buildSearchIndex } from './data/searchIndex';
 import { t } from './translations';
+
+const CleanCode = lazy(() => import('./components/CleanCode'));
+const Solid = lazy(() => import('./components/Solid'));
+const Patterns = lazy(() => import('./components/Patterns'));
+const Architecture = lazy(() => import('./components/Architecture'));
+const JSTSPro = lazy(() => import('./components/JSTSPro'));
+const JavaPro = lazy(() => import('./components/JavaPro'));
+const SpringPro = lazy(() => import('./components/SpringPro'));
+const ReactPro = lazy(() => import('./components/ReactPro'));
+const AngularPro = lazy(() => import('./components/AngularPro'));
+const NodePro = lazy(() => import('./components/NodePro'));
+const CloudBasics = lazy(() => import('./components/CloudBasics'));
+const ContainersPro = lazy(() => import('./components/ContainersPro'));
+const GraphQLPro = lazy(() => import('./components/GraphQLPro'));
+const TestingPro = lazy(() => import('./components/TestingPro'));
+const DatabasesPro = lazy(() => import('./components/DatabasesPro'));
+const SecurityPro = lazy(() => import('./components/SecurityPro'));
+
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="w-8 h-8 border-2 border-slate-600 border-t-blue-400 rounded-full animate-spin" />
+  </div>
+);
 
 function App() {
   const { language } = useLanguage();
-  const [activeTab, setActiveTab] = useState('cleancode');
+  const { theme, toggleTheme } = useTheme();
+  const { studyMode, toggleStudyMode } = useStudyMode();
+  const { visited, favorites, markVisited, toggleFavorite } = useProgress();
+  const common = t('common', language);
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.slice(1);
+    return hash || 'cleancode';
+  });
   const [activeCategory, setActiveCategory] = useState('fundamentals');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -29,172 +51,51 @@ function App() {
   const tabScrollRef = useRef(null);
 
   const categories = useMemo(() => [
-    { id: 'fundamentals', name: t('common', language).categoryFundamentals },
-    { id: 'languages', name: t('common', language).categoryLanguages },
-    { id: 'backend', name: t('common', language).categoryBackend },
-    { id: 'frontend', name: t('common', language).categoryFrontend },
-    { id: 'clouddevops', name: t('common', language).categoryCloudDevops },
-  ], [language]);
+    { id: 'fundamentals', name: common.categoryFundamentals },
+    { id: 'languages', name: common.categoryLanguages },
+    { id: 'backend', name: common.categoryBackend },
+    { id: 'frontend', name: common.categoryFrontend },
+    { id: 'clouddevops', name: common.categoryCloudDevops },
+    { id: 'databases', name: common.categoryDatabases },
+    ...(favorites.size > 0 ? [{ id: 'favorites', name: common.categoryFavorites }] : []),
+  ], [language, favorites.size, common]);
 
   const tabs = useMemo(() => [
     { id: 'cleancode', category: 'fundamentals', name: 'Clean Code', icon: Code, color: 'text-green-400', bgColor: 'bg-green-500/10' },
     { id: 'solid', category: 'fundamentals', name: 'SOLID', icon: Box, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'patterns', category: 'fundamentals', name: 'Patterns', icon: Puzzle, color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
     { id: 'architecture', category: 'fundamentals', name: 'Architecture', icon: Network, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
-    { id: 'jsts', category: 'languages', name: t('common', language).tabJsTs, icon: SiJavascript, color: 'text-yellow-300', bgColor: 'bg-yellow-500/10' },
-    { id: 'node', category: 'backend', name: 'Node.js Pro', icon: SiNodedotjs, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
+    { id: 'jsts', category: 'languages', name: common.tabJsTs, icon: SiJavascript, color: 'text-yellow-300', bgColor: 'bg-yellow-500/10' },
     { id: 'java', category: 'languages', name: 'Java Pro', icon: Coffee, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
+    { id: 'node', category: 'backend', name: 'Node.js Pro', icon: SiNodedotjs, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
     { id: 'spring', category: 'backend', name: 'Spring Pro', icon: SiSpring, color: 'text-green-400', bgColor: 'bg-green-500/10' },
     { id: 'graphql', category: 'backend', name: 'GraphQL Pro', icon: SiGraphql, color: 'text-pink-400', bgColor: 'bg-pink-500/10' },
     { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
-    { id: 'cloud', category: 'clouddevops', name: t('common', language).tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
-    { id: 'containers', category: 'clouddevops', name: t('common', language).tabContainers, icon: SiDocker, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
-  ], [language]);
-  const visibleTabs = tabs.filter((tab) => tab.category === activeCategory);
+    { id: 'cloud', category: 'clouddevops', name: common.tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
+    { id: 'containers', category: 'clouddevops', name: common.tabContainers, icon: SiDocker, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
+    { id: 'testing', category: 'databases', name: common.tabTesting, icon: Code, color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
+    { id: 'databases', category: 'databases', name: common.tabDatabases, icon: Network, color: 'text-violet-400', bgColor: 'bg-violet-500/10' },
+    { id: 'security', category: 'databases', name: common.tabSecurity, icon: Box, color: 'text-red-400', bgColor: 'bg-red-500/10' },
+  ], [language, common]);
 
-  // Search index - simplified version
-  const searchIndex = [
-    // Clean Code
-    { tab: 'cleancode', tabName: 'Clean Code', tabColor: 'bg-green-500/20 text-green-400', section: 'Principios', title: 'DRY - Don\'t Repeat Yourself', preview: 'No repitas código. Cada pieza de conocimiento debe tener una única representación en el sistema.' },
-    { tab: 'cleancode', tabName: 'Clean Code', tabColor: 'bg-green-500/20 text-green-400', section: 'Principios', title: 'KISS - Keep It Simple', preview: 'Mantén las cosas simples. La simplicidad debe ser un objetivo clave del diseño.' },
-    { tab: 'cleancode', tabName: 'Clean Code', tabColor: 'bg-green-500/20 text-green-400', section: 'Principios', title: 'YAGNI - You Aren\'t Gonna Need It', preview: 'No agregues funcionalidad hasta que realmente la necesites.' },
-    { tab: 'cleancode', tabName: 'Clean Code', tabColor: 'bg-green-500/20 text-green-400', section: 'Principios', title: 'Boy Scout Rule', preview: 'Siempre deja el código un poco mejor que como lo encontraste.' },
-    { tab: 'cleancode', tabName: 'Clean Code', tabColor: 'bg-green-500/20 text-green-400', section: 'Principios', title: 'Self-Documenting Code', preview: 'El código debe explicarse a sí mismo. Usa nombres descriptivos.' },
+  const visibleTabs = useMemo(() => {
+    if (activeCategory === 'favorites') {
+      return tabs.filter(tab => favorites.has(tab.id));
+    }
+    return tabs.filter(tab => tab.category === activeCategory);
+  }, [tabs, activeCategory, favorites]);
 
-    // SOLID
-    { tab: 'solid', tabName: 'SOLID', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Principios OOP', title: 'Single Responsibility Principle', preview: 'Una clase debe tener una única responsabilidad y una sola razón para cambiar.' },
-    { tab: 'solid', tabName: 'SOLID', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Principios OOP', title: 'Open/Closed Principle', preview: 'Abierto para extensión, cerrado para modificación. Usa abstracción y polimorfismo.' },
-    { tab: 'solid', tabName: 'SOLID', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Principios OOP', title: 'Liskov Substitution Principle', preview: 'Los objetos de una clase derivada deben poder reemplazar objetos de la clase base.' },
-    { tab: 'solid', tabName: 'SOLID', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Principios OOP', title: 'Interface Segregation Principle', preview: 'No se debe forzar a los clientes a depender de interfaces que no usan.' },
-    { tab: 'solid', tabName: 'SOLID', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Principios OOP', title: 'Dependency Inversion Principle', preview: 'Depende de abstracciones, no de implementaciones concretas.' },
+  const searchIndex = useMemo(() => buildSearchIndex(language), [language]);
 
-    // Patterns
-    { tab: 'patterns', tabName: 'Patterns', tabColor: 'bg-purple-500/20 text-purple-400', section: 'Design Patterns', title: 'Singleton Pattern', preview: 'Asegura que una clase tenga una única instancia y proporciona un punto de acceso global.' },
-    { tab: 'patterns', tabName: 'Patterns', tabColor: 'bg-purple-500/20 text-purple-400', section: 'Design Patterns', title: 'Factory Pattern', preview: 'Define una interfaz para crear objetos, pero deja que las subclases decidan qué clase instanciar.' },
-    { tab: 'patterns', tabName: 'Patterns', tabColor: 'bg-purple-500/20 text-purple-400', section: 'Design Patterns', title: 'Observer Pattern', preview: 'Define una dependencia uno-a-muchos. Cuando un objeto cambia, todos sus dependientes son notificados.' },
-    { tab: 'patterns', tabName: 'Patterns', tabColor: 'bg-purple-500/20 text-purple-400', section: 'Design Patterns', title: 'Strategy Pattern', preview: 'Define una familia de algoritmos, encapsula cada uno y los hace intercambiables.' },
-    { tab: 'patterns', tabName: 'Patterns', tabColor: 'bg-purple-500/20 text-purple-400', section: 'Design Patterns', title: 'Adapter Pattern', preview: 'Permite que interfaces incompatibles trabajen juntas.' },
-    { tab: 'patterns', tabName: 'Patterns', tabColor: 'bg-purple-500/20 text-purple-400', section: 'Design Patterns', title: 'Command Pattern', preview: 'Encapsula una solicitud como un objeto.' },
-
-    // Architecture
-    { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: 'Arquitecturas', title: 'MVC - Model View Controller', preview: 'Separa la lógica de negocio, la presentación y el control de flujo.' },
-    { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: 'Arquitecturas', title: 'Microservices', preview: 'Arquitectura distribuida donde cada servicio es independiente y auto-contenido.' },
-    { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: 'Arquitecturas', title: 'Event-Driven Architecture', preview: 'Los componentes se comunican a través de eventos asíncronos.' },
-    { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: 'Arquitecturas', title: 'Hexagonal Architecture', preview: 'Aísla la lógica de negocio de dependencias externas mediante puertos y adaptadores.' },
-
-    // JavaScript/TypeScript
-    ...(language === 'es'
-      ? [
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'JavaScript', title: 'Scope, Hoisting y Closure', preview: 'Fundamentos críticos para entrevistas técnicas.' },
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'Async', title: 'Event Loop', preview: 'Orden de ejecución entre sync, microtasks y macrotasks.' },
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'TypeScript', title: 'Type vs Interface', preview: 'Cuándo usar cada uno y cómo responder en entrevista.' },
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'Pitfalls', title: 'Coerción y comparación', preview: 'Trampas clásicas: ==, ===, null, undefined.' },
-      ]
-      : [
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'JavaScript', title: 'Scope, Hoisting and Closure', preview: 'Critical fundamentals for technical interviews.' },
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'Async', title: 'Event Loop', preview: 'Execution order across sync, microtasks, and macrotasks.' },
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'TypeScript', title: 'Type vs Interface', preview: 'When to use each and how to answer in interviews.' },
-        { tab: 'jsts', tabName: t('common', language).tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'Pitfalls', title: 'Coercion and comparison', preview: 'Classic traps: ==, ===, null, undefined.' },
-      ]),
-
-    // Cloud Basics
-    ...(language === 'es'
-      ? [
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'Conceptos', title: 'IaaS vs PaaS vs SaaS', preview: 'Modelos de servicio cloud y cuándo usar cada uno.' },
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'Comparativa', title: 'AWS vs Azure vs GCP', preview: 'Mapa de servicios equivalentes para compute, storage, DB, IAM y observabilidad.' },
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'Seguridad', title: 'Shared Responsibility Model', preview: 'Qué asegura el proveedor cloud y qué te corresponde asegurar a ti.' },
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'FinOps', title: 'Cost Optimization', preview: 'Buenas prácticas para controlar y optimizar costos en la nube.' },
-      ]
-      : [
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'Concepts', title: 'IaaS vs PaaS vs SaaS', preview: 'Cloud service models and when to use each one.' },
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'Comparison', title: 'AWS vs Azure vs GCP', preview: 'Equivalent service map for compute, storage, DB, IAM, and observability.' },
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'Security', title: 'Shared Responsibility Model', preview: 'What the cloud provider secures and what you must secure.' },
-        { tab: 'cloud', tabName: t('common', language).tabCloud, tabColor: 'bg-sky-500/20 text-sky-400', section: 'FinOps', title: 'Cost Optimization', preview: 'Best practices to control and optimize cloud costs.' },
-      ]),
-
-    // Containers Pro
-    ...(language === 'es'
-      ? [
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Docker', title: 'docker build', preview: 'Construye una imagen desde Dockerfile.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Docker', title: 'docker run', preview: 'Ejecuta contenedores con puertos y nombre.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Kubernetes', title: 'kubectl apply', preview: 'Aplica manifiestos declarativos para crear o actualizar recursos.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Kubernetes', title: 'kubectl get pods', preview: 'Lista pods por namespace o en todo el cluster.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Kubernetes', title: 'kubectl logs', preview: 'Consulta logs para troubleshooting de pods y deployments.' },
-      ]
-      : [
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Docker', title: 'docker build', preview: 'Build an image from a Dockerfile.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Docker', title: 'docker run', preview: 'Run containers with ports and names.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Kubernetes', title: 'kubectl apply', preview: 'Apply declarative manifests to create or update resources.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Kubernetes', title: 'kubectl get pods', preview: 'List pods by namespace or across the cluster.' },
-        { tab: 'containers', tabName: t('common', language).tabContainers, tabColor: 'bg-teal-500/20 text-teal-400', section: 'Kubernetes', title: 'kubectl logs', preview: 'Inspect logs for pod and deployment troubleshooting.' },
-      ]),
-
-    // Java
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Lambda Expressions', preview: 'Programación funcional en Java 8+' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Stream API', preview: 'Procesamiento de colecciones funcional' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Records', preview: 'Clases de datos inmutables en Java 17+' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Features', title: 'Virtual Threads', preview: 'Concurrencia ligera en Java 21' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Compact Source Files', preview: 'Java 25 LTS - programas sin boilerplate, sin public static void main' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Compact Object Headers', preview: 'Java 25 - headers de objeto reducidos de 128 a 64 bits, mejor rendimiento de memoria' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Primitive Types in Patterns', preview: 'Java 25 - pattern matching extendido a tipos primitivos (JEP 507)' },
-    { tab: 'java', tabName: 'Java Pro', tabColor: 'bg-orange-500/20 text-orange-400', section: 'Java 25', title: 'Scoped Values Final', preview: 'Java 25 - Scoped Values estable, alternativa inmutable y eficiente a ThreadLocal' },
-
-    // Spring
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Core', title: 'Dependency Injection', preview: 'Inyección de dependencias en Spring' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Core', title: 'Bean Scopes', preview: 'Singleton, Prototype, Request, Session' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Data', title: 'JPA Repositories', preview: 'CRUD sin escribir SQL' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Boot', title: 'Spring Boot Starters', preview: 'Dependencias pre-configuradas' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Virtual Threads Out-of-the-Box', preview: 'Spring Boot 4 - soporte nativo de Project Loom, spring.threads.virtual.enabled=true' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Jakarta EE 11', preview: 'Spring Boot 4 - usa jakarta.* (no javax.*), requiere JDK 17+, idealmente JDK 25 LTS' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Null Safety con JSpecify', preview: 'Spring Framework 7 - @NullMarked, @Nullable, @NonNull para null-safety en compile-time' },
-    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Resilience Built-in', preview: 'Spring Framework 7 - @Retryable, @ConcurrencyLimit nativos sin Resilience4j externo' },
-
-    // React
-    { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Core', title: 'Virtual DOM', preview: 'Representación en memoria del DOM real' },
-    { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Core', title: 'JSX', preview: 'Sintaxis de extensión de JavaScript' },
-    { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Hooks', title: 'useState', preview: 'Estado local en componentes funcionales' },
-    { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Hooks', title: 'useEffect', preview: 'Efectos secundarios y sincronización' },
-    { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Hooks', title: 'useMemo', preview: 'Memoización de valores calculados' },
-
-    // Angular
-    { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'Building Blocks', title: 'Components', preview: 'Bloques fundamentales de Angular' },
-    { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'Building Blocks', title: 'Directives', preview: 'Modifican comportamiento del DOM' },
-    { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'Reactivity', title: 'Signals', preview: 'Sistema reactivo moderno de Angular 16+' },
-    { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'RxJS', title: 'Observables', preview: 'Streams de datos asíncronos' },
-
-    // GraphQL
-    ...(language === 'es'
-      ? [
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Query', preview: 'Pide exactamente los datos que necesitas, sin over-fetching ni under-fetching.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Mutation', preview: 'Modifica datos en el servidor: CREATE, UPDATE y DELETE en una sola capa.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Subscription', preview: 'Datos en tiempo real mediante WebSockets; el servidor empuja cambios al cliente.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Schema', title: 'SDL - Schema Definition Language', preview: 'Define tipos, queries, mutaciones y suscripciones en un contrato fuertemente tipado.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Comparativa', title: 'GraphQL vs REST', preview: 'Un solo endpoint, tipado fuerte, introspección y eliminación de over/under-fetching.' },
-      ]
-      : [
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Query', preview: 'Ask for exactly the data you need — no over-fetching or under-fetching.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Mutation', preview: 'Modify server data: CREATE, UPDATE and DELETE through a single typed layer.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Subscription', preview: 'Real-time data via WebSockets; the server pushes changes to connected clients.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Schema', title: 'SDL - Schema Definition Language', preview: 'Define types, queries, mutations and subscriptions in a strongly-typed contract.' },
-        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Comparison', title: 'GraphQL vs REST', preview: 'Single endpoint, strong typing, introspection and no more over/under-fetching.' },
-      ]),
-
-    // Node.js
-    { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'Fundamentals', title: 'Event Loop', preview: 'Ciclo de eventos asíncrono, non-blocking I/O' },
-    { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'Fundamentals', title: 'Modules', preview: 'CommonJS vs ES Modules' },
-    { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'Fundamentals', title: 'NPM', preview: 'Node Package Manager y gestión de dependencias' },
-    { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'APIs', title: 'Express.js', preview: 'Framework web más popular para Node.js' },
-    { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'APIs', title: 'Fastify', preview: 'Framework rápido con validación de schemas' },
-    { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'APIs', title: 'GraphQL', preview: 'API flexible con Apollo Server' },
-  ];
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    markVisited(tabId);
+    window.history.replaceState(null, '', `#${tabId}`);
+  };
 
   const handleSearch = (query) => {
-    if (!query || query.length < 2) {
-      setSearchResults([]);
-      return;
-    }
-
+    if (!query || query.length < 2) { setSearchResults([]); return; }
     const lowerQuery = query.toLowerCase();
     const results = searchIndex
       .filter(item =>
@@ -202,20 +103,26 @@ function App() {
         item.preview.toLowerCase().includes(lowerQuery) ||
         item.section.toLowerCase().includes(lowerQuery)
       )
-      .map(item => ({
-        ...item,
-        onClick: () => setActiveTab(item.tab)
-      }))
-      .slice(0, 10); // Limit to 10 results
-
+      .map(item => ({ ...item, onClick: () => handleTabChange(item.tab) }))
+      .slice(0, 10);
     setSearchResults(results);
   };
 
-  // Listen for custom search event
+  // Sync category when tab changes
   useEffect(() => {
-    const handler = () => setIsSearchOpen(true);
-    document.addEventListener('openSearch', handler);
-    return () => document.removeEventListener('openSearch', handler);
+    const current = tabs.find(tab => tab.id === activeTab);
+    if (current && current.category !== activeCategory && activeCategory !== 'favorites') {
+      setActiveCategory(current.category);
+    }
+  }, [activeTab, activeCategory, tabs]);
+
+  // Validate hash on mount
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash && tabs.find(t => t.id === hash)) {
+      handleTabChange(hash);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-scroll active category into view
@@ -230,12 +137,12 @@ function App() {
     el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }, [activeTab]);
 
+  // Open search via keyboard or custom event
   useEffect(() => {
-    const current = tabs.find((tab) => tab.id === activeTab);
-    if (current && current.category !== activeCategory) {
-      setActiveCategory(current.category);
-    }
-  }, [activeTab, activeCategory, tabs]);
+    const handler = () => setIsSearchOpen(true);
+    document.addEventListener('openSearch', handler);
+    return () => document.removeEventListener('openSearch', handler);
+  }, []);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -249,16 +156,18 @@ function App() {
       case 'node': return <NodePro />;
       case 'java': return <JavaPro />;
       case 'spring': return <SpringPro />;
-      case 'graphql': return <GraphQLPro />;
       case 'react': return <ReactPro />;
       case 'angular': return <AngularPro />;
+      case 'graphql': return <GraphQLPro />;
+      case 'testing': return <TestingPro />;
+      case 'databases': return <DatabasesPro />;
+      case 'security': return <SecurityPro />;
       default: return <CleanCode />;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Search Bar */}
       <SearchBar
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -273,26 +182,48 @@ function App() {
             <div>
               <div className="flex items-center gap-2 md:gap-3">
                 <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
-                  {t('common', language).appTitle}
+                  {common.appTitle}
                 </h1>
                 <span className="px-2 py-0.5 text-xs font-mono font-semibold rounded-full bg-slate-800 border border-slate-600 text-slate-400">
                   v{__APP_VERSION__}
                 </span>
               </div>
-              <p className="text-slate-400 text-xs md:text-sm mt-0.5 md:mt-1">
-                {t('common', language).appSubtitle}
-              </p>
+              <p className="text-slate-400 text-xs md:text-sm mt-0.5 md:mt-1">{common.appSubtitle}</p>
             </div>
 
-            {/* Language Toggle & Search Button */}
-            <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              {/* Study mode toggle */}
+              <button
+                onClick={toggleStudyMode}
+                title={studyMode ? common.studyModeOn : common.studyMode}
+                className={`flex items-center gap-1.5 px-2.5 md:px-3 py-2 rounded-lg border transition-all text-sm ${
+                  studyMode
+                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden md:inline">{studyMode ? common.studyModeOn : common.studyMode}</span>
+              </button>
+
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                title={theme === 'dark' ? common.lightMode : common.darkMode}
+                className="flex items-center gap-1.5 px-2.5 md:px-3 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all text-slate-400 hover:text-slate-200"
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+
               <LanguageToggle />
+
+              {/* Search button */}
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="flex items-center gap-2 px-3 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all group"
               >
                 <Search className="w-4 h-4 text-slate-400 group-hover:text-slate-200" />
-                <span className="hidden sm:inline text-slate-400 text-sm group-hover:text-slate-200">{t('common', language).search}</span>
+                <span className="hidden sm:inline text-slate-400 text-sm group-hover:text-slate-200">{common.search}</span>
                 <kbd className="hidden sm:inline px-2 py-1 text-xs bg-slate-700/50 border border-slate-600 rounded">⌘K</kbd>
               </button>
             </div>
@@ -300,31 +231,31 @@ function App() {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
+      {/* Navigation */}
       <nav className="bg-slate-900/50 backdrop-blur-sm border-b border-slate-800 sticky top-[57px] md:top-[73px] z-40">
         <div className="container mx-auto px-4 md:px-6 py-2 md:py-3 space-y-1.5 md:space-y-3">
 
           {/* Category row */}
           <div className="relative">
-            <div
-              ref={categoryScrollRef}
-              className="flex gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
-            >
-              {categories.map((category) => (
+            <div ref={categoryScrollRef} className="flex gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide scroll-smooth">
+              {categories.map(category => (
                 <button
                   key={category.id}
                   data-active={activeCategory === category.id}
                   onClick={() => {
                     setActiveCategory(category.id);
-                    const firstTab = tabs.find((tab) => tab.category === category.id);
-                    if (firstTab) setActiveTab(firstTab.id);
+                    if (category.id !== 'favorites') {
+                      const firstTab = tabs.find(tab => tab.category === category.id);
+                      if (firstTab) handleTabChange(firstTab.id);
+                    }
                   }}
-                  className={`flex-shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-all whitespace-nowrap text-xs md:text-sm font-medium ${activeCategory === category.id
-                    ? 'bg-slate-700 text-slate-100 font-semibold border border-slate-500'
-                    : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700'
-                    }`}
+                  className={`flex-shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-all whitespace-nowrap text-xs md:text-sm font-medium ${
+                    activeCategory === category.id
+                      ? 'bg-slate-700 text-slate-100 font-semibold border border-slate-500'
+                      : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700'
+                  }`}
                 >
-                  {category.name}
+                  {category.id === 'favorites' ? `★ ${category.name}` : category.name}
                 </button>
               ))}
             </div>
@@ -333,42 +264,73 @@ function App() {
 
           {/* Tab row */}
           <div className="relative">
-            <div
-              ref={tabScrollRef}
-              className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
-            >
-              {visibleTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  data-active={activeTab === tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-all whitespace-nowrap text-sm ${activeTab === tab.id
-                    ? `${tab.bgColor} ${tab.color} font-semibold`
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                    }`}
-                >
-                  <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
-                  <span>{tab.name}</span>
-                </button>
-              ))}
-            </div>
+            {activeCategory === 'favorites' && visibleTabs.length === 0 ? (
+              <p className="text-slate-500 text-sm py-1">{common.noFavoritesHint}</p>
+            ) : (
+              <div ref={tabScrollRef} className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide scroll-smooth">
+                {visibleTabs.map(tab => (
+                  <div key={tab.id} className="flex-shrink-0 relative group">
+                    <button
+                      data-active={activeTab === tab.id}
+                      onClick={() => handleTabChange(tab.id)}
+                      className={`flex items-center gap-1.5 md:gap-2 pl-3 pr-8 py-1.5 md:pl-4 md:pr-9 md:py-2 rounded-lg transition-all whitespace-nowrap text-sm ${
+                        activeTab === tab.id
+                          ? `${tab.bgColor} ${tab.color} font-semibold`
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      }`}
+                    >
+                      <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
+                      <span>{tab.name}</span>
+                      {visited.has(tab.id) && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+                      )}
+                    </button>
+                    {/* Favorite star */}
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleFavorite(tab.id); }}
+                      title={favorites.has(tab.id) ? common.progressFavorited : '★'}
+                      className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded transition-all text-xs ${
+                        favorites.has(tab.id)
+                          ? 'text-yellow-400 opacity-100'
+                          : 'text-slate-600 opacity-0 group-hover:opacity-100 hover:text-yellow-400'
+                      }`}
+                    >
+                      <Star className={`w-3 h-3 ${favorites.has(tab.id) ? 'fill-yellow-400' : ''}`} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-slate-900/80 to-transparent pointer-events-none md:hidden" />
           </div>
 
         </div>
       </nav>
 
+      {/* Study mode banner */}
+      {studyMode && (
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-center text-amber-300 text-xs">
+          <BookOpen className="w-3.5 h-3.5 inline mr-1.5" />
+          {common.studyModeHint} —{' '}
+          <button onClick={toggleStudyMode} className="underline hover:text-amber-200">
+            {common.studyModeOff}
+          </button>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="container mx-auto px-4 md:px-6 py-5 md:py-8">
         <div className="animate-fade-in">
-          {renderContent()}
+          <Suspense fallback={<LoadingSpinner />}>
+            {renderContent()}
+          </Suspense>
         </div>
       </main>
 
       {/* Footer */}
       <footer className="bg-slate-900/50 border-t border-slate-800 mt-8 md:mt-16 py-4 md:py-6">
         <div className="container mx-auto px-4 md:px-6 text-center text-slate-400 text-xs md:text-sm">
-          <p>{t('common', language).footer}</p>
+          <p>{common.footer}</p>
         </div>
       </footer>
     </div>

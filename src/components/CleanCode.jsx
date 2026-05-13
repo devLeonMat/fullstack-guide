@@ -208,40 +208,42 @@ class Dog {
   const Icon = currentPrinciple.icon;
 
   return (
-    <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
       {/* Sidebar */}
-      <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
-        <h3 className="text-lg font-bold text-green-400 mb-4">
+      <div className="lg:col-span-1 lg:overflow-y-auto lg:pr-2">
+        <h3 className="text-base lg:text-lg font-bold text-green-400 mb-2 lg:mb-4">
           {t('cleancode', language).title}
         </h3>
+        <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
         {principleList.map((principle) => (
           <button
             key={principle.id}
             onClick={() => setSelectedPrinciple(principle.id)}
-            className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${selectedPrinciple === principle.id
+            className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all flex items-center gap-2 lg:gap-3 ${selectedPrinciple === principle.id
               ? 'bg-green-500/20 border border-green-500/50 text-green-300'
               : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
               }`}
           >
-            <principle.icon className="w-5 h-5" />
-            <div className="flex-1">
-              <div className="font-semibold">{principle.title}</div>
-              <div className="text-xs opacity-70">{principle.subtitle}</div>
+            <principle.icon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-sm lg:text-base whitespace-nowrap lg:whitespace-normal">{principle.title}</div>
+              <div className="hidden lg:block text-xs opacity-70">{principle.subtitle}</div>
             </div>
           </button>
         ))}
+        </div>
       </div>
 
       {/* Detail Panel */}
-      <div className="lg:col-span-3 overflow-y-auto pr-2">
-        <div className="bg-slate-900/50 border border-green-500/30 rounded-2xl p-8 space-y-6">
+      <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2">
+        <div className="bg-slate-900/50 border border-green-500/30 rounded-2xl p-4 md:p-6 lg:p-8 space-y-5 lg:space-y-6">
           {/* Header */}
           <div className="flex items-start gap-4">
             <div className="p-4 bg-green-500/20 rounded-xl">
               <Icon className="w-10 h-10 text-green-400" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-green-400">{currentPrinciple.title}</h2>
+              <h2 className="text-xl lg:text-3xl font-bold text-green-400">{currentPrinciple.title}</h2>
               <p className="text-slate-400 mt-1">{currentPrinciple.subtitle}</p>
               <p className="text-slate-300 text-sm mt-2">{currentPrinciple.summary}</p>
             </div>

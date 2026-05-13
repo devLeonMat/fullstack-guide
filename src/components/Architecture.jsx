@@ -47,7 +47,7 @@ const DataPacket = ({ from, to, delay = 0, duration = 2 }) => {
 
 // Diagramas Animados
 const MVCDiagram = () => (
-    <div className="relative w-full h-[450px] flex items-center justify-around bg-slate-950/30 rounded-xl p-6 border border-slate-800">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] flex items-center justify-around bg-slate-950/30 rounded-xl p-6 border border-slate-800">
         <Node icon={Layout} label="Vista (View)" color="bg-blue-500" description="La interfaz de usuario. Muestra los datos y captura interacciones." />
         <Node icon={Settings} label="Controlador" color="bg-purple-500" description="Procesa las entradas del usuario y coordina la Vista y el Modelo." />
         <Node icon={Database} label="Modelo (Model)" color="bg-emerald-500" description="Gestiona los datos y la lógica de negocio." />
@@ -59,7 +59,7 @@ const MVCDiagram = () => (
 );
 
 const MicroservicesDiagram = () => (
-    <div className="relative w-full h-[450px] grid grid-cols-3 gap-6 items-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] grid grid-cols-3 gap-6 items-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
         <div className="flex flex-col gap-4">
             <Node icon={Globe} label="Web App" color="bg-sky-400" description="Cliente web principal." />
             <Node icon={Smartphone} label="Mobile App" color="bg-indigo-400" description="Cliente móvil nativo." />
@@ -84,7 +84,7 @@ const MicroservicesDiagram = () => (
 );
 
 const EventDrivenDiagram = () => (
-    <div className="relative w-full h-[450px] flex items-center justify-between bg-slate-950/30 rounded-xl p-6 border border-slate-800">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] flex items-center justify-between bg-slate-950/30 rounded-xl p-6 border border-slate-800">
         <Node icon={Zap} label="Productor" color="bg-yellow-500" description="Genera eventos cuando ocurre algo (ej. Nueva Compra)." />
 
         <div className="flex flex-col items-center justify-center gap-2 p-6 bg-slate-800 rounded-3xl border-4 border-yellow-500/30">
@@ -114,7 +114,7 @@ const EventDrivenDiagram = () => (
 );
 
 const HexagonalDiagram = () => (
-    <div className="relative w-full h-[450px] flex items-center justify-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] flex items-center justify-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
         {/* Adapters Izquierda */}
         <div className="absolute left-6 flex flex-col gap-8">
             <Node icon={Globe} label="REST Adapter" color="bg-blue-400" description="Adaptador de entrada para peticiones HTTP." />
@@ -151,7 +151,7 @@ const HexagonalDiagram = () => (
 );
 
 const LayeredDiagram = () => (
-    <div className="relative w-full h-[450px] flex flex-col justify-center gap-3 bg-slate-950/30 rounded-xl p-6 border border-slate-800">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] flex flex-col justify-center gap-3 bg-slate-950/30 rounded-xl p-6 border border-slate-800">
         <div className="w-full bg-gradient-to-r from-blue-600 to-blue-500 p-6 rounded-lg shadow-lg">
             <div className="flex items-center gap-3">
                 <Layout size={32} className="text-white" />
@@ -194,7 +194,7 @@ const LayeredDiagram = () => (
 );
 
 const CleanArchDiagram = () => (
-    <div className="relative w-full h-[450px] flex items-center justify-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] flex items-center justify-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
         {/* Círculos Concéntricos */}
         <div className="absolute inset-0 flex items-center justify-center">
             <motion.div
@@ -243,7 +243,7 @@ const CleanArchDiagram = () => (
 );
 
 const ServerlessDiagram = () => (
-    <div className="relative w-full h-[450px] bg-slate-950/30 rounded-xl p-6 border border-slate-800 overflow-hidden">
+    <div className="relative w-full h-[260px] md:h-[350px] lg:h-[450px] bg-slate-950/30 rounded-xl p-6 border border-slate-800 overflow-hidden">
         <div className="grid grid-cols-3 gap-6 h-full items-center">
             {/* Triggers */}
             <div className="flex flex-col gap-4">
@@ -762,35 +762,37 @@ functions:
     };
 
     return (
-        <div className="grid lg:grid-cols-4 gap-6 h-[calc(100vh-200px)]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
             {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-2 overflow-y-auto pr-2">
-                <h3 className="text-lg font-bold text-cyan-400 mb-4">
+            <div className="lg:col-span-1 lg:overflow-y-auto lg:pr-2">
+                <h3 className="text-base lg:text-lg font-bold text-cyan-400 mb-2 lg:mb-4">
                     {t('architecture', language).title}
                 </h3>
+                <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
                 {archList.map((arch) => {
                     const ArchIcon = arch.icon;
                     return (
                         <button
                             key={arch.id}
                             onClick={() => setSelectedArch(arch.id)}
-                            className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${selectedArch === arch.id
+                            className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all flex items-center gap-2 lg:gap-3 ${selectedArch === arch.id
                                 ? 'bg-cyan-500/20 border border-cyan-500/50 text-cyan-300'
                                 : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
                                 }`}
                         >
-                            <ArchIcon className="w-5 h-5" />
-                            <div className="flex-1">
-                                <div className="font-semibold">{arch.name}</div>
-                                <div className="text-xs opacity-70 line-clamp-1">{arch.fullName}</div>
+                            <ArchIcon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-sm lg:text-base whitespace-nowrap lg:whitespace-normal">{arch.name}</div>
+                                <div className="hidden lg:block text-xs opacity-70 line-clamp-1">{arch.fullName}</div>
                             </div>
                         </button>
                     );
                 })}
+                </div>
             </div>
 
             {/* Detail Panel */}
-            <div className="lg:col-span-3 overflow-y-auto pr-2">
+            <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={selectedArch}
@@ -806,7 +808,7 @@ functions:
                                 <Icon className="w-10 h-10" />
                             </div>
                             <div className="flex-1">
-                                <h3 className={`text-3xl font-bold ${current.color === 'blue' ? 'text-blue-400' : current.color === 'green' ? 'text-green-400' : current.color === 'yellow' ? 'text-yellow-400' : 'text-purple-400'}`}>
+                                <h3 className={`text-xl lg:text-3xl font-bold ${current.color === 'blue' ? 'text-blue-400' : current.color === 'green' ? 'text-green-400' : current.color === 'yellow' ? 'text-yellow-400' : 'text-purple-400'}`}>
                                     {current.name}
                                 </h3>
                                 <p className="text-slate-400">{current.fullName}</p>
@@ -823,7 +825,7 @@ functions:
                         </div>
 
                         {/* Reorganized: Advantages, Disadvantages, When to Use */}
-                        <div className="grid md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                             {/* Advantages (merged with key points) */}
                             <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6">
                                 <h4 className="text-green-400 font-bold mb-4 flex items-center gap-2">

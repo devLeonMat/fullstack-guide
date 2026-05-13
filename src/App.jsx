@@ -234,32 +234,32 @@ function App() {
 
       {/* Header */}
       <header className="bg-slate-900/80 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
+              <div className="flex items-center gap-2 md:gap-3">
+                <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-transparent bg-clip-text">
                   {t('common', language).appTitle}
                 </h1>
                 <span className="px-2 py-0.5 text-xs font-mono font-semibold rounded-full bg-slate-800 border border-slate-600 text-slate-400">
                   v{__APP_VERSION__}
                 </span>
               </div>
-              <p className="text-slate-400 text-sm mt-1">
+              <p className="text-slate-400 text-xs md:text-sm mt-0.5 md:mt-1">
                 {t('common', language).appSubtitle}
               </p>
             </div>
 
             {/* Language Toggle & Search Button */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
               <LanguageToggle />
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all group"
+                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-slate-800/50 hover:bg-slate-800 border border-slate-700 rounded-lg transition-all group"
               >
                 <Search className="w-4 h-4 text-slate-400 group-hover:text-slate-200" />
-                <span className="text-slate-400 text-sm group-hover:text-slate-200">{t('common', language).search}</span>
-                <kbd className="px-2 py-1 text-xs bg-slate-700/50 border border-slate-600 rounded">⌘K</kbd>
+                <span className="hidden sm:inline text-slate-400 text-sm group-hover:text-slate-200">{t('common', language).search}</span>
+                <kbd className="hidden sm:inline px-2 py-1 text-xs bg-slate-700/50 border border-slate-600 rounded">⌘K</kbd>
               </button>
             </div>
           </div>
@@ -267,8 +267,8 @@ function App() {
       </header>
 
       {/* Navigation Tabs */}
-      <nav className="bg-slate-900/50 backdrop-blur-sm border-b border-slate-800 sticky top-[73px] z-40">
-        <div className="container mx-auto px-6 py-3 space-y-3">
+      <nav className="bg-slate-900/50 backdrop-blur-sm border-b border-slate-800 sticky top-[57px] md:top-[73px] z-40">
+        <div className="container mx-auto px-4 md:px-6 py-2 md:py-3 space-y-2 md:space-y-3">
           <div className="flex gap-2 overflow-x-auto">
             {categories.map((category) => (
               <button
@@ -307,15 +307,15 @@ function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto px-4 md:px-6 py-5 md:py-8">
         <div className="animate-fade-in">
           {renderContent()}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-900/50 border-t border-slate-800 mt-16 py-6">
-        <div className="container mx-auto px-6 text-center text-slate-400 text-sm">
+      <footer className="bg-slate-900/50 border-t border-slate-800 mt-8 md:mt-16 py-4 md:py-6">
+        <div className="container mx-auto px-4 md:px-6 text-center text-slate-400 text-xs md:text-sm">
           <p>{t('common', language).footer}</p>
         </div>
       </footer>

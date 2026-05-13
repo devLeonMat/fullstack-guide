@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStudyMode } from '../contexts/StudyModeContext';
 import { t } from '../translations';
 
 // Custom Monokai-inspired theme
@@ -76,8 +77,13 @@ const monokaiTheme = {
 
 function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
     const { language: currentLanguage } = useLanguage();
-    const [isOpen, setIsOpen] = useState(false);
+    const { studyMode } = useStudyMode();
+    const [isOpen, setIsOpen] = useState(!studyMode);
     const common = t('common', currentLanguage);
+
+    useEffect(() => {
+        if (studyMode) setIsOpen(false);
+    }, [studyMode]);
 
     if (!isOpen) {
         return (

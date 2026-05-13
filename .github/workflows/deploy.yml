@@ -2,11 +2,19 @@ name: Deploy Vite site to GitHub Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump override (patch | minor | major). Leave empty for auto."
+        required: false
+        default: ""
+
+# Skip if triggered by the version-bump commit itself
+# (the commit message contains [skip ci])
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -15,11 +23,90 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ── 1. Bump version ────────────────────────────────────────────────────────
+  version:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+      bump_type: ${{ steps.bump.outputs.bump_type }}
+    steps:
+      - name: Checkout (full history for tag comparison)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Determine bump type and apply
+        id: bump
+        env:
+          MANUAL_BUMP: ${{ github.event.inputs.bump }}
+        run: |
+          # ── Find last release tag ──────────────────────────────────────────
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "Last tag: ${LAST_TAG:-none}"
+
+          if [ -z "$LAST_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"%s")
+            NEW_SRC_FILES=0
+          else
+            COMMITS=$(git log "${LAST_TAG}..HEAD" --pretty=format:"%s")
+            NEW_SRC_FILES=$(git diff --diff-filter=A --name-only "${LAST_TAG}" HEAD -- 'src/' | wc -l | tr -d ' ')
+          fi
+
+          echo "Commits since last tag:"
+          echo "$COMMITS"
+          echo "New src/ files: $NEW_SRC_FILES"
+
+          # ── Determine bump type ────────────────────────────────────────────
+          if [ -n "$MANUAL_BUMP" ]; then
+            BUMP="$MANUAL_BUMP"
+            echo "Using manual bump: $BUMP"
+          elif echo "$COMMITS" | grep -qiE "(BREAKING CHANGE|^.+!:)"; then
+            BUMP="major"
+            echo "Detected: BREAKING CHANGE → major"
+          elif echo "$COMMITS" | grep -qE "^feat(\(.+\))?:"; then
+            BUMP="minor"
+            echo "Detected: feat → minor"
+          elif [ "$NEW_SRC_FILES" -ge 3 ]; then
+            BUMP="minor"
+            echo "Detected: $NEW_SRC_FILES new source files → minor"
+          else
+            BUMP="patch"
+            echo "Default → patch"
+          fi
+
+          # ── Apply bump (no git tag yet, we tag after push) ────────────────
+          npm version "$BUMP" --no-git-tag-version
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: v$NEW_VERSION (bump: $BUMP)"
+
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "bump_type=$BUMP"         >> "$GITHUB_OUTPUT"
+
+      - name: Commit and tag version bump
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
+          git commit -m "chore: release v${{ steps.bump.outputs.new_version }} (${{ steps.bump.outputs.bump_type }}) [skip ci]"
+          git tag "v${{ steps.bump.outputs.new_version }}"
+          git push origin main --follow-tags
+
+  # ── 2. Build ───────────────────────────────────────────────────────────────
   build:
     runs-on: ubuntu-latest
+    needs: version
     steps:
-      - name: Checkout
+      - name: Checkout (after version bump commit)
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -38,6 +125,7 @@ jobs:
         with:
           path: ./dist
 
+  # ── 3. Deploy ──────────────────────────────────────────────────────────────
   deploy:
     environment:
       name: github-pages

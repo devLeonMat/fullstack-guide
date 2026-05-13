@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Code, Box, Puzzle, Network, Search, Cloud, Coffee } from 'lucide-react';
-import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript } from 'react-icons/si';
+import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql } from 'react-icons/si';
 import CleanCode from './components/CleanCode';
 import Solid from './components/Solid';
 import Patterns from './components/Patterns';
@@ -10,6 +10,7 @@ import SpringPro from './components/SpringPro';
 import ReactPro from './components/ReactPro';
 import AngularPro from './components/AngularPro';
 import NodePro from './components/NodePro';
+import GraphQLPro from './components/GraphQLPro';
 import CloudBasics from './components/CloudBasics';
 import ContainersPro from './components/ContainersPro';
 import JSTSPro from './components/JSTSPro';
@@ -44,6 +45,7 @@ function App() {
     { id: 'node', category: 'backend', name: 'Node.js Pro', icon: SiNodedotjs, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
     { id: 'java', category: 'languages', name: 'Java Pro', icon: Coffee, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
     { id: 'spring', category: 'backend', name: 'Spring Pro', icon: SiSpring, color: 'text-green-400', bgColor: 'bg-green-500/10' },
+    { id: 'graphql', category: 'backend', name: 'GraphQL Pro', icon: SiGraphql, color: 'text-pink-400', bgColor: 'bg-pink-500/10' },
     { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
     { id: 'cloud', category: 'clouddevops', name: t('common', language).tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
@@ -161,6 +163,23 @@ function App() {
     { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'Reactivity', title: 'Signals', preview: 'Sistema reactivo moderno de Angular 16+' },
     { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'RxJS', title: 'Observables', preview: 'Streams de datos asíncronos' },
 
+    // GraphQL
+    ...(language === 'es'
+      ? [
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Query', preview: 'Pide exactamente los datos que necesitas, sin over-fetching ni under-fetching.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Mutation', preview: 'Modifica datos en el servidor: CREATE, UPDATE y DELETE en una sola capa.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Subscription', preview: 'Datos en tiempo real mediante WebSockets; el servidor empuja cambios al cliente.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Schema', title: 'SDL - Schema Definition Language', preview: 'Define tipos, queries, mutaciones y suscripciones en un contrato fuertemente tipado.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Comparativa', title: 'GraphQL vs REST', preview: 'Un solo endpoint, tipado fuerte, introspección y eliminación de over/under-fetching.' },
+      ]
+      : [
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Query', preview: 'Ask for exactly the data you need — no over-fetching or under-fetching.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Mutation', preview: 'Modify server data: CREATE, UPDATE and DELETE through a single typed layer.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Core', title: 'Subscription', preview: 'Real-time data via WebSockets; the server pushes changes to connected clients.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Schema', title: 'SDL - Schema Definition Language', preview: 'Define types, queries, mutations and subscriptions in a strongly-typed contract.' },
+        { tab: 'graphql', tabName: 'GraphQL Pro', tabColor: 'bg-pink-500/20 text-pink-400', section: 'Comparison', title: 'GraphQL vs REST', preview: 'Single endpoint, strong typing, introspection and no more over/under-fetching.' },
+      ]),
+
     // Node.js
     { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'Fundamentals', title: 'Event Loop', preview: 'Ciclo de eventos asíncrono, non-blocking I/O' },
     { tab: 'node', tabName: 'Node.js Pro', tabColor: 'bg-emerald-500/20 text-emerald-400', section: 'Fundamentals', title: 'Modules', preview: 'CommonJS vs ES Modules' },
@@ -230,6 +249,7 @@ function App() {
       case 'node': return <NodePro />;
       case 'java': return <JavaPro />;
       case 'spring': return <SpringPro />;
+      case 'graphql': return <GraphQLPro />;
       case 'react': return <ReactPro />;
       case 'angular': return <AngularPro />;
       default: return <CleanCode />;

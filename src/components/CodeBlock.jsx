@@ -98,7 +98,7 @@ function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
     }
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2 min-w-0 w-full">
             <button
                 onClick={() => setIsOpen(false)}
                 className="inline-flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 transition-colors"
@@ -107,7 +107,7 @@ function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
                 <span>{common.hideExample}</span>
             </button>
 
-            <div className="relative rounded-lg overflow-hidden shadow-lg">
+            <div className="relative rounded-lg overflow-hidden shadow-lg w-full">
                 {/* Gradient top border */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-cyan-400 to-green-400 z-10"></div>
 

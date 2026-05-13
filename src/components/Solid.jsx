@@ -347,9 +347,9 @@ const service = new UserService(new MySQLDatabase());`
           </div>
 
           {/* Code Examples - Side by Side */}
-          <div className="relative z-10 grid md:grid-cols-2 gap-4">
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Violation */}
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <div className="min-w-0 overflow-hidden bg-red-500/10 border border-red-500/30 rounded-lg p-4">
               <h4 className="text-red-400 font-semibold mb-3 flex items-center gap-2">
                 <span>❌</span>
                 <span>{t('common', language).violation}</span>
@@ -358,7 +358,7 @@ const service = new UserService(new MySQLDatabase());`
             </div>
 
             {/* Solution */}
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <div className="min-w-0 overflow-hidden bg-green-500/10 border border-green-500/30 rounded-lg p-4">
               <h4 className="text-green-400 font-semibold mb-3 flex items-center gap-2">
                 <span>✅</span>
                 <span>{t('common', language).solution}</span>

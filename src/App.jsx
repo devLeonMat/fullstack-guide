@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Code, Box, Puzzle, Network, Search, Cloud, Coffee } from 'lucide-react';
 import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript } from 'react-icons/si';
 import CleanCode from './components/CleanCode';
@@ -24,6 +24,8 @@ function App() {
   const [activeCategory, setActiveCategory] = useState('fundamentals');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const categoryScrollRef = useRef(null);
+  const tabScrollRef = useRef(null);
 
   const categories = useMemo(() => [
     { id: 'fundamentals', name: t('common', language).categoryFundamentals },
@@ -197,6 +199,18 @@ function App() {
     return () => document.removeEventListener('openSearch', handler);
   }, []);
 
+  // Auto-scroll active category into view
+  useEffect(() => {
+    const el = categoryScrollRef.current?.querySelector('[data-active="true"]');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [activeCategory]);
+
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    const el = tabScrollRef.current?.querySelector('[data-active="true"]');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [activeTab]);
+
   useEffect(() => {
     const current = tabs.find((tab) => tab.id === activeTab);
     if (current && current.category !== activeCategory) {
@@ -268,41 +282,59 @@ function App() {
 
       {/* Navigation Tabs */}
       <nav className="bg-slate-900/50 backdrop-blur-sm border-b border-slate-800 sticky top-[57px] md:top-[73px] z-40">
-        <div className="container mx-auto px-4 md:px-6 py-2 md:py-3 space-y-2 md:space-y-3">
-          <div className="flex gap-2 overflow-x-auto">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => {
-                  setActiveCategory(category.id);
-                  const firstTab = tabs.find((tab) => tab.category === category.id);
-                  if (firstTab) setActiveTab(firstTab.id);
-                }}
-                className={`px-4 py-2 rounded-lg transition-all whitespace-nowrap text-sm ${activeCategory === category.id
-                  ? 'bg-slate-700 text-slate-100 font-semibold border border-slate-500'
-                  : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700'
-                  }`}
-              >
-                {category.name}
-              </button>
-            ))}
+        <div className="container mx-auto px-4 md:px-6 py-2 md:py-3 space-y-1.5 md:space-y-3">
+
+          {/* Category row */}
+          <div className="relative">
+            <div
+              ref={categoryScrollRef}
+              className="flex gap-1.5 md:gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
+            >
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  data-active={activeCategory === category.id}
+                  onClick={() => {
+                    setActiveCategory(category.id);
+                    const firstTab = tabs.find((tab) => tab.category === category.id);
+                    if (firstTab) setActiveTab(firstTab.id);
+                  }}
+                  className={`flex-shrink-0 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-all whitespace-nowrap text-xs md:text-sm font-medium ${activeCategory === category.id
+                    ? 'bg-slate-700 text-slate-100 font-semibold border border-slate-500'
+                    : 'bg-slate-800/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700'
+                    }`}
+                >
+                  {category.name}
+                </button>
+              ))}
+            </div>
+            <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-slate-900 to-transparent pointer-events-none md:hidden" />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto">
-            {visibleTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id
-                  ? `${tab.bgColor} ${tab.color} font-semibold`
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                  }`}
-              >
-                <tab.icon className="w-5 h-5" />
-                <span>{tab.name}</span>
-              </button>
-            ))}
+          {/* Tab row */}
+          <div className="relative">
+            <div
+              ref={tabScrollRef}
+              className="flex gap-1 md:gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
+            >
+              {visibleTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  data-active={activeTab === tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-shrink-0 flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg transition-all whitespace-nowrap text-sm ${activeTab === tab.id
+                    ? `${tab.bgColor} ${tab.color} font-semibold`
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    }`}
+                >
+                  <tab.icon className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>{tab.name}</span>
+                </button>
+              ))}
+            </div>
+            <div className="absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-slate-900/80 to-transparent pointer-events-none md:hidden" />
           </div>
+
         </div>
       </nav>
 

@@ -257,9 +257,9 @@ class Dog {
           </div>
 
           {/* Code Examples */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Bad Example */}
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <div className="min-w-0 overflow-hidden bg-red-500/10 border border-red-500/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <XCircle className="w-4 h-4 text-red-400" />
                 <span className="text-xs font-semibold text-red-400">{t('common', language).bad}</span>
@@ -268,7 +268,7 @@ class Dog {
             </div>
 
             {/* Good Example */}
-            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <div className="min-w-0 overflow-hidden bg-green-500/10 border border-green-500/30 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle className="w-4 h-4 text-green-400" />
                 <span className="text-xs font-semibold text-green-400">{t('common', language).good}</span>

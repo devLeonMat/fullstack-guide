@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal overflow globally without breaking sticky positioning */
+body {
+  overflow-x: clip;
+}
+
 /* Custom animations */
 @layer utilities {
   .animate-fade-in {
@@ -28,6 +33,8 @@
     background: #272822 !important;
     border: 1px solid #3e3d32;
     position: relative;
+    max-width: 100%;
+    overflow-x: auto !important;
   }
 
   pre code {

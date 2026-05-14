@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
-import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon } from 'lucide-react';
+import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit } from 'lucide-react';
 import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin } from 'react-icons/si';
 import SearchBar from './components/SearchBar';
 import LanguageToggle from './components/LanguageToggle';
@@ -28,6 +28,10 @@ const DatabasesPro = lazy(() => import('./components/DatabasesPro'));
 const SecurityPro = lazy(() => import('./components/SecurityPro'));
 const PythonPro = lazy(() => import('./components/PythonPro'));
 const KotlinPro = lazy(() => import('./components/KotlinPro'));
+const DSAPro = lazy(() => import('./components/DSAPro'));
+const AILLMPro = lazy(() => import('./components/AILLMPro'));
+const APIDesignPro = lazy(() => import('./components/APIDesignPro'));
+const GitAdvancedPro = lazy(() => import('./components/GitAdvancedPro'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-64">
@@ -59,6 +63,7 @@ function App() {
     { id: 'frontend', name: common.categoryFrontend },
     { id: 'clouddevops', name: common.categoryCloudDevops },
     { id: 'databases', name: common.categoryDatabases },
+    { id: 'ai', name: common.categoryAI },
     ...(favorites.size > 0 ? [{ id: 'favorites', name: common.categoryFavorites }] : []),
   ], [language, favorites.size, common]);
 
@@ -67,6 +72,7 @@ function App() {
     { id: 'solid', category: 'fundamentals', name: 'SOLID', icon: Box, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'patterns', category: 'fundamentals', name: 'Patterns', icon: Puzzle, color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
     { id: 'architecture', category: 'fundamentals', name: 'Architecture', icon: Network, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
+    { id: 'dsa', category: 'fundamentals', name: common.tabDSA, icon: BrainCircuit, color: 'text-indigo-400', bgColor: 'bg-indigo-500/10' },
     { id: 'jsts', category: 'languages', name: common.tabJsTs, icon: SiJavascript, color: 'text-yellow-300', bgColor: 'bg-yellow-500/10' },
     { id: 'java', category: 'languages', name: 'Java Pro', icon: Coffee, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
     { id: 'python', category: 'languages', name: common.tabPython, icon: SiPython, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
@@ -74,13 +80,16 @@ function App() {
     { id: 'node', category: 'backend', name: 'Node.js Pro', icon: SiNodedotjs, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
     { id: 'spring', category: 'backend', name: 'Spring Pro', icon: SiSpring, color: 'text-green-400', bgColor: 'bg-green-500/10' },
     { id: 'graphql', category: 'backend', name: 'GraphQL Pro', icon: SiGraphql, color: 'text-pink-400', bgColor: 'bg-pink-500/10' },
+    { id: 'apidesign', category: 'backend', name: common.tabAPIDesign, icon: Globe, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
     { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
     { id: 'cloud', category: 'clouddevops', name: common.tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
     { id: 'containers', category: 'clouddevops', name: common.tabContainers, icon: SiDocker, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
+    { id: 'git', category: 'clouddevops', name: common.tabGit, icon: GitBranch, color: 'text-rose-400', bgColor: 'bg-rose-500/10' },
     { id: 'testing', category: 'databases', name: common.tabTesting, icon: Code, color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
     { id: 'databases', category: 'databases', name: common.tabDatabases, icon: Network, color: 'text-violet-400', bgColor: 'bg-violet-500/10' },
     { id: 'security', category: 'databases', name: common.tabSecurity, icon: Box, color: 'text-red-400', bgColor: 'bg-red-500/10' },
+    { id: 'aillm', category: 'ai', name: common.tabAILLM, icon: Bot, color: 'text-fuchsia-400', bgColor: 'bg-fuchsia-500/10' },
   ], [language, common]);
 
   const visibleTabs = useMemo(() => {
@@ -168,6 +177,10 @@ function App() {
       case 'security': return <SecurityPro />;
       case 'python': return <PythonPro />;
       case 'kotlin': return <KotlinPro />;
+      case 'dsa': return <DSAPro />;
+      case 'aillm': return <AILLMPro />;
+      case 'apidesign': return <APIDesignPro />;
+      case 'git': return <GitAdvancedPro />;
       default: return <CleanCode />;
     }
   };

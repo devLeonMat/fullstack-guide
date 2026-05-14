@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, ArrowRight, AlertTriangle, Layers, Shield, Users, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, AlertTriangle, Layers, Shield, Users, Trash2, Zap } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Factory, Bell, Shuffle, Plug, Command, Shield, Layers, Box, Boxes } from 'lucide-react';
 import CodeBlock from './CodeBlock';
@@ -131,6 +131,162 @@ const DecoratorDiagram = () => (
     <p className="absolute bottom-4 text-slate-400 text-sm">Wrapping Functionality</p>
   </div>
 );
+
+const AdapterDiagram = () => {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setStep(s => (s + 1) % 3), 1400);
+    return () => clearInterval(id);
+  }, []);
+  const nodes = [
+    { label: 'Client', color: 'bg-blue-500/20 border-blue-500/40 text-blue-300' },
+    { label: 'Adapter', color: 'bg-amber-500/20 border-amber-500/40 text-amber-300' },
+    { label: 'Legacy API', color: 'bg-slate-600/40 border-slate-500/40 text-slate-300' },
+  ];
+  return (
+    <div className="w-full h-[180px] flex items-center justify-center bg-slate-950/30 rounded-xl border border-slate-800 p-4 gap-3">
+      {nodes.map((n, i) => (
+        <div key={n.label} className="flex items-center gap-3">
+          <motion.div animate={{ scale: step === i ? 1.1 : 1, opacity: step >= i ? 1 : 0.4 }}
+            className={`border rounded-xl px-4 py-3 text-center text-sm font-bold ${n.color}`}>
+            {n.label}
+          </motion.div>
+          {i < nodes.length - 1 && (
+            <motion.div animate={{ opacity: step > i ? 1 : 0.2 }} className="flex flex-col items-center text-xs text-slate-500 gap-0.5">
+              <motion.div animate={{ x: step > i ? [0, 6, 0] : 0 }} transition={{ duration: 0.6, repeat: Infinity }}>→</motion.div>
+              <span className="text-[10px]">{i === 0 ? 'fetch()' : 'request()'}</span>
+            </motion.div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const CommandDiagram = () => {
+  const [active, setActive] = useState(0);
+  const commands = ['execute(On)', 'execute(Off)', 'undo()'];
+  useEffect(() => {
+    const id = setInterval(() => setActive(a => (a + 1) % commands.length), 1200);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="w-full h-[180px] flex items-center justify-between bg-slate-950/30 rounded-xl border border-slate-800 p-4">
+      <div className="border border-amber-500/40 bg-amber-500/10 rounded-xl px-4 py-3 text-amber-300 font-bold text-sm text-center">
+        Invoker<br /><span className="text-xs font-normal text-slate-400">RemoteControl</span>
+      </div>
+      <div className="flex flex-col gap-1.5 flex-1 mx-3">
+        {commands.map((cmd, i) => (
+          <motion.div key={cmd} animate={{ scale: active === i ? 1.04 : 1, opacity: active >= i ? 1 : 0.35 }}
+            className={`border rounded-lg px-2 py-1 text-xs font-mono text-center transition-all ${active === i ? 'bg-amber-500/20 border-amber-500/40 text-amber-300' : 'bg-slate-800/40 border-slate-700/40 text-slate-500'}`}>
+            {cmd}
+          </motion.div>
+        ))}
+      </div>
+      <div className="border border-slate-600/40 bg-slate-700/20 rounded-xl px-4 py-3 text-slate-300 font-bold text-sm text-center">
+        Receiver<br /><span className="text-xs font-normal text-slate-400">Light</span>
+      </div>
+    </div>
+  );
+};
+
+const ProxyDiagram = () => {
+  const [phase, setPhase] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setPhase(p => (p + 1) % 4), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const labels = ['Client', 'Proxy', 'Real Subject'];
+  const checks = ['Valida acceso', 'Cachea', 'Loguea'];
+  return (
+    <div className="w-full h-[180px] flex flex-col gap-3 items-center justify-center bg-slate-950/30 rounded-xl border border-slate-800 p-4">
+      <div className="flex items-center gap-3 w-full justify-center">
+        {labels.map((l, i) => (
+          <div key={l} className="flex items-center gap-3">
+            <motion.div animate={{ scale: phase === i + 1 ? 1.1 : 1, opacity: phase >= i + 1 ? 1 : 0.4 }}
+              className={`border rounded-xl px-3 py-2 text-center text-xs font-bold ${i === 1 ? 'border-green-500/40 bg-green-500/10 text-green-300' : 'border-slate-600/40 bg-slate-700/20 text-slate-300'}`}>
+              {l}
+            </motion.div>
+            {i < labels.length - 1 && <motion.span animate={{ opacity: phase > i + 1 ? 1 : 0.2 }} className="text-slate-500 text-sm">→</motion.span>}
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        {checks.map((c, i) => (
+          <motion.div key={c} animate={{ opacity: phase === i + 2 ? 1 : 0.2, scale: phase === i + 2 ? 1.05 : 1 }}
+            className="text-xs border border-green-500/30 bg-green-500/10 text-green-400 rounded-lg px-2 py-1">
+            ✓ {c}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const FacadeDiagram = () => {
+  const [showInternals, setShowInternals] = useState(false);
+  useEffect(() => {
+    const id = setInterval(() => setShowInternals(v => !v), 2000);
+    return () => clearInterval(id);
+  }, []);
+  const subsystems = ['CPU', 'Memory', 'HardDrive', 'Network'];
+  return (
+    <div className="w-full h-[180px] flex items-center justify-center gap-6 bg-slate-950/30 rounded-xl border border-slate-800 p-4">
+      <div className="border border-indigo-500/40 bg-indigo-500/10 rounded-xl px-4 py-3 text-indigo-300 font-bold text-sm text-center">
+        Client
+      </div>
+      <motion.div animate={{ x: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}
+        className="text-slate-500 text-lg">→</motion.div>
+      <div className="border-2 border-purple-500/50 bg-purple-500/10 rounded-xl px-5 py-4 text-purple-300 font-bold text-sm text-center shadow-lg shadow-purple-500/10">
+        Facade<br /><span className="text-xs font-normal text-slate-400">computer.start()</span>
+      </div>
+      <AnimatePresence>
+        {showInternals && (
+          <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}
+            className="flex flex-col gap-1.5">
+            {subsystems.map((s, i) => (
+              <motion.div key={s} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.12 }}
+                className="border border-slate-600/40 bg-slate-700/20 rounded-lg px-3 py-1 text-slate-400 text-xs font-mono">
+                {s}
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const BuilderDiagram = () => {
+  const [built, setBuilt] = useState(0);
+  const steps = [
+    { label: 'setName()', color: 'bg-orange-500/20 border-orange-500/40 text-orange-300' },
+    { label: 'setAge()', color: 'bg-orange-400/20 border-orange-400/40 text-orange-200' },
+    { label: 'setEmail()', color: 'bg-amber-500/20 border-amber-500/40 text-amber-300' },
+    { label: '.build()', color: 'bg-green-500/20 border-green-500/40 text-green-300' },
+  ];
+  useEffect(() => {
+    const id = setInterval(() => setBuilt(b => b < steps.length ? b + 1 : 0), 600);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="w-full h-[180px] flex flex-col items-center justify-center gap-3 bg-slate-950/30 rounded-xl border border-slate-800 p-4">
+      <div className="flex flex-wrap gap-2 justify-center">
+        {steps.map((s, i) => (
+          <motion.div key={s.label} animate={{ opacity: built > i ? 1 : 0.2, scale: built === i + 1 ? 1.08 : 1 }}
+            className={`border rounded-lg px-3 py-1.5 text-xs font-mono font-semibold ${s.color}`}>
+            {s.label}
+          </motion.div>
+        ))}
+      </div>
+      <motion.div animate={{ scale: built >= steps.length ? [1, 1.05, 1] : 1 }}
+        transition={{ duration: 0.6 }}
+        className={`border-2 rounded-xl px-6 py-2 text-sm font-bold transition-all ${built >= steps.length ? 'border-green-500/60 bg-green-500/15 text-green-300' : 'border-slate-700/40 bg-slate-800/20 text-slate-500'}`}>
+        {built >= steps.length ? '✓ User Object' : 'Building...'}
+      </motion.div>
+    </div>
+  );
+};
 
 function Patterns() {
   const { language } = useLanguage();
@@ -364,11 +520,7 @@ console.log(payment.executePayment(200));`,
       name: 'Adapter',
       icon: Plug,
       category: 'Structural',
-      diagram: <div className="relative w-full h-[200px] flex items-center justify-around bg-slate-950/30 rounded-xl p-6 border border-slate-800">
-        <div className="text-5xl">🔌</div>
-        <motion.div animate={{ x: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }} className="text-4xl">⚡</motion.div>
-        <div className="text-5xl">🔋</div>
-      </div>,
+      diagram: <AdapterDiagram />,
       description: 'Convierte la interfaz de una clase en otra interfaz que el cliente espera, permitiendo trabajar juntas a clases incompatibles.',
       code: `// Adapter Pattern
 class OldAPI {
@@ -410,15 +562,7 @@ console.log(adapter.fetch());`,
       name: 'Command',
       icon: Command,
       category: 'Behavioral',
-      diagram: <div className="relative w-full h-[200px] grid grid-cols-3 gap-4 items-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
-        <div className="flex flex-col items-center gap-2">
-          {['▶️', '⏸️', '⏹️'].map((btn, idx) => (
-            <motion.div key={idx} whileHover={{ scale: 1.2 }} className="text-3xl cursor-pointer">{btn}</motion.div>
-          ))}
-        </div>
-        <Command className="w-20 h-20 text-amber-400 mx-auto" />
-        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-6xl text-center">📻</motion.div>
-      </div>,
+      diagram: <CommandDiagram />,
       description: 'Encapsula una solicitud como un objeto, permitiendo parametrizar clientes con diferentes solicitudes, encolar y deshacer operaciones.',
       code: `// Command Pattern
 class Light {
@@ -484,13 +628,7 @@ remote.undo();`,
       name: 'Proxy',
       icon: Shield,
       category: 'Structural',
-      diagram: <div className="relative w-full h-[200px] flex items-center justify-around bg-slate-950/30 rounded-xl p-6 border border-slate-800">
-        <div className="text-5xl">👤</div>
-        <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="w-16 h-16 rounded-full border-4 border-green-500 flex items-center justify-center">
-          <Shield className="text-green-400" size={32} />
-        </motion.div>
-        <div className="text-5xl">🎯</div>
-      </div>,
+      diagram: <ProxyDiagram />,
       description: 'Proporciona un sustituto o marcador de posición para otro objeto, controlando el acceso a él.',
       code: `// Proxy Pattern
 class RealImage {
@@ -600,16 +738,7 @@ console.log(myCoffee.cost()); // 8`,
       name: 'Facade',
       icon: Box,
       category: 'Structural',
-      diagram: <div className="relative w-full h-[200px] grid grid-cols-2 gap-4 items-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
-        <div className="flex flex-col gap-2">
-          {['🔧', '⚙️', '🔩', '⚡'].map((icon, idx) => (
-            <div key={idx} className="text-2xl">{icon}</div>
-          ))}
-        </div>
-        <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto">
-          <Box className="w-16 h-16 text-white" />
-        </motion.div>
-      </div>,
+      diagram: <FacadeDiagram />,
       description: 'Proporciona una interfaz unificada y simplificada a un conjunto de interfaces en un subsistema, facilitando su uso.',
       code: `// Facade Pattern
 class CPU {
@@ -666,26 +795,7 @@ computer.start(); // Un solo método en vez de muchos`,
       name: 'Builder',
       icon: Boxes,
       category: 'Creational',
-      diagram: <div className="relative w-full h-[200px] flex items-center justify-center bg-slate-950/30 rounded-xl p-6 border border-slate-800">
-        <div className="flex flex-col items-center">
-          <div className="flex gap-2 mb-4">
-            {[1, 2, 3, 4].map((i) => (
-              <motion.div
-                key={i}
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: i * 0.3, repeat: Infinity, repeatDelay: 2 }}
-                className="w-12 h-12 bg-orange-500 rounded flex items-center justify-center text-white font-bold"
-              >
-                {i}
-              </motion.div>
-            ))}
-          </div>
-          <motion.div animate={{ scale: [0.9, 1, 0.9] }} transition={{ duration: 2, repeat: Infinity }} className="w-32 h-24 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-            <Boxes className="w-12 h-12 text-white" />
-          </motion.div>
-        </div>
-      </div>,
+      diagram: <BuilderDiagram />,
       description: 'Separa la construcción de un objeto complejo de su representación, permitiendo crear diferentes representaciones.',
       code: `// Builder Pattern
 class UserBuilder {

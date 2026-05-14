@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowRight, AlertTriangle, Layers, Shield, Users, Trash2 } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -629,6 +629,31 @@ function CleanCode() {
       subtitle: tx('Code smells y cómo eliminarlos', 'Code smells and how to fix them'),
     },
     {
+      id: 'formatting',
+      title: tx('Formato', 'Formatting'),
+      subtitle: tx('Densidad vertical & horizontal', 'Vertical & horizontal density'),
+    },
+    {
+      id: 'errors',
+      title: tx('Errores', 'Error Handling'),
+      subtitle: tx('Excepciones, null y fail fast', 'Exceptions, null & fail fast'),
+    },
+    {
+      id: 'abstractions',
+      title: tx('Abstracciones', 'Abstractions'),
+      subtitle: tx('SLAP, Ley de Demeter, Tell Don\'t Ask', 'SLAP, Law of Demeter, Tell Don\'t Ask'),
+    },
+    {
+      id: 'classes',
+      title: tx('Clases', 'Classes'),
+      subtitle: tx('Cohesión, tamaño y SRP', 'Cohesion, size and SRP'),
+    },
+    {
+      id: 'boyscout',
+      title: tx('Boy Scout & Límites', 'Boy Scout & Boundaries'),
+      subtitle: tx('Código muerto, 3rd party, concurrencia', 'Dead code, 3rd party, concurrency'),
+    },
+    {
       id: 'checklist',
       title: 'Checklist',
       subtitle: tx('¿Tu código está listo para revisión?', 'Is your code ready for review?'),
@@ -1223,6 +1248,530 @@ function processOrder({ items }) {
     </div>
   );
 
+  // ─── Formatting ────────────────────────────────────────────────────────────
+
+  const renderFormatting = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Formato del Código', 'Code Formatting')}
+        subtitle={tx('El formato comunica. Un estilo consistente reduce la carga cognitiva.', 'Formatting communicates. Consistent style reduces cognitive load.')}
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[
+          {
+            title: tx('Metáfora del periódico', 'Newspaper Metaphor'),
+            color: 'text-emerald-300', border: 'border-emerald-500/30 bg-emerald-500/5',
+            items: [
+              tx('El nombre del archivo debe decir de qué trata', 'The filename should tell you what it\'s about'),
+              tx('Las partes más importantes van arriba', 'The most important parts go at the top'),
+              tx('Los detalles van bajando hacia el final', 'Details descend to the bottom'),
+              tx('Cada sección es independiente y legible', 'Each section is independent and readable'),
+            ],
+          },
+          {
+            title: tx('Densidad vertical', 'Vertical Density'),
+            color: 'text-cyan-300', border: 'border-cyan-500/30 bg-cyan-500/5',
+            items: [
+              tx('Líneas en blanco separan conceptos distintos', 'Blank lines separate distinct concepts'),
+              tx('Código relacionado va junto, sin espacios', 'Related code stays together without gaps'),
+              tx('Una línea en blanco entre métodos', 'One blank line between methods'),
+              tx('Evita pantallas de scroll innecesarias', 'Avoid unnecessary scrolling'),
+            ],
+          },
+          {
+            title: tx('Densidad horizontal', 'Horizontal Density'),
+            color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5',
+            items: [
+              tx('Máximo 120 caracteres por línea (configurable en linter)', 'Max 120 characters per line (linter-configurable)'),
+              tx('Los espacios alrededor de operadores muestran precedencia', 'Spaces around operators show precedence'),
+              tx('No alinear variables manualmente: se desincroniza', 'Don\'t manually align variables: they fall out of sync'),
+              tx('Indentación consistente (2 o 4 espacios, no tabs)', 'Consistent indentation (2 or 4 spaces, not tabs)'),
+            ],
+          },
+          {
+            title: tx('Herramientas de formato', 'Formatting Tools'),
+            color: 'text-teal-300', border: 'border-teal-500/30 bg-teal-500/5',
+            items: [
+              tx('Prettier: formatea automáticamente (JS/TS/CSS)', 'Prettier: auto-formats (JS/TS/CSS)'),
+              tx('ESLint: detecta problemas de estilo y bugs', 'ESLint: detects style issues and bugs'),
+              tx('Black / Ruff (Python), ktlint (Kotlin), gofmt (Go)', 'Black / Ruff (Python), ktlint (Kotlin), gofmt (Go)'),
+              tx('Configura en CI: el equipo no debate estilo manualmente', 'Configure in CI: the team doesn\'t debate style manually'),
+            ],
+          },
+        ].map((card, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className={`border rounded-xl p-4 ${card.border}`}>
+            <p className={`font-bold text-sm mb-2 ${card.color}`}>{card.title}</p>
+            <ul className="space-y-1.5">
+              {card.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-xs text-slate-300">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+      <CodeBlock language="javascript" code={`// ❌ Sin formato — difícil de leer
+function calc(a,b,c){const r=a*b+c;if(r>100){return r}else{return 0}}
+
+// ✅ Con formato — legible
+function calculateBonus(salary, multiplier, bonus) {
+  const total = salary * multiplier + bonus;
+
+  if (total > 100) {
+    return total;
+  }
+
+  return 0;
+}
+
+// ❌ Densidad vertical incorrecta
+function process(items) {
+  const result = [];
+
+  for (const item of items) {
+
+    if (item.active) {
+
+      result.push(item.value);
+
+    }
+
+  }
+
+  return result;
+}
+
+// ✅ Densidad correcta
+function process(items) {
+  const result = [];
+  for (const item of items) {
+    if (item.active) {
+      result.push(item.value);
+    }
+  }
+  return result;
+}`} />
+    </div>
+  );
+
+  // ─── Error Handling ─────────────────────────────────────────────────────────
+
+  const renderErrors = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Manejo de Errores', 'Error Handling')}
+        subtitle={tx('Los errores son parte del dominio. Tratalos con la misma limpieza que el código normal.', 'Errors are part of the domain. Handle them with the same cleanliness as normal code.')}
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[
+          {
+            title: tx('Excepciones > códigos de retorno', 'Exceptions > return codes'),
+            icon: <AlertTriangle className="w-4 h-4" />, color: 'text-amber-300', border: 'border-amber-500/30 bg-amber-500/5',
+            items: [
+              tx('Devolver -1 o null como error obliga al llamante a comprobar', 'Returning -1 or null as error forces caller to check'),
+              tx('Las excepciones separan el flujo feliz del manejo de errores', 'Exceptions separate happy path from error handling'),
+              tx('Usa excepciones tipadas: DatabaseException, not Exception', 'Use typed exceptions: DatabaseException, not Exception'),
+              tx('El catch debe ser específico, nunca catch(Exception e) {}', 'The catch should be specific, never catch(Exception e) {}'),
+            ],
+          },
+          {
+            title: tx('No devuelvas null', 'Don\'t Return Null'),
+            icon: <XCircle className="w-4 h-4" />, color: 'text-red-300', border: 'border-red-500/30 bg-red-500/5',
+            items: [
+              tx('Null como retorno obliga al llamante a comprobar: NullPointerException', 'Null return forces caller to check: NullPointerException'),
+              tx('Devuelve Optional<T> (Java), T | null tipado (TS), [] para listas', 'Return Optional<T> (Java), typed T | null (TS), [] for lists'),
+              tx('Null Object Pattern: devuelve un objeto vacío con comportamiento neutral', 'Null Object Pattern: return empty object with neutral behavior'),
+              tx('Tampoco pases null como argumento', 'Also don\'t pass null as argument'),
+            ],
+          },
+          {
+            title: tx('Fail Fast', 'Fail Fast'),
+            icon: <Zap className="w-4 h-4 text-yellow-400" />, color: 'text-yellow-300', border: 'border-yellow-500/30 bg-yellow-500/5',
+            items: [
+              tx('Valida inputs al inicio de la función (guard clauses)', 'Validate inputs at function start (guard clauses)'),
+              tx('Lanza excepción tan pronto como detectes el error', 'Throw exception as soon as you detect the error'),
+              tx('No propagues estados inválidos; falla rápido y con claridad', 'Don\'t propagate invalid state; fail fast and clearly'),
+              tx('Los errores silenciosos (swallowed exceptions) son los más peligrosos', 'Silent errors (swallowed exceptions) are the most dangerous'),
+            ],
+          },
+          {
+            title: tx('Contexto en los errores', 'Error Context'),
+            icon: <Shield className="w-4 h-4 text-blue-400" />, color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5',
+            items: [
+              tx('El mensaje de error debe decir QUÉ falló, DÓNDE y POR QUÉ', 'Error message must say WHAT failed, WHERE and WHY'),
+              tx('Incluye el valor que causó el error: "Invalid age: -5"', 'Include the value that caused the error: "Invalid age: -5"'),
+              tx('Loguea el stack trace, no solo el mensaje', 'Log the stack trace, not just the message'),
+              tx('Diferencia errores de dominio (404) de errores de sistema (500)', 'Differentiate domain errors (404) from system errors (500)'),
+            ],
+          },
+        ].map((card, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className={`border rounded-xl p-4 ${card.border}`}>
+            <p className={`font-bold text-sm mb-2 flex items-center gap-2 ${card.color}`}>{card.icon}{card.title}</p>
+            <ul className="space-y-1.5">
+              {card.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-xs text-slate-300">
+                  <ArrowRight className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+      <CodeBlock language="typescript" code={`// ❌ Código de retorno — obliga al llamante a comprobar
+function findUser(id: string): User | null {
+  const user = db.find(id);
+  if (!user) return null;    // ← el llamante puede olvidar comprobar
+  return user;
+}
+const user = findUser('123');
+user.email;  // 💥 TypeError si user es null
+
+// ✅ Excepción tipada — clara y explícita
+function findUser(id: string): User {
+  const user = db.find(id);
+  if (!user) throw new UserNotFoundException(\`User \${id} not found\`);
+  return user;
+}
+
+// ✅ Guard clauses — fail fast al inicio
+function processPayment(amount: number, userId: string): void {
+  if (amount <= 0) throw new InvalidAmountError(\`Amount must be > 0, got \${amount}\`);
+  if (!userId)    throw new Error('userId is required');
+
+  // lógica limpia a partir de aquí, sabemos que los inputs son válidos
+  const user = findUser(userId);
+  charge(user, amount);
+}
+
+// ✅ No devuelvas null — devuelve lista vacía
+function getOrders(userId: string): Order[] {
+  return db.orders.filter(o => o.userId === userId) ?? [];  // nunca null
+}`} />
+    </div>
+  );
+
+  // ─── Abstractions ───────────────────────────────────────────────────────────
+
+  const renderAbstractions = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Abstracciones y Niveles', 'Abstractions and Levels')}
+        subtitle={tx('El código de alta calidad mezcla un solo nivel de abstracción a la vez.', 'High quality code mixes only one level of abstraction at a time.')}
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[
+          {
+            title: tx('SLAP — Single Level of Abstraction', 'SLAP — Single Level of Abstraction'),
+            color: 'text-emerald-300', border: 'border-emerald-500/30 bg-emerald-500/5',
+            items: [
+              tx('Una función no debe mezclar alto nivel con detalles de implementación', 'A function must not mix high level with implementation details'),
+              tx('Si entra en detalles, extrae esa lógica a una función con nombre', 'If it dives into detail, extract that logic to a named function'),
+              tx('El nivel de abstracción = el nivel de las palabras que usas', 'Abstraction level = the level of words you use'),
+              tx('processOrder() → validateOrder(), chargeUser(), sendConfirmation()', 'processOrder() → validateOrder(), chargeUser(), sendConfirmation()'),
+            ],
+          },
+          {
+            title: tx('Ley de Demeter', 'Law of Demeter'),
+            color: 'text-cyan-300', border: 'border-cyan-500/30 bg-cyan-500/5',
+            items: [
+              tx('Un objeto solo habla con sus amigos directos, no con extraños', 'An object only talks to its direct friends, not strangers'),
+              tx('❌ user.getAddress().getCity().getZipCode() — "train wreck"', '❌ user.getAddress().getCity().getZipCode() — "train wreck"'),
+              tx('✅ user.getZipCode() — delega la navegación al objeto', '✅ user.getZipCode() — delegates navigation to the object'),
+              tx('Reduce acoplamiento: cambiar Address no rompe el código cliente', 'Reduces coupling: changing Address doesn\'t break client code'),
+            ],
+          },
+          {
+            title: tx('Tell, Don\'t Ask', 'Tell, Don\'t Ask'),
+            color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5',
+            items: [
+              tx('No preguntes el estado de un objeto para tomar decisiones por él', 'Don\'t ask an object\'s state to make decisions for it'),
+              tx('❌ if (account.getBalance() > 0) { account.debit(amount); }', '❌ if (account.getBalance() > 0) { account.debit(amount); }'),
+              tx('✅ account.debit(amount) — el objeto sabe si puede debitar', '✅ account.debit(amount) — the object knows if it can debit'),
+              tx('Promueve encapsulación real: el comportamiento vive con los datos', 'Promotes real encapsulation: behavior lives with data'),
+            ],
+          },
+          {
+            title: tx('Objetos vs Estructuras de Datos', 'Objects vs Data Structures'),
+            color: 'text-violet-300', border: 'border-violet-500/30 bg-violet-500/5',
+            items: [
+              tx('Objetos: ocultan datos, exponen comportamiento (POO)', 'Objects: hide data, expose behavior (OOP)'),
+              tx('Estructuras de datos (DTO/records): exponen datos, sin comportamiento', 'Data structures (DTO/records): expose data, no behavior'),
+              tx('No mezcles: un objeto con getters/setters públicos es una "data class"', 'Don\'t mix: an object with public getters/setters is a "data class"'),
+              tx('Antipatrón: Anemic Domain Model — objetos sin comportamiento real', 'Anti-pattern: Anemic Domain Model — objects with no real behavior'),
+            ],
+          },
+        ].map((card, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className={`border rounded-xl p-4 ${card.border}`}>
+            <p className={`font-bold text-sm mb-2 ${card.color}`}>{card.title}</p>
+            <ul className="space-y-1.5">
+              {card.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-xs text-slate-300">
+                  <ArrowRight className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+      <CodeBlock language="typescript" code={`// ❌ SLAP violado — mezcla alto nivel con SQL raw
+function processOrder(orderId: string) {
+  const order = db.query(\`SELECT * FROM orders WHERE id = '\${orderId}'\`);
+  if (order.status === 'pending' && order.items.length > 0) {
+    const total = order.items.reduce((sum, i) => sum + i.price * i.qty, 0);
+    db.query(\`UPDATE orders SET status='paid', total=\${total} WHERE id='\${orderId}'\`);
+    sendEmail(order.user.email, 'Your order is confirmed');
+  }
+}
+
+// ✅ SLAP correcto — cada función hace una cosa al mismo nivel
+function processOrder(orderId: string) {
+  const order = findOrder(orderId);
+  validateOrder(order);
+  const total = calculateTotal(order);
+  markAsPaid(order, total);
+  notifyUser(order);
+}
+
+// ❌ Ley de Demeter (train wreck)
+const zip = customer.getProfile().getAddress().getZip();
+
+// ✅ Ley de Demeter
+const zip = customer.getShippingZip();  // Customer encapsula la navegación
+
+// ❌ Ask — código cliente toma decisiones por el objeto
+if (user.isAdmin() && user.getPermissions().includes('write')) {
+  document.save();
+}
+
+// ✅ Tell — el objeto decide por sí mismo
+document.saveAs(user);  // Document sabe qué permisos necesita`} />
+    </div>
+  );
+
+  // ─── Classes ────────────────────────────────────────────────────────────────
+
+  const renderClasses = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Clases Limpias', 'Clean Classes')}
+        subtitle={tx('Las clases deben ser pequeñas, cohesivas y tener una sola razón para cambiar.', 'Classes should be small, cohesive and have a single reason to change.')}
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[
+          {
+            title: tx('Tamaño de clases', 'Class Size'),
+            color: 'text-emerald-300', border: 'border-emerald-500/30 bg-emerald-500/5',
+            items: [
+              tx('El tamaño se mide en responsabilidades, no en líneas', 'Size is measured in responsibilities, not lines'),
+              tx('Si no puedes describir la clase sin "y" o "o", es demasiado grande', 'If you can\'t describe the class without "and" or "or", it\'s too big'),
+              tx('Regla práctica: < 200 líneas, < 15 métodos públicos', 'Practical rule: < 200 lines, < 15 public methods'),
+              tx('God Class = señal de alarma: hace demasiado', 'God Class = red flag: does too much'),
+            ],
+          },
+          {
+            title: tx('Cohesión', 'Cohesion'),
+            color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5',
+            items: [
+              tx('Cohesión alta = los métodos usan la mayoría de las variables de instancia', 'High cohesion = methods use most instance variables'),
+              tx('Si un grupo de métodos solo usa un subconjunto de vars → extrae clase', 'If a method group only uses a subset of vars → extract class'),
+              tx('Cohesión baja = la clase tiene múltiples responsabilidades', 'Low cohesion = the class has multiple responsibilities'),
+              tx('El refactoring a clases cohesivas suele mejorar la testabilidad', 'Refactoring to cohesive classes usually improves testability'),
+            ],
+          },
+          {
+            title: tx('Organización interna', 'Internal Organization'),
+            color: 'text-cyan-300', border: 'border-cyan-500/30 bg-cyan-500/5',
+            items: [
+              tx('Constantes → variables de instancia → constructor → métodos públicos → privados', 'Constants → instance variables → constructor → public methods → private'),
+              tx('Los métodos privados van justo después del público que los llama', 'Private methods go right after the public method that calls them'),
+              tx('Las variables de instancia van arriba, no dispersas por la clase', 'Instance variables go at the top, not scattered throughout'),
+              tx('Accesibilidad: public → protected → package → private', 'Visibility: public → protected → package → private'),
+            ],
+          },
+          {
+            title: tx('Encapsulación real', 'Real Encapsulation'),
+            color: 'text-violet-300', border: 'border-violet-500/30 bg-violet-500/5',
+            items: [
+              tx('Evita setters innecesarios: ¿realmente necesitas mutar ese campo?', 'Avoid unnecessary setters: do you really need to mutate that field?'),
+              tx('Prefiere constructores con todos los campos requeridos', 'Prefer constructors with all required fields'),
+              tx('Inmutabilidad siempre que sea posible: reduce bugs de concurrencia', 'Immutability whenever possible: reduces concurrency bugs'),
+              tx('No expongas colecciones internas directamente — devuelve copia o vista', 'Don\'t expose internal collections directly — return copy or view'),
+            ],
+          },
+        ].map((card, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className={`border rounded-xl p-4 ${card.border}`}>
+            <p className={`font-bold text-sm mb-2 ${card.color}`}>{card.title}</p>
+            <ul className="space-y-1.5">
+              {card.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-xs text-slate-300">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+      <CodeBlock language="typescript" code={`// ❌ God Class — hace demasiado
+class UserManager {
+  createUser(data) { ... }
+  deleteUser(id) { ... }
+  sendWelcomeEmail(user) { ... }         // ← responsabilidad de Email
+  generateInvoice(user, items) { ... }   // ← responsabilidad de Billing
+  checkInventory(productId) { ... }      // ← responsabilidad de Stock
+  formatUserReport(user) { ... }         // ← responsabilidad de Report
+}
+
+// ✅ Clases cohesivas — cada una tiene una razón para cambiar
+class UserRepository {
+  create(data: CreateUserDTO): User { ... }
+  delete(id: string): void { ... }
+  findById(id: string): User | null { ... }
+}
+
+class UserEmailService {
+  sendWelcome(user: User): Promise<void> { ... }
+  sendPasswordReset(user: User): Promise<void> { ... }
+}
+
+class InvoiceService {
+  generate(user: User, items: LineItem[]): Invoice { ... }
+}
+
+// ✅ Encapsulación real — inmutabilidad
+class Money {
+  constructor(
+    private readonly amount: number,
+    private readonly currency: string,
+  ) {
+    if (amount < 0) throw new Error('Amount cannot be negative');
+  }
+
+  add(other: Money): Money {
+    if (other.currency !== this.currency) throw new Error('Currency mismatch');
+    return new Money(this.amount + other.amount, this.currency);  // inmutable
+  }
+
+  get value() { return this.amount; }  // solo getter, no setter
+}`} />
+    </div>
+  );
+
+  // ─── Boy Scout & Boundaries ─────────────────────────────────────────────────
+
+  const renderBoyscout = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Boy Scout, Código Muerto y Límites', 'Boy Scout, Dead Code & Boundaries')}
+        subtitle={tx('Deja el código mejor de como lo encontraste. Elimina lo que no sirve. Aísla lo externo.', 'Leave code better than you found it. Remove what doesn\'t serve. Isolate external code.')}
+      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {[
+          {
+            title: tx('Regla del Boy Scout', 'Boy Scout Rule'),
+            icon: <Users className="w-4 h-4" />, color: 'text-emerald-300', border: 'border-emerald-500/30 bg-emerald-500/5',
+            items: [
+              tx('"Siempre deja el campamento más limpio de como lo encontraste"', '"Always leave the campground cleaner than you found it"'),
+              tx('No necesitas reescribir todo — mejoras pequeñas y constantes', 'You don\'t need to rewrite everything — small, constant improvements'),
+              tx('Renombra una variable confusa, extrae un método, elimina un comentario', 'Rename a confusing variable, extract a method, remove a comment'),
+              tx('La deuda técnica se paga en cuotas, no en rescates masivos', 'Technical debt is paid in installments, not massive rescues'),
+            ],
+          },
+          {
+            title: tx('Código Muerto', 'Dead Code'),
+            icon: <Trash2 className="w-4 h-4" />, color: 'text-red-300', border: 'border-red-500/30 bg-red-500/5',
+            items: [
+              tx('Código comentado = código muerto disfrazado → bórralo, git lo guarda', 'Commented code = disguised dead code → delete it, git keeps it'),
+              tx('Funciones que nadie llama, variables que nadie lee → bórralo', 'Functions nobody calls, variables nobody reads → delete it'),
+              tx('Feature flags viejos que nunca se eliminan → deuda técnica activa', 'Old feature flags never removed → active technical debt'),
+              tx('Las herramientas de cobertura y linters detectan código muerto', 'Coverage tools and linters detect dead code'),
+            ],
+          },
+          {
+            title: tx('Límites (Boundaries)', 'Boundaries'),
+            icon: <Layers className="w-4 h-4" />, color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5',
+            items: [
+              tx('Envuelve librerías de terceros en tu propia abstracción (Adapter)', 'Wrap third-party libraries in your own abstraction (Adapter)'),
+              tx('Si cambia la librería, solo cambias el adaptador, no todo el código', 'If the library changes, only the adapter changes, not all code'),
+              tx('Learning tests: escribe tests para aprender la API de la librería', 'Learning tests: write tests to learn the library API'),
+              tx('Evita que tu dominio dependa de DTOs/tipos de librerías externas', 'Avoid domain depending on DTOs/types from external libraries'),
+            ],
+          },
+          {
+            title: tx('Concurrencia básica', 'Basic Concurrency'),
+            icon: <Shield className="w-4 h-4" />, color: 'text-amber-300', border: 'border-amber-500/30 bg-amber-500/5',
+            items: [
+              tx('Separa código concurrente del código de negocio', 'Separate concurrent code from business code'),
+              tx('Prefiere inmutabilidad — los objetos inmutables son thread-safe por defecto', 'Prefer immutability — immutable objects are thread-safe by default'),
+              tx('Evita variables de estado compartido; usa mensajes (Actor model)', 'Avoid shared state; use messages (Actor model)'),
+              tx('Principio de responsabilidad única aplica también a threads', 'Single Responsibility Principle also applies to threads'),
+            ],
+          },
+        ].map((card, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
+            className={`border rounded-xl p-4 ${card.border}`}>
+            <p className={`font-bold text-sm mb-2 flex items-center gap-2 ${card.color}`}>{card.icon}{card.title}</p>
+            <ul className="space-y-1.5">
+              {card.items.map((item, j) => (
+                <li key={j} className="flex items-start gap-2 text-xs text-slate-300">
+                  <ArrowRight className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        ))}
+      </div>
+      <CodeBlock language="typescript" code={`// ❌ Sin límites — tu dominio acoplado a la librería
+import Stripe from 'stripe';
+class OrderService {
+  async pay(order: Order) {
+    const stripe = new Stripe(process.env.STRIPE_KEY!);
+    const intent = await stripe.paymentIntents.create({   // ← Stripe en el dominio
+      amount: order.total * 100,
+      currency: 'usd',
+    });
+    order.paymentId = intent.id;
+  }
+}
+
+// ✅ Con límites — Adapter Pattern
+interface PaymentGateway {                  // tu abstracción
+  charge(amount: number): Promise<string>;
+}
+
+class StripeGateway implements PaymentGateway {   // adaptador
+  private client = new Stripe(process.env.STRIPE_KEY!);
+  async charge(amount: number) {
+    const intent = await this.client.paymentIntents.create({ amount: amount * 100, currency: 'usd' });
+    return intent.id;
+  }
+}
+
+class OrderService {                        // dominio limpio
+  constructor(private payments: PaymentGateway) {}
+  async pay(order: Order) {
+    order.paymentId = await this.payments.charge(order.total);
+  }
+}
+
+// ✅ Boy Scout Rule — mejora pequeña al pasar
+// Antes: function proc(d) { return d.filter(x => x.a).map(x => x.v) }
+// Después:
+function getActiveValues(items: Item[]): number[] {
+  return items.filter(item => item.active).map(item => item.value);
+}`} />
+    </div>
+  );
+
   const renderContent = () => {
     switch (active) {
       case 'naming':      return renderNaming();
@@ -1230,6 +1779,11 @@ function processOrder({ items }) {
       case 'dry':         return renderDry();
       case 'comments':    return renderComments();
       case 'refactoring': return renderRefactoring();
+      case 'formatting':  return renderFormatting();
+      case 'errors':      return renderErrors();
+      case 'abstractions':return renderAbstractions();
+      case 'classes':     return renderClasses();
+      case 'boyscout':    return renderBoyscout();
       case 'checklist':   return renderChecklist();
       default:            return renderNaming();
     }

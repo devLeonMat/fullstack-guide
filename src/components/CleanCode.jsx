@@ -1,282 +1,1275 @@
-import { useState } from 'react';
-import { Lightbulb, Recycle, Scissors, Sparkles, FileText, Wrench, Target, Shield, BookOpen, Zap, CheckCircle, XCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
-import { t } from '../translations';
+
+// ─── Shared helpers ────────────────────────────────────────────────────────────
+
+const FlowArrow = () => (
+  <ArrowRight className="w-4 h-4 text-emerald-400/60 flex-shrink-0" />
+);
+
+const SectionTitle = ({ title, subtitle }) => (
+  <div className="mb-1">
+    <h2 className="text-xl lg:text-3xl font-bold text-white mb-1">{title}</h2>
+    <p className="text-slate-400 text-sm">{subtitle}</p>
+  </div>
+);
+
+const InfoCard = ({ title, color, border, children }) => (
+  <div className={`bg-slate-800/30 border ${border} rounded-xl p-4`}>
+    <p className={`text-sm font-bold ${color} mb-2`}>{title}</p>
+    <p className="text-xs text-slate-400 leading-relaxed">{children}</p>
+  </div>
+);
+
+// ─── Section 1: Naming Diagram ─────────────────────────────────────────────────
+
+const NamingDiagram = ({ tx }) => {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const pairs = [
+    { bad: 'd',          good: 'daysUntilExpiry' },
+    { bad: 'tmp',        good: 'temporaryFilePath' },
+    { bad: 'data',       good: 'userProfile' },
+    { bad: 'flag',       good: 'isAuthenticated' },
+    { bad: 'fn',         good: 'calculateTotalPrice' },
+    { bad: 'arr',        good: 'activeSubscriptions' },
+  ];
+
+  useEffect(() => {
+    const id = setInterval(() => setActiveIdx(i => (i + 1) % pairs.length), 1600);
+    return () => clearInterval(id);
+  }, [pairs.length]);
+
+  return (
+    <div className="bg-slate-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-center text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+        {tx('Nombres: malos vs buenos', 'Names: bad vs good')}
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        {/* Bad column */}
+        <div className="space-y-1.5">
+          <p className="text-center text-[10px] font-bold text-red-400 uppercase tracking-wider mb-2">
+            {tx('Críptico', 'Cryptic')}
+          </p>
+          {pairs.map((pair, i) => (
+            <motion.div
+              key={pair.bad}
+              animate={{
+                backgroundColor: activeIdx === i ? 'rgba(239,68,68,0.2)' : 'rgba(30,41,59,0.5)',
+                borderColor: activeIdx === i ? 'rgba(239,68,68,0.5)' : 'rgba(71,85,105,0.3)',
+              }}
+              transition={{ duration: 0.3 }}
+              className="px-2.5 py-1.5 border rounded-lg text-center font-mono"
+            >
+              <span className={`text-xs font-semibold ${activeIdx === i ? 'text-red-300' : 'text-slate-500'}`}>
+                {pair.bad}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Good column */}
+        <div className="space-y-1.5">
+          <p className="text-center text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-2">
+            {tx('Descriptivo', 'Descriptive')}
+          </p>
+          {pairs.map((pair, i) => (
+            <motion.div
+              key={pair.good}
+              animate={{
+                backgroundColor: activeIdx === i ? 'rgba(52,211,153,0.15)' : 'rgba(30,41,59,0.5)',
+                borderColor: activeIdx === i ? 'rgba(52,211,153,0.5)' : 'rgba(71,85,105,0.3)',
+              }}
+              transition={{ duration: 0.3 }}
+              className="px-2.5 py-1.5 border rounded-lg text-center font-mono"
+            >
+              <span className={`text-[10px] font-semibold ${activeIdx === i ? 'text-emerald-300' : 'text-slate-500'}`}>
+                {pair.good}
+              </span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Section 2: Function Size Diagram ─────────────────────────────────────────
+
+const FunctionSizeDiagram = ({ tx }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const id = setTimeout(() => setMounted(true), 100);
+    return () => clearTimeout(id);
+  }, []);
+
+  const bars = [
+    { label: '5-10',  lines: tx('5-10 líneas', '5-10 lines'),  score: 95, color: 'bg-emerald-400' },
+    { label: '10-20', lines: tx('10-20 líneas', '10-20 lines'), score: 80, color: 'bg-emerald-500' },
+    { label: '20-40', lines: tx('20-40 líneas', '20-40 lines'), score: 55, color: 'bg-yellow-400' },
+    { label: '40-80', lines: tx('40-80 líneas', '40-80 lines'), score: 30, color: 'bg-orange-400' },
+    { label: '80+',   lines: tx('80+ líneas',   '80+ lines'),   score: 10, color: 'bg-red-500' },
+  ];
+
+  return (
+    <div className="bg-slate-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-center text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+        {tx('Tamaño de función vs Mantenibilidad', 'Function size vs Maintainability')}
+      </p>
+      <div className="flex items-end gap-3 justify-center h-28">
+        {bars.map(bar => (
+          <div key={bar.label} className="flex flex-col items-center gap-1 flex-1">
+            <span className="text-[9px] text-slate-400 font-semibold">{bar.score}%</span>
+            <div className="w-full bg-slate-800 rounded-t-md overflow-hidden" style={{ height: '80px' }}>
+              <motion.div
+                className={`w-full ${bar.color} rounded-t-md`}
+                initial={{ height: 0 }}
+                animate={{ height: mounted ? `${bar.score}%` : 0 }}
+                transition={{ duration: 0.7, ease: 'easeOut', delay: bars.indexOf(bar) * 0.1 }}
+                style={{ originY: 1 }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-center gap-3 flex-wrap">
+        {bars.map(bar => (
+          <div key={bar.label} className="flex items-center gap-1">
+            <span className={`w-2.5 h-2.5 rounded-sm inline-block ${bar.color}`} />
+            <span className="text-[10px] text-slate-400">{bar.lines}</span>
+          </div>
+        ))}
+      </div>
+      <p className="text-center text-xs text-emerald-400 font-medium">
+        {tx('Objetivo: funciones de 5-20 líneas', 'Target: functions of 5-20 lines')}
+      </p>
+    </div>
+  );
+};
+
+// ─── Section 3: Principles Diagram ────────────────────────────────────────────
+
+const PrinciplesDiagram = ({ tx }) => {
+  const [activeCard, setActiveCard] = useState(0);
+  const [showFix, setShowFix] = useState(false);
+
+  const principles = [
+    {
+      acronym: 'DRY',
+      full: "Don't Repeat Yourself",
+      color: 'text-emerald-300',
+      bg: 'bg-emerald-500/10',
+      border: 'border-emerald-500/30',
+      glow: 'rgba(52,211,153,0.3)',
+      anti: tx('Código copy-paste sin extraer', 'Copy-paste code without extracting'),
+      fix:  tx('Extrae funciones/módulos reutilizables', 'Extract reusable functions/modules'),
+    },
+    {
+      acronym: 'KISS',
+      full: 'Keep It Simple',
+      color: 'text-sky-300',
+      bg: 'bg-sky-500/10',
+      border: 'border-sky-500/30',
+      glow: 'rgba(56,189,248,0.3)',
+      anti: tx('Solución ingeniosa pero ilegible', 'Clever but unreadable solution'),
+      fix:  tx('Prefiere lo obvio y legible', 'Prefer the obvious and readable'),
+    },
+    {
+      acronym: 'YAGNI',
+      full: "You Aren't Gonna Need It",
+      color: 'text-violet-300',
+      bg: 'bg-violet-500/10',
+      border: 'border-violet-500/30',
+      glow: 'rgba(167,139,250,0.3)',
+      anti: tx('Código para necesidades hipotéticas', 'Code for hypothetical future needs'),
+      fix:  tx('Implementa solo lo requerido hoy', 'Implement only what is needed today'),
+    },
+  ];
+
+  useEffect(() => {
+    let tick = 0;
+    const id = setInterval(() => {
+      tick++;
+      if (tick % 2 === 0) {
+        setActiveCard(c => (c + 1) % 3);
+        setShowFix(false);
+      } else {
+        setShowFix(true);
+      }
+    }, 1800);
+    return () => clearInterval(id);
+  }, []);
+
+  const p = principles[activeCard];
+
+  return (
+    <div className="bg-slate-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-center text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+        {tx('Los 3 Principios Clave', 'The 3 Key Principles')}
+      </p>
+
+      <div className="grid grid-cols-3 gap-2">
+        {principles.map((pr, i) => (
+          <motion.button
+            key={pr.acronym}
+            onClick={() => { setActiveCard(i); setShowFix(false); }}
+            animate={{
+              boxShadow: activeCard === i ? `0 0 18px ${pr.glow}` : '0 0 0px transparent',
+              borderColor: activeCard === i ? pr.glow.replace('0.3', '0.6') : 'rgba(100,116,139,0.25)',
+            }}
+            transition={{ duration: 0.35 }}
+            className={`p-2.5 border rounded-xl text-center ${activeCard === i ? pr.bg : 'bg-slate-800/30'}`}
+          >
+            <p className={`text-base font-extrabold ${activeCard === i ? pr.color : 'text-slate-500'}`}>
+              {pr.acronym}
+            </p>
+            <p className="text-[9px] text-slate-500 leading-tight mt-0.5">{pr.full}</p>
+          </motion.button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`${activeCard}-${showFix}`}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          className={`flex items-start gap-2 p-3 rounded-lg border ${
+            showFix
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : 'bg-red-500/10 border-red-500/30'
+          }`}
+        >
+          {showFix
+            ? <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+            : <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+          }
+          <p className={`text-xs ${showFix ? 'text-emerald-200' : 'text-red-200'}`}>
+            {showFix ? p.fix : p.anti}
+          </p>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── Section 4: Comments Diagram ──────────────────────────────────────────────
+
+const CommentsDiagram = ({ tx }) => {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  const items = [
+    { good: false, label: tx('Explica QUÉ hace el código (obvio)', 'Explains WHAT code does (obvious)'),          example: '// increment counter by 1' },
+    { good: false, label: tx('Comentario redundante del nombre', 'Redundant of the function name'),               example: '// get user → getUser()' },
+    { good: false, label: tx('Comentario desactualizado / mentira', 'Outdated / lying comment'),                  example: '// returns string ← returns number' },
+    { good: true,  label: tx('Explica POR QUÉ (decisión de negocio)', 'Explains WHY (business decision)'),        example: '// Regulación PCI: no loguear CVV' },
+    { good: true,  label: tx('Workaround documentado con ticket', 'Workaround documented with ticket'),           example: '// HACK: ver BUG-4231' },
+    { good: true,  label: tx('Invariante no obvia para el lector', 'Non-obvious invariant for the reader'),       example: '// Array siempre ordenado por fecha' },
+  ];
+
+  useEffect(() => {
+    const id = setInterval(() => setActiveIdx(i => (i + 1) % items.length), 2000);
+    return () => clearInterval(id);
+  }, [items.length]);
+
+  const item = items[activeIdx];
+
+  return (
+    <div className="bg-slate-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-center text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+        {tx('¿Cuándo comentar?', 'When to comment?')}
+      </p>
+
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1.5">
+          <p className="text-center text-[10px] font-bold text-red-400 uppercase tracking-wider">
+            {tx('Evitar', 'Avoid')}
+          </p>
+          {items.filter(it => !it.good).map((it, i) => (
+            <motion.div
+              key={it.example}
+              animate={{
+                backgroundColor: (!item.good && items.indexOf(item) === items.indexOf(it))
+                  ? 'rgba(239,68,68,0.2)'
+                  : 'rgba(30,41,59,0.4)',
+                borderColor: (!item.good && items.indexOf(item) === items.indexOf(it))
+                  ? 'rgba(239,68,68,0.5)'
+                  : 'rgba(71,85,105,0.25)',
+              }}
+              transition={{ duration: 0.3 }}
+              className="px-2 py-1.5 border rounded-lg flex items-start gap-1.5"
+            >
+              <XCircle className="w-3 h-3 text-red-400 mt-0.5 flex-shrink-0" />
+              <span className="text-[9px] text-slate-400 leading-tight">{it.label}</span>
+            </motion.div>
+          ))}
+        </div>
+        <div className="space-y-1.5">
+          <p className="text-center text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+            {tx('Justificado', 'Justified')}
+          </p>
+          {items.filter(it => it.good).map((it, i) => (
+            <motion.div
+              key={it.example}
+              animate={{
+                backgroundColor: (item.good && items.indexOf(item) === items.indexOf(it))
+                  ? 'rgba(52,211,153,0.15)'
+                  : 'rgba(30,41,59,0.4)',
+                borderColor: (item.good && items.indexOf(item) === items.indexOf(it))
+                  ? 'rgba(52,211,153,0.5)'
+                  : 'rgba(71,85,105,0.25)',
+              }}
+              transition={{ duration: 0.3 }}
+              className="px-2 py-1.5 border rounded-lg flex items-start gap-1.5"
+            >
+              <CheckCircle className="w-3 h-3 text-emerald-400 mt-0.5 flex-shrink-0" />
+              <span className="text-[9px] text-slate-400 leading-tight">{it.label}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeIdx}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 4 }}
+          transition={{ duration: 0.25 }}
+          className={`text-center font-mono text-xs px-3 py-2 rounded-lg border ${
+            item.good
+              ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25'
+              : 'text-red-300 bg-red-500/10 border-red-500/25'
+          }`}
+        >
+          {item.example}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── Section 5: Refactoring Flow Diagram ──────────────────────────────────────
+
+const RefactoringFlow = ({ tx }) => {
+  const [activeStep, setActiveStep] = useState(0);
+
+  const steps = [
+    { label: tx('Detectar smell', 'Detect smell'),           desc: tx('Identifica el problema: código largo, duplicado, números mágicos', 'Identify the problem: long code, duplicated, magic numbers') },
+    { label: tx('Entender', 'Understand'),                   desc: tx('Lee el código existente, los tests y el contexto de negocio', 'Read existing code, tests and business context') },
+    { label: tx('Extraer / Renombrar', 'Extract / Rename'), desc: tx('Aplica el refactor mínimo: Extract Method, rename, simplify', 'Apply minimal refactor: Extract Method, rename, simplify') },
+    { label: tx('Verificar tests', 'Verify tests'),         desc: tx('Ejecuta la suite completa. El comportamiento no debe cambiar', 'Run full test suite. Behavior must not change') },
+  ];
+
+  useEffect(() => {
+    const id = setInterval(() => setActiveStep(s => (s + 1) % steps.length), 1500);
+    return () => clearInterval(id);
+  }, [steps.length]);
+
+  return (
+    <div className="bg-slate-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-center text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+        {tx('Pipeline de Refactoring', 'Refactoring Pipeline')}
+      </p>
+
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
+        {steps.map((step, i) => {
+          const isActive = activeStep === i;
+          const isPast = i < activeStep;
+          return (
+            <div key={step.label} className="flex items-center gap-1.5">
+              <motion.div
+                animate={{
+                  backgroundColor: isActive
+                    ? 'rgba(52,211,153,0.2)'
+                    : isPast
+                    ? 'rgba(52,211,153,0.08)'
+                    : 'rgba(15,23,42,0.6)',
+                  borderColor: isActive
+                    ? 'rgba(52,211,153,0.6)'
+                    : isPast
+                    ? 'rgba(52,211,153,0.3)'
+                    : 'rgba(100,116,139,0.3)',
+                }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center gap-1 px-3 py-2 border rounded-lg min-w-[72px]"
+              >
+                <div className="flex items-center gap-1">
+                  <span className={`text-[10px] font-bold text-center leading-tight ${
+                    isActive ? 'text-emerald-300' : isPast ? 'text-emerald-400/60' : 'text-slate-500'
+                  }`}>
+                    {i + 1}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      animate={{ opacity: [1, 0.3, 1] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                      className="w-1.5 h-1.5 bg-emerald-400 rounded-full"
+                    />
+                  )}
+                </div>
+                <span className={`text-[9px] font-semibold text-center leading-tight ${
+                  isActive ? 'text-emerald-300' : isPast ? 'text-emerald-400/60' : 'text-slate-500'
+                }`}>
+                  {step.label}
+                </span>
+              </motion.div>
+              {i < steps.length - 1 && <FlowArrow />}
+            </div>
+          );
+        })}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={activeStep}
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 4 }}
+          transition={{ duration: 0.25 }}
+          className="text-center text-xs text-emerald-400 min-h-[2rem] px-2"
+        >
+          {steps[activeStep].desc}
+        </motion.p>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── Section 6: Interactive Checklist ─────────────────────────────────────────
+
+const ChecklistSection = ({ tx }) => {
+  const groups = [
+    {
+      category: tx('Nomenclatura', 'Naming'),
+      items: [
+        tx('Variables revelan intención (no abreviaturas crípticas)', 'Variables reveal intent (no cryptic abbreviations)'),
+        tx('Funciones tienen verbo en el nombre (get, save, validate...)', 'Functions have a verb in their name (get, save, validate...)'),
+        tx('Booleanos usan prefijo is/has/can/should', 'Booleans use is/has/can/should prefix'),
+        tx('Clases son sustantivos, no verbos', 'Classes are nouns, not verbs'),
+      ],
+    },
+    {
+      category: tx('Funciones', 'Functions'),
+      items: [
+        tx('Cada función hace una sola cosa', 'Each function does one thing only'),
+        tx('Funciones < 20 líneas (salvo casos justificados)', 'Functions < 20 lines (except justified cases)'),
+        tx('Máximo 3 parámetros; desestructura objetos si hay más', 'Max 3 parameters; destructure objects if more needed'),
+        tx('Sin efectos secundarios ocultos (funciones puras donde sea posible)', 'No hidden side effects (pure functions where possible)'),
+      ],
+    },
+    {
+      category: tx('Comentarios', 'Comments'),
+      items: [
+        tx('El código no necesita comentarios para entenderse', 'Code does not need comments to be understood'),
+        tx('Los comentarios explican el POR QUÉ, no el QUÉ', 'Comments explain the WHY, not the WHAT'),
+        tx('Todos los TODOs tienen número de ticket asociado', 'All TODOs have an associated ticket number'),
+      ],
+    },
+    {
+      category: tx('Tests', 'Tests'),
+      items: [
+        tx('Cada función pública tiene al menos un test', 'Every public function has at least one test'),
+        tx('Los tests son legibles y tienen nombres descriptivos', 'Tests are readable with descriptive names'),
+        tx('Tests cubren casos límite (null, vacío, error)', 'Tests cover edge cases (null, empty, error)'),
+      ],
+    },
+    {
+      category: tx('Manejo de errores', 'Error Handling'),
+      items: [
+        tx('No se silencian errores con catch vacíos', 'Errors are not silenced with empty catches'),
+        tx('Los errores tienen mensajes descriptivos para el debugger', 'Errors have descriptive messages for debugging'),
+        tx('Inputs externos son validados antes de procesarse', 'External inputs are validated before processing'),
+        tx('No hay números mágicos sin constante nombrada', 'No magic numbers without a named constant'),
+      ],
+    },
+  ];
+
+  const allItems = groups.flatMap(g => g.items);
+  const [checked, setChecked] = useState(() => Array(allItems.length).fill(false));
+
+  const totalChecked = checked.filter(Boolean).length;
+  const percentage = Math.round((totalChecked / allItems.length) * 100);
+
+  const toggleItem = (globalIdx) => {
+    setChecked(prev => {
+      const next = [...prev];
+      next[globalIdx] = !next[globalIdx];
+      return next;
+    });
+  };
+
+  let globalIdx = 0;
+
+  const scoreColor =
+    percentage === 100 ? 'text-emerald-400' :
+    percentage >= 70   ? 'text-sky-400'     :
+    percentage >= 40   ? 'text-yellow-400'  :
+                         'text-red-400';
+
+  return (
+    <div className="space-y-4">
+      {/* Progress header */}
+      <div className="bg-slate-950/40 border border-emerald-500/20 rounded-xl p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold text-emerald-300 uppercase tracking-wider">
+            {tx('Progreso de revisión', 'Review progress')}
+          </p>
+          <span className={`text-lg font-extrabold ${scoreColor}`}>
+            {percentage}%
+          </span>
+        </div>
+        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+            animate={{ width: `${percentage}%` }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          />
+        </div>
+        <p className="text-xs text-slate-400">
+          {totalChecked} / {allItems.length} {tx('elementos completados', 'items completed')}
+          {percentage === 100 && (
+            <span className="ml-2 text-emerald-400 font-semibold">
+              {tx('¡Listo para revisión!', 'Ready for review!')}
+            </span>
+          )}
+        </p>
+      </div>
+
+      {/* Checklist groups */}
+      {groups.map(group => (
+        <div key={group.category} className="bg-slate-900/40 border border-slate-700/40 rounded-xl p-4 space-y-2">
+          <p className="text-sm font-bold text-emerald-400 mb-3">{group.category}</p>
+          {group.items.map(item => {
+            const idx = globalIdx++;
+            const isChecked = checked[idx];
+            return (
+              <label
+                key={idx}
+                className="flex items-start gap-3 cursor-pointer group"
+              >
+                <button
+                  onClick={() => toggleItem(idx)}
+                  className={`mt-0.5 w-4 h-4 flex-shrink-0 rounded border-2 flex items-center justify-center transition-all ${
+                    isChecked
+                      ? 'bg-emerald-500 border-emerald-500'
+                      : 'border-slate-600 group-hover:border-emerald-500/60'
+                  }`}
+                >
+                  {isChecked && (
+                    <motion.svg
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-2.5 h-2.5 text-white"
+                      fill="none"
+                      viewBox="0 0 12 12"
+                    >
+                      <path
+                        d="M2 6l3 3 5-5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </motion.svg>
+                  )}
+                </button>
+                <span
+                  className={`text-xs leading-relaxed transition-colors ${
+                    isChecked ? 'text-emerald-300 line-through' : 'text-slate-300 group-hover:text-slate-100'
+                  }`}
+                >
+                  {item}
+                </span>
+              </label>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 
 function CleanCode() {
   const { language } = useLanguage();
-  const [selectedPrinciple, setSelectedPrinciple] = useState('dry');
+  const tx = (es, en) => language === 'en' ? en : es;
+  const [active, setActive] = useState('naming');
 
-  const principles = {
-    dry: {
-      id: 'dry',
-      icon: Recycle,
-      title: t('cleancode', language).dry.title,
-      subtitle: t('cleancode', language).dry.subtitle,
-      summary: t('cleancode', language).dry.summary,
-      explanation: t('cleancode', language).dry.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Código duplicado' : 'Duplicated code'}
-function calculateAreaSquare(side) {
-  return side * side;
-}
-function calculateAreaRectangle(w, h) {
-  return w * h;
-}`,
-      good: `// ✅ ${language === 'es' ? 'Código reutilizable' : 'Reusable code'}
-function calculateArea(shape, ...dims) {
-  if (shape === 'square') return dims[0] ** 2;
-  if (shape === 'rectangle') return dims[0] * dims[1];
-}`
-    },
-    kiss: {
-      id: 'kiss',
-      icon: Scissors,
-      title: t('cleancode', language).kiss.title,
-      subtitle: t('cleancode', language).kiss.subtitle,
-      summary: t('cleancode', language).kiss.summary,
-      explanation: t('cleancode', language).kiss.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Excesivamente complejo' : 'Overly complex'}
-const isEven = n => (n & 1) === 0 ? true : false;`,
-      good: `// ✅ ${language === 'es' ? 'Simple y claro' : 'Simple and clear'}
-const isEven = n => n % 2 === 0;`
-    },
-    yagni: {
-      id: 'yagni',
-      icon: Target,
-      title: t('cleancode', language).yagni.title,
-      subtitle: t('cleancode', language).yagni.subtitle,
-      summary: t('cleancode', language).yagni.summary,
-      explanation: t('cleancode', language).yagni.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Código especulativo' : 'Speculative code'}
-class User {
-  constructor(name) {
-    this.name = name;
-    this.preferences = {}; // ${language === 'es' ? '"Por si acaso"' : '"Just in case"'}
-    this.history = []; // ${language === 'es' ? '"Tal vez lo usemos"' : '"Maybe we\'ll use it"'}
-  }
-}`,
-      good: `// ✅ ${language === 'es' ? 'Solo lo necesario' : 'Only what\'s needed'}
-class User {
-  constructor(name) {
-    this.name = name;
-  }
-}`
-    },
-    boyscout: {
-      id: 'boyscout',
-      icon: Sparkles,
-      title: t('cleancode', language).boyscout.title,
-      subtitle: t('cleancode', language).boyscout.subtitle,
-      summary: t('cleancode', language).boyscout.summary,
-      explanation: t('cleancode', language).boyscout.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Ignorar código problemático' : 'Ignore problematic code'}
-function process(data) {
-  // TODO: Refactor ${language === 'es' ? 'esto' : 'this'}
-  var x = data.split(',');
-  return x;
-}`,
-      good: `// ✅ ${language === 'es' ? 'Mejorar al pasar' : 'Improve while passing through'}
-function parseCSV(csvString) {
-  return csvString
-    .split(',')
-    .map(item => item.trim());
-}`
-    },
-    selfdoc: {
-      id: 'selfdoc',
-      icon: FileText,
-      title: t('cleancode', language).selfdoc.title,
-      subtitle: t('cleancode', language).selfdoc.subtitle,
-      summary: t('cleancode', language).selfdoc.summary,
-      explanation: t('cleancode', language).selfdoc.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Necesita comentarios' : 'Needs comments'}
-let d; // days
-let u; // user`,
-      good: `// ✅ ${language === 'es' ? 'Auto-explicativo' : 'Self-explanatory'}
-let daysUntilExpiration;
-let currentUser;`
-    },
-    srp: {
-      id: 'srp',
-      icon: Wrench,
-      title: t('cleancode', language).srp.title,
-      subtitle: t('cleancode', language).srp.subtitle,
-      summary: t('cleancode', language).srp.summary,
-      explanation: t('cleancode', language).srp.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Hace demasiado' : 'Does too much'}
-function processUser(user) {
-  validateUser(user);
-  saveToDatabase(user);
-  sendEmail(user);
-  logAction(user);
-}`,
-      good: `// ✅ ${language === 'es' ? 'Responsabilidades separadas' : 'Separated responsibilities'}
-function processUser(user) {
-  const valid = validateUser(user);
-  if (valid) {
-    return saveUser(user);
-  }
-}
-
-function notifyUser(user) {
-  sendEmail(user);
-  logAction(user);
-}`
-    },
-    defensive: {
-      id: 'defensive',
-      icon: Shield,
-      title: t('cleancode', language).defensive.title,
-      subtitle: t('cleancode', language).defensive.subtitle,
-      summary: t('cleancode', language).defensive.summary,
-      explanation: t('cleancode', language).defensive.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Asume datos correctos' : 'Assumes correct data'}
-function divide(a, b) {
-  return a / b;
-}`,
-      good: `// ✅ ${language === 'es' ? 'Valida y protege' : 'Validates and protects'}
-function divide(a, b) {
-  if (b === 0) throw new Error('Division by zero');
-  if (typeof a !== 'number' || typeof b !== 'number') {
-    throw new Error('Invalid arguments');
-  }
-  return a / b;
-}`
-    },
-    naming: {
+  const sections = [
+    {
       id: 'naming',
-      icon: BookOpen,
-      title: t('cleancode', language).naming.title,
-      subtitle: t('cleancode', language).naming.subtitle,
-      summary: t('cleancode', language).naming.summary,
-      explanation: t('cleancode', language).naming.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Nombres crípticos' : 'Cryptic names'}
+      title: tx('Nombres', 'Naming'),
+      subtitle: tx('Variables, funciones y clases', 'Variables, functions and classes'),
+    },
+    {
+      id: 'functions',
+      title: tx('Funciones', 'Functions'),
+      subtitle: tx('Pequeñas, puras y con un propósito', 'Small, pure and purposeful'),
+    },
+    {
+      id: 'dry',
+      title: 'DRY / KISS / YAGNI',
+      subtitle: tx('Los 3 principios clave', 'The 3 key principles'),
+    },
+    {
+      id: 'comments',
+      title: tx('Comentarios', 'Comments'),
+      subtitle: tx('Cuándo escribir (y NO escribir) comentarios', 'When to write (and NOT write) comments'),
+    },
+    {
+      id: 'refactoring',
+      title: 'Refactoring',
+      subtitle: tx('Code smells y cómo eliminarlos', 'Code smells and how to fix them'),
+    },
+    {
+      id: 'checklist',
+      title: 'Checklist',
+      subtitle: tx('¿Tu código está listo para revisión?', 'Is your code ready for review?'),
+    },
+  ];
+
+  // ─── Section renderers ──────────────────────────────────────────────────────
+
+  const renderNaming = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Nombres Significativos', 'Meaningful Names')}
+        subtitle={tx(
+          'Un buen nombre elimina la necesidad de un comentario. El código debe leerse como prosa.',
+          'A good name eliminates the need for a comment. Code should read like prose.'
+        )}
+      />
+
+      <NamingDiagram tx={tx} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InfoCard
+          title={tx('Variables: revela la intención', 'Variables: reveal intent')}
+          color="text-emerald-300"
+          border="border-emerald-500/20"
+        >
+          {tx(
+            'Usa nombres que respondan por qué existe y qué hace. Evita abreviaturas (d, tmp, arr). Incluye unidades si aplica: durationMs, heightPx, retryCount.',
+            'Use names that answer why it exists and what it does. Avoid abbreviations (d, tmp, arr). Include units where applicable: durationMs, heightPx, retryCount.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Funciones: usa verbos específicos', 'Functions: use specific verbs')}
+          color="text-sky-300"
+          border="border-sky-500/20"
+        >
+          {tx(
+            'Empieza con un verbo que describa la acción exacta: getUserById, validateEmail, parseJwt, sendWelcomeEmail. Evita nombres vagos como process, handle, manage.',
+            'Start with a verb describing the exact action: getUserById, validateEmail, parseJwt, sendWelcomeEmail. Avoid vague names like process, handle, manage.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Clases: sustantivos en PascalCase', 'Classes: nouns in PascalCase')}
+          color="text-violet-300"
+          border="border-violet-500/20"
+        >
+          {tx(
+            'Las clases representan entidades: User, OrderService, PaymentGateway. Evita sufijos genéricos como Manager, Processor, Handler, Helper a menos que sean precisos.',
+            'Classes represent entities: User, OrderService, PaymentGateway. Avoid generic suffixes like Manager, Processor, Handler, Helper unless precise.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Booleanos: is/has/can/should', 'Booleans: is/has/can/should')}
+          color="text-orange-300"
+          border="border-orange-500/20"
+        >
+          {tx(
+            'Prefijos que generan frases naturales: isLoading, hasPermission, canDelete, shouldRetry. Evita invertidos (notFound → isNotFound confunde; mejor isFound).',
+            'Prefixes that form natural phrases: isLoading, hasPermission, canDelete, shouldRetry. Avoid inverted names (notFound → isNotFound confuses; better isFound).'
+          )}
+        </InfoCard>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-red-400" />
+            <span className="text-xs font-semibold text-red-400">{tx('Malo', 'Bad')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ❌ Nombres crípticos
 let d = new Date();
-let arr = [];`,
-      good: `// ✅ ${language === 'es' ? 'Nombres significativos' : 'Meaningful names'}
+let arr = [];
+let flag = false;
+
+function calc(a, b, t) {
+  if (t === 1) return a + b;
+  if (t === 2) return a - b;
+  return a * b;
+}
+
+class DataProcessor {
+  handle(x) { /* ... */ }
+}`}
+          />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">{tx('Bueno', 'Good')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ✅ Nombres que revelan intención
 let createdAt = new Date();
-let activeUsers = [];`
-    },
-    failfast: {
-      id: 'failfast',
-      icon: Zap,
-      title: t('cleancode', language).failfast.title,
-      subtitle: t('cleancode', language).failfast.subtitle,
-      summary: t('cleancode', language).failfast.summary,
-      explanation: t('cleancode', language).failfast.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Falla silenciosamente' : 'Fails silently'}
-function getUser(id) {
-  try {
-    return db.query(id);
-  } catch {
-    return null; // ${language === 'es' ? 'Oculta el error' : 'Hides the error'}
+let activeUsers = [];
+let isAuthenticated = false;
+
+function calculatePrice(baseAmount, taxRate, operation) {
+  if (operation === 'add')      return baseAmount + taxRate;
+  if (operation === 'subtract') return baseAmount - taxRate;
+  return baseAmount * taxRate;
+}
+
+class InvoiceGenerator {
+  generateForOrder(order) { /* ... */ }
+}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderFunctions = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Funciones Limpias', 'Clean Functions')}
+        subtitle={tx(
+          'Una función debe hacer una cosa, hacerla bien y solo esa cosa. — Robert C. Martin',
+          'A function should do one thing, do it well and do it only. — Robert C. Martin'
+        )}
+      />
+
+      <FunctionSizeDiagram tx={tx} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InfoCard
+          title={tx('Responsabilidad única', 'Single Responsibility')}
+          color="text-emerald-300"
+          border="border-emerald-500/20"
+        >
+          {tx(
+            'Si necesitas usar "y" para describir lo que hace una función, tiene demasiadas responsabilidades. Extrae las partes en funciones separadas.',
+            'If you need to use "and" to describe what a function does, it has too many responsibilities. Extract the parts into separate functions.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Tamaño ideal: < 20 líneas', 'Ideal size: < 20 lines')}
+          color="text-sky-300"
+          border="border-sky-500/20"
+        >
+          {tx(
+            'Funciones cortas son más fáciles de entender, testear y reutilizar. Si una función supera 20 líneas, suele ser señal de que puede dividirse.',
+            'Short functions are easier to understand, test and reuse. If a function exceeds 20 lines, it is often a sign it can be split.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Máximo 3 parámetros', 'Maximum 3 parameters')}
+          color="text-violet-300"
+          border="border-violet-500/20"
+        >
+          {tx(
+            'Con más de 3 parámetros, usa un objeto de configuración. Permite valores por defecto, es más legible y facilita la extensión futura.',
+            'With more than 3 parameters, use a configuration object. Enables defaults, is more readable and easier to extend in the future.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Separación comando / consulta', 'Command / Query Separation')}
+          color="text-orange-300"
+          border="border-orange-500/20"
+        >
+          {tx(
+            'Una función o bien devuelve datos (query) o bien cambia el estado (command), nunca ambos. getUserById devuelve; saveUser guarda. No mezcles.',
+            'A function either returns data (query) or changes state (command), never both. getUserById returns; saveUser saves. Do not mix them.'
+          )}
+        </InfoCard>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-red-400" />
+            <span className="text-xs font-semibold text-red-400">{tx('Malo', 'Bad')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ❌ Función que hace demasiado
+function processUserRegistration(name, email, password,
+  role, sendEmail, saveToDb, logAction) {
+  const hash = bcrypt.hashSync(password, 10);
+  const user = { name, email, password: hash, role };
+  if (!name || !email) return null;
+  if (saveToDb) db.users.insert(user);
+  if (sendEmail) mailer.send({ to: email, template: 'welcome' });
+  if (logAction) logger.info('User registered', { email });
+  return user;
+}`}
+          />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">{tx('Bueno', 'Good')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ✅ Funciones pequeñas con un propósito
+function hashPassword(plainText) {
+  return bcrypt.hashSync(plainText, 10);
+}
+
+function buildUser({ name, email, password, role }) {
+  if (!name || !email) throw new Error('Name and email required');
+  return { name, email, password: hashPassword(password), role };
+}
+
+async function registerUser(userData) {
+  const user = buildUser(userData);
+  await db.users.insert(user);
+  await mailer.sendWelcome(user.email);
+  logger.info('User registered', { email: user.email });
+  return user;
+}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderDry = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title="DRY / KISS / YAGNI"
+        subtitle={tx(
+          'Tres principios que guían decisiones de diseño cotidianas en el código.',
+          'Three principles that guide everyday design decisions in code.'
+        )}
+      />
+
+      <PrinciplesDiagram tx={tx} />
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <InfoCard
+          title="DRY — Don't Repeat Yourself"
+          color="text-emerald-300"
+          border="border-emerald-500/20"
+        >
+          {tx(
+            'Cada pieza de conocimiento debe tener una representación única en el sistema. La duplicación multiplica el coste del cambio. Extrae funciones, módulos y constantes.',
+            'Every piece of knowledge must have a single representation in the system. Duplication multiplies the cost of change. Extract functions, modules and constants.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title="KISS — Keep It Simple"
+          color="text-sky-300"
+          border="border-sky-500/20"
+        >
+          {tx(
+            'El código más simple suele ser el más correcto. Evita abstracciones prematuras. Prefiere una condición clara sobre un operador bit a bit ingenioso.',
+            'The simplest code is usually the most correct. Avoid premature abstractions. Prefer a clear condition over a clever bitwise operator.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title="YAGNI — You Aren't Gonna Need It"
+          color="text-violet-300"
+          border="border-violet-500/20"
+        >
+          {tx(
+            'No construyas funcionalidad que no se necesita hoy. El código especulativo añade complejidad real por valor hipotético. Borrarlo más tarde es costoso.',
+            'Do not build functionality not needed today. Speculative code adds real complexity for hypothetical value. Deleting it later is expensive.'
+          )}
+        </InfoCard>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-red-400" />
+            <span className="text-xs font-semibold text-red-400">{tx('Anti-patrones', 'Anti-patterns')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ❌ DRY violado: lógica duplicada
+function validateUserEmail(email) {
+  const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+  return re.test(email);
+}
+function checkAdminEmail(email) {
+  const re = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+  return re.test(email); // misma regex copiada
+}
+
+// ❌ KISS violado: innecesariamente complejo
+const isEven = n => (n & 1) === 0 ? true : false;
+
+// ❌ YAGNI: preparado para "futuras" necesidades
+class User {
+  constructor(name) {
+    this.name = name;
+    this.preferences = {};    // "por si acaso"
+    this.auditLog = [];       // "tal vez lo necesitemos"
+    this.featureFlags = {};   // "para el futuro"
   }
-}`,
-      good: `// ✅ ${language === 'es' ? 'Falla explícitamente' : 'Fails explicitly'}
-function getUser(id) {
-  if (!id) {
-    throw new Error('User ID is required');
+}`}
+          />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">{tx('Aplicando los principios', 'Applying the principles')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ✅ DRY: una sola fuente de verdad
+const EMAIL_REGEX = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
+const isValidEmail = (email) => EMAIL_REGEX.test(email);
+
+// Reutilizada en todo el sistema:
+validateUserEmail(email)  // → isValidEmail(email)
+checkAdminEmail(email)    // → isValidEmail(email)
+
+// ✅ KISS: simple y obvio
+const isEven = n => n % 2 === 0;
+
+// ✅ YAGNI: solo lo que se necesita hoy
+class User {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+    // Se añaden más campos cuando se necesiten
   }
-  return db.query(id);
-}`
-    },
-    composition: {
-      id: 'composition',
-      icon: Lightbulb,
-      title: t('cleancode', language).composition.title,
-      subtitle: t('cleancode', language).composition.subtitle,
-      summary: t('cleancode', language).composition.summary,
-      explanation: t('cleancode', language).composition.explanation,
-      bad: `// ❌ ${language === 'es' ? 'Herencia profunda' : 'Deep inheritance'}
-class Animal {}
-class Mammal extends Animal {}
-class Dog extends Mammal {}
-class Labrador extends Dog {}`,
-      good: `// ✅ ${language === 'es' ? 'Composición' : 'Composition'}
-class Dog {
-  constructor() {
-    this.locomotion = new WalkBehavior();
-    this.vocalization = new BarkBehavior();
+}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderComments = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Comentarios: Cuándo y Cómo', 'Comments: When and How')}
+        subtitle={tx(
+          'El mejor comentario es el que no necesitas escribir porque el código ya se explica solo.',
+          'The best comment is the one you do not need to write because the code already explains itself.'
+        )}
+      />
+
+      <CommentsDiagram tx={tx} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InfoCard
+          title={tx('Código auto-documentado primero', 'Self-documenting code first')}
+          color="text-emerald-300"
+          border="border-emerald-500/20"
+        >
+          {tx(
+            'Antes de añadir un comentario, pregúntate si puedes renombrar la variable o función para que el comentario sea innecesario. Suele ser posible.',
+            'Before adding a comment, ask yourself if you can rename the variable or function so the comment becomes unnecessary. It is usually possible.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Comenta el POR QUÉ, no el QUÉ', 'Comment the WHY, not the WHAT')}
+          color="text-sky-300"
+          border="border-sky-500/20"
+        >
+          {tx(
+            'El código dice qué hace. El comentario debe explicar por qué se tomó una decisión no obvia: regla de negocio, workaround de un bug externo, restricción de rendimiento.',
+            'Code tells what it does. Comments should explain why a non-obvious decision was made: business rule, workaround for external bug, performance constraint.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Workarounds y tickets', 'Workarounds and tickets')}
+          color="text-yellow-300"
+          border="border-yellow-500/20"
+        >
+          {tx(
+            'Si haces un hack temporal, documenta el porqué y enlaza el ticket: // HACK: ver ISSUE-1234. Esto convierte deuda técnica en deuda gestionada.',
+            'If you write a temporary hack, document why and link the ticket: // HACK: see ISSUE-1234. This turns technical debt into managed debt.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('JSDoc para APIs públicas', 'JSDoc for public APIs')}
+          color="text-violet-300"
+          border="border-violet-500/20"
+        >
+          {tx(
+            'Los comentarios de documentación (JSDoc, TSDoc) sí tienen valor para APIs públicas o librerías. Describen parámetros, retornos y casos de error para los consumidores.',
+            'Documentation comments (JSDoc, TSDoc) have value for public APIs or libraries. They describe parameters, returns and error cases for consumers.'
+          )}
+        </InfoCard>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-red-400" />
+            <span className="text-xs font-semibold text-red-400">{tx('Comentarios que no ayudan', 'Comments that do not help')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ❌ Ruido: explica lo obvio
+// Incrementa el contador
+counter++;
+
+// ❌ Redundante del nombre
+// Obtiene el usuario
+function getUser(id) { ... }
+
+// ❌ Código comentado (usa git para esto)
+// function oldCalculate(a, b) {
+//   return a + b + 10;
+// }
+
+// ❌ Comentario desactualizado / mentira
+// Returns a string
+function getCount() {
+  return 42; // devuelve un número, no string
+}`}
+          />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">{tx('Comentarios que aportan valor', 'Comments that add value')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ✅ Explica una regla de negocio no obvia
+// PCI-DSS 3.4: los datos de tarjeta no pueden
+// persistir en logs bajo ninguna circunstancia
+logger.info({ userId }, 'Payment processed');
+
+// ✅ Workaround documentado con ticket
+// HACK: Safari < 16 no soporta ResizeObserver en iframes
+// Eliminar cuando soportemos Safari 16+ (ver ISSUE-891)
+if (isSafariBefore16) { ... }
+
+// ✅ JSDoc para API pública
+/**
+ * Calcula el descuento aplicable a un pedido.
+ * @param {number} subtotal - Importe antes de descuentos (EUR)
+ * @param {string} couponCode - Código promocional opcional
+ * @returns {number} Porcentaje de descuento (0-100)
+ * @throws {InvalidCouponError} Si el cupón está caducado
+ */
+function calculateDiscount(subtotal, couponCode) { ... }`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderRefactoring = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Refactoring y Code Smells', 'Refactoring and Code Smells')}
+        subtitle={tx(
+          'Refactorizar es mejorar la estructura interna del código sin cambiar su comportamiento externo.',
+          'Refactoring is improving the internal structure of code without changing its external behavior.'
+        )}
+      />
+
+      <RefactoringFlow tx={tx} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <InfoCard
+          title={tx('Code smells comunes', 'Common code smells')}
+          color="text-emerald-300"
+          border="border-emerald-500/20"
+        >
+          {tx(
+            'Método largo, clase grande, grupos de datos (data clumps), números mágicos, código muerto, código duplicado, lista de parámetros larga, comentarios de sección.',
+            'Long method, large class, data clumps, magic numbers, dead code, duplicated code, long parameter list, section comments.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Extract Method', 'Extract Method')}
+          color="text-sky-300"
+          border="border-sky-500/20"
+        >
+          {tx(
+            'El refactor más frecuente: extrae un bloque con un nombre descriptivo. Cada extracción reduce la complejidad cognitiva y hace el código más testeable.',
+            'The most frequent refactor: extract a block with a descriptive name. Each extraction reduces cognitive complexity and makes code more testable.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Constantes con nombre', 'Named constants')}
+          color="text-violet-300"
+          border="border-violet-500/20"
+        >
+          {tx(
+            'Replace Magic Number with Symbolic Constant. Los números solos no transmiten significado. MAX_RETRY_ATTEMPTS = 3 explica el contexto; 3 no lo hace.',
+            'Replace Magic Number with Symbolic Constant. Numbers alone convey no meaning. MAX_RETRY_ATTEMPTS = 3 explains the context; 3 does not.'
+          )}
+        </InfoCard>
+        <InfoCard
+          title={tx('Regla del boy scout', 'Boy Scout Rule')}
+          color="text-orange-300"
+          border="border-orange-500/20"
+        >
+          {tx(
+            'Deja el código un poco más limpio de como lo encontraste. No necesitas refactorizar todo el módulo: renombra una variable, extrae una función, borra código muerto.',
+            'Leave the code a little cleaner than you found it. You do not need to refactor the whole module: rename a variable, extract a function, delete dead code.'
+          )}
+        </InfoCard>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <XCircle className="w-4 h-4 text-red-400" />
+            <span className="text-xs font-semibold text-red-400">{tx('Antes del refactor', 'Before refactoring')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ❌ Code smells: números mágicos,
+//    método largo, código duplicado
+function processOrder(order) {
+  if (order.items.length === 0) return null;
+
+  let total = 0;
+  for (const item of order.items) {
+    total += item.price * item.qty;
   }
-}`
+
+  let discount = 0;
+  if (total > 100) discount = total * 0.1;
+  if (total > 500) discount = total * 0.2;
+  if (total > 1000) discount = total * 0.3;
+
+  const tax = (total - discount) * 0.21;
+  const shipping = total > 50 ? 0 : 4.99;
+
+  return {
+    subtotal: total,
+    discount,
+    tax,
+    shipping,
+    grandTotal: total - discount + tax + shipping,
+  };
+}`}
+          />
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <CheckCircle className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-semibold text-emerald-400">{tx('Después del refactor', 'After refactoring')}</span>
+          </div>
+          <CodeBlock
+            language="javascript"
+            code={`// ✅ Refactorizado: constantes, Extract Method
+const TAX_RATE            = 0.21;
+const FREE_SHIPPING_THRESHOLD = 50;
+const STANDARD_SHIPPING   = 4.99;
+const DISCOUNT_TIERS = [
+  { threshold: 1000, rate: 0.30 },
+  { threshold: 500,  rate: 0.20 },
+  { threshold: 100,  rate: 0.10 },
+];
+
+function calculateSubtotal(items) {
+  return items.reduce((sum, i) => sum + i.price * i.qty, 0);
+}
+
+function calculateDiscount(subtotal) {
+  const tier = DISCOUNT_TIERS.find(t => subtotal > t.threshold);
+  return tier ? subtotal * tier.rate : 0;
+}
+
+function calculateShipping(subtotal) {
+  return subtotal > FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING;
+}
+
+function processOrder({ items }) {
+  if (items.length === 0) return null;
+  const subtotal = calculateSubtotal(items);
+  const discount = calculateDiscount(subtotal);
+  const taxable  = subtotal - discount;
+  const tax      = taxable * TAX_RATE;
+  const shipping = calculateShipping(subtotal);
+  return { subtotal, discount, tax, shipping,
+           grandTotal: taxable + tax + shipping };
+}`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderChecklist = () => (
+    <div className="space-y-6">
+      <SectionTitle
+        title={tx('Checklist de Revisión de Código', 'Code Review Checklist')}
+        subtitle={tx(
+          'Marca cada punto antes de abrir un pull request. El porcentaje se actualiza en tiempo real.',
+          'Check each point before opening a pull request. The percentage updates in real time.'
+        )}
+      />
+      <ChecklistSection tx={tx} />
+    </div>
+  );
+
+  const renderContent = () => {
+    switch (active) {
+      case 'naming':      return renderNaming();
+      case 'functions':   return renderFunctions();
+      case 'dry':         return renderDry();
+      case 'comments':    return renderComments();
+      case 'refactoring': return renderRefactoring();
+      case 'checklist':   return renderChecklist();
+      default:            return renderNaming();
     }
   };
-
-  const principleList = Object.values(principles);
-  const currentPrinciple = principles[selectedPrinciple];
-  const Icon = currentPrinciple.icon;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
       {/* Sidebar */}
       <div className="lg:col-span-1 lg:overflow-y-auto lg:pr-2">
-        <h3 className="text-base lg:text-lg font-bold text-green-400 mb-2 lg:mb-4">
-          {t('cleancode', language).title}
-        </h3>
         <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
-        {principleList.map((principle) => (
-          <button
-            key={principle.id}
-            onClick={() => setSelectedPrinciple(principle.id)}
-            className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all flex items-center gap-2 lg:gap-3 ${selectedPrinciple === principle.id
-              ? 'bg-green-500/20 border border-green-500/50 text-green-300'
-              : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+          {sections.map(s => (
+            <button
+              key={s.id}
+              onClick={() => setActive(s.id)}
+              className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-xl transition-all ${
+                active === s.id
+                  ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                  : 'bg-slate-800/30 border border-slate-700/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
               }`}
-          >
-            <principle.icon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm lg:text-base whitespace-nowrap lg:whitespace-normal">{principle.title}</div>
-              <div className="hidden lg:block text-xs opacity-70">{principle.subtitle}</div>
-            </div>
-          </button>
-        ))}
+            >
+              <div className="font-semibold text-sm whitespace-nowrap lg:whitespace-normal">{s.title}</div>
+              <div className="text-xs text-slate-500 mt-0.5 hidden lg:block">{s.subtitle}</div>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Detail Panel */}
-      <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2">
-        <div className="bg-slate-900/50 border border-green-500/30 rounded-2xl p-4 md:p-6 lg:p-8 space-y-5 lg:space-y-6">
-          {/* Header */}
-          <div className="flex items-start gap-4">
-            <div className="p-4 bg-green-500/20 rounded-xl">
-              <Icon className="w-10 h-10 text-green-400" />
-            </div>
-            <div>
-              <h2 className="text-xl lg:text-3xl font-bold text-green-400">{currentPrinciple.title}</h2>
-              <p className="text-slate-400 mt-1">{currentPrinciple.subtitle}</p>
-              <p className="text-slate-300 text-sm mt-2">{currentPrinciple.summary}</p>
-            </div>
-          </div>
-
-          {/* Explanation */}
-          <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-            <p className="text-slate-200 leading-relaxed">
-              {currentPrinciple.explanation}
-            </p>
-          </div>
-
-          {/* Code Examples */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Bad Example */}
-            <div className="min-w-0 overflow-hidden bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <XCircle className="w-4 h-4 text-red-400" />
-                <span className="text-xs font-semibold text-red-400">{t('common', language).bad}</span>
-              </div>
-              <CodeBlock code={currentPrinciple.bad} language="javascript" />
-            </div>
-
-            {/* Good Example */}
-            <div className="min-w-0 overflow-hidden bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <CheckCircle className="w-4 h-4 text-green-400" />
-                <span className="text-xs font-semibold text-green-400">{t('common', language).good}</span>
-              </div>
-              <CodeBlock code={currentPrinciple.good} language="javascript" />
-            </div>
-          </div>
-        </div>
+      {/* Content panel */}
+      <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2 space-y-6">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {renderContent()}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );

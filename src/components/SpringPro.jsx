@@ -1,21 +1,143 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Zap, MessageCircleQuestion } from 'lucide-react';
+import { Database, Zap, MessageCircleQuestion, Shield, Cloud, ChevronDown } from 'lucide-react';
 import { SiSpring } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
+
+// --- SecurityFlowDiagram ---
+const SecurityFlowDiagram = () => {
+    const steps = [
+        { label: 'HTTP Request', icon: '🌐' },
+        { label: 'Filter Chain', icon: '🔗' },
+        { label: 'Auth Manager', icon: '🔐' },
+        { label: 'UserDetails', icon: '👤' },
+        { label: 'JWT Validate', icon: '🎫' },
+        { label: 'Controller', icon: '🎯' },
+    ];
+    const [activeStep, setActiveStep] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveStep(prev => (prev + 1) % steps.length);
+        }, 900);
+        return () => clearInterval(interval);
+    }, [steps.length]);
+
+    return (
+        <div className="w-full bg-slate-950/40 border border-green-500/20 rounded-xl p-5">
+            <p className="text-center text-green-400 font-semibold text-sm mb-4">Security Request Flow</p>
+            <div className="flex flex-wrap items-center justify-center gap-1">
+                {steps.map((step, idx) => (
+                    <div key={idx} className="flex items-center gap-1">
+                        <motion.div
+                            animate={{
+                                backgroundColor: idx <= activeStep ? 'rgba(34,197,94,0.25)' : 'rgba(30,41,59,0.5)',
+                                borderColor: idx <= activeStep ? 'rgb(34,197,94)' : 'rgb(71,85,105)',
+                                scale: idx === activeStep ? 1.1 : 1,
+                            }}
+                            transition={{ duration: 0.4 }}
+                            className="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border text-center min-w-[70px]"
+                        >
+                            <span className="text-xl">{step.icon}</span>
+                            <span
+                                className="text-xs font-medium"
+                                style={{ color: idx <= activeStep ? 'rgb(134,239,172)' : 'rgb(148,163,184)' }}
+                            >
+                                {step.label}
+                            </span>
+                        </motion.div>
+                        {idx < steps.length - 1 && (
+                            <motion.span
+                                animate={{ color: idx < activeStep ? 'rgb(34,197,94)' : 'rgb(71,85,105)' }}
+                                transition={{ duration: 0.4 }}
+                                className="text-lg font-bold"
+                            >
+                                →
+                            </motion.span>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+// --- MicroservicesDiagram ---
+const MicroservicesDiagram = () => {
+    const [failedService, setFailedService] = useState(null);
+    const services = ['Order Service', 'User Service', 'Payment Service'];
+
+    useEffect(() => {
+        let idx = 0;
+        const interval = setInterval(() => {
+            setFailedService(idx % 3);
+            idx++;
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="w-full bg-slate-950/40 border border-green-500/20 rounded-xl p-5">
+            <p className="text-center text-green-400 font-semibold text-sm mb-4">Microservices Architecture</p>
+            <div className="flex flex-col items-center gap-4">
+                {/* API Gateway */}
+                <div className="px-4 py-2 bg-green-500/20 border border-green-500/50 rounded-lg text-green-300 font-semibold text-sm">
+                    API Gateway
+                </div>
+                {/* Arrow down */}
+                <div className="text-green-500 text-lg">↓</div>
+                {/* Eureka + Services row */}
+                <div className="flex items-center gap-6 flex-wrap justify-center">
+                    {/* Eureka */}
+                    <div className="flex flex-col items-center gap-1">
+                        <motion.div
+                            animate={{ scale: [1, 1.05, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="px-3 py-2 bg-blue-500/20 border border-blue-500/50 rounded-lg text-blue-300 font-semibold text-xs text-center"
+                        >
+                            Eureka<br/>Registry
+                        </motion.div>
+                    </div>
+                    {/* Services */}
+                    <div className="flex gap-3 flex-wrap justify-center">
+                        {services.map((svc, idx) => (
+                            <div key={idx} className="flex flex-col items-center gap-1">
+                                <motion.div
+                                    animate={{
+                                        backgroundColor: failedService === idx ? 'rgba(239,68,68,0.2)' : 'rgba(34,197,94,0.1)',
+                                        borderColor: failedService === idx ? 'rgb(239,68,68)' : 'rgba(34,197,94,0.4)',
+                                    }}
+                                    transition={{ duration: 0.5 }}
+                                    className="px-3 py-2 border rounded-lg text-xs font-medium text-center"
+                                    style={{ color: failedService === idx ? 'rgb(252,165,165)' : 'rgb(134,239,172)' }}
+                                >
+                                    {svc}
+                                    {failedService === idx && (
+                                        <div className="text-red-400 font-bold mt-1">⚡ CB Open</div>
+                                    )}
+                                </motion.div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                <p className="text-slate-500 text-xs mt-1">Circuit Breaker opens when a service fails</p>
+            </div>
+        </div>
+    );
+};
 
 function SpringPro() {
     const { language } = useLanguage();
     const tx = (es, en) => (language === 'en' ? en : es);
     const [activeSection, setActiveSection] = useState('core');
     const [expandedFundamentals, setExpandedFundamentals] = useState({
-        0: true, // First fundamental open by default
+        0: true,
     });
     const [expandedQuestions, setExpandedQuestions] = useState({});
     const [expandedLevels, setExpandedLevels] = useState({
-        junior: true, // Junior level open by default
+        junior: true,
     });
 
     const toggleFundamental = (idx) => {
@@ -46,6 +168,7 @@ function SpringPro() {
             title: 'Core (DI & IoC)',
             subtitle: tx('Inyección de dependencias e inversión de control', 'Dependency Injection & Inversion of Control'),
             icon: SiSpring,
+            diagram: null,
             content: [
                 {
                     topic: 'Dependency Injection',
@@ -55,14 +178,14 @@ function SpringPro() {
 public class UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
-    
+
     @Autowired
-    public UserService(UserRepository userRepository, 
+    public UserService(UserRepository userRepository,
                       EmailService emailService) {
         this.userRepository = userRepository;
         this.emailService = emailService;
     }
-    
+
     public void registerUser(User user) {
         userRepository.save(user);
         emailService.sendWelcomeEmail(user);
@@ -94,7 +217,7 @@ public class TaskProcessor {
 
 // Request (Web)
 @Component
-@Scope(value = WebApplicationContext.SCOPE_REQUEST, 
+@Scope(value = WebApplicationContext.SCOPE_REQUEST,
        proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class RequestContext {
     // Nueva instancia por request HTTP
@@ -112,14 +235,14 @@ public class RequestContext {
                     description: 'Ciclo de vida de los beans',
                     code: `@Component
 public class DatabaseConnection {
-    
+
     @PostConstruct
     public void init() {
         // Se ejecuta después de la inyección
         System.out.println("Initializing DB connection");
         // Abrir conexión, validar configuración
     }
-    
+
     @PreDestroy
     public void cleanup() {
         // Se ejecuta antes de destruir el bean
@@ -141,6 +264,7 @@ public class DatabaseConnection {
             title: 'Data (JPA & Transactions)',
             subtitle: tx('Spring Data JPA y manejo de transacciones', 'Spring Data JPA & Transaction Management'),
             icon: Database,
+            diagram: null,
             content: [
                 {
                     topic: 'Spring Data JPA',
@@ -152,10 +276,10 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String name;
     private String email;
-    
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Order> orders;
 }
@@ -163,11 +287,11 @@ public class User {
 // Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     // Métodos automáticos: save, findById, findAll, delete
-    
+
     // Query Methods
     List<User> findByEmail(String email);
     List<User> findByNameContaining(String name);
-    
+
     // Custom Query
     @Query("SELECT u FROM User u WHERE u.email LIKE %:domain")
     List<User> findByEmailDomain(@Param("domain") String domain);
@@ -184,7 +308,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     description: 'Manejo de transacciones con @Transactional',
                     code: `@Service
 public class OrderService {
-    
+
     @Transactional
     public void processOrder(Order order) {
         // Todo en una transacción
@@ -194,13 +318,13 @@ public class OrderService {
         emailService.sendConfirmation(order);
         // Si algo falla, todo hace rollback
     }
-    
+
     @Transactional(readOnly = true)
     public List<Order> getOrders() {
         // Optimizado para lectura
         return orderRepository.findAll();
     }
-    
+
     @Transactional(
         isolation = Isolation.SERIALIZABLE,
         propagation = Propagation.REQUIRES_NEW,
@@ -224,7 +348,7 @@ public class OrderService {
                     code: `// One to Many
 @Entity
 public class Author {
-    @OneToMany(mappedBy = "author", 
+    @OneToMany(mappedBy = "author",
                cascade = CascadeType.ALL,
                fetch = FetchType.LAZY)
     private List<Book> books;
@@ -263,6 +387,7 @@ public class Student {
             title: 'Boot (Starters & AutoConfig)',
             subtitle: tx('Starters y autoconfiguración de Spring Boot', 'Spring Boot Starters & Auto-Configuration'),
             icon: Zap,
+            diagram: null,
             content: [
                 {
                     topic: 'Spring Boot Starters',
@@ -337,11 +462,11 @@ management.endpoints.web.exposure.include=health,metrics,info`,
 // @EnableAutoConfiguration
 // @ComponentScan
 public class Application {
-    
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
-    
+
     // Customización opcional
     @Bean
     public CommandLineRunner demo(UserRepository repository) {
@@ -356,15 +481,15 @@ public class Application {
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    
+
     @Autowired
     private UserService userService;
-    
+
     @GetMapping
     public List<User> getAllUsers() {
         return userService.findAll();
     }
-    
+
     @PostMapping
     public User createUser(@RequestBody User user) {
         return userService.save(user);
@@ -385,6 +510,7 @@ public class UserController {
             title: 'WebFlux (Reactive)',
             subtitle: tx('Programación reactiva con Spring WebFlux', 'Reactive Programming with Spring WebFlux'),
             icon: Zap,
+            diagram: null,
             content: [
                 {
                     topic: 'Reactive Programming Basics',
@@ -429,28 +555,28 @@ Flux.just("A", "B", "C")
                     code: `@RestController
 @RequestMapping("/api/users")
 public class UserController {
-    
+
     @Autowired
     private UserService userService;
-    
+
     // Mono para un solo usuario
     @GetMapping("/{id}")
     public Mono<User> getUser(@PathVariable String id) {
         return userService.findById(id);
     }
-    
+
     // Flux para múltiples usuarios
     @GetMapping
     public Flux<User> getAllUsers() {
         return userService.findAll();
     }
-    
+
     // POST reactivo
     @PostMapping
     public Mono<User> createUser(@RequestBody Mono<User> userMono) {
         return userMono.flatMap(userService::save);
     }
-    
+
     // Server-Sent Events (SSE)
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<User> streamUsers() {
@@ -511,7 +637,7 @@ spring.r2dbc.url=r2dbc:postgresql://localhost/testdb`,
                     code: `// R2DBC Repository (SQL reactivo)
 public interface UserRepository extends ReactiveCrudRepository<User, Long> {
     Flux<User> findByLastName(String lastName);
-    
+
     @Query("SELECT * FROM users WHERE age > :age")
     Flux<User> findAdults(@Param("age") int age);
 }
@@ -521,13 +647,13 @@ public interface UserRepository extends ReactiveCrudRepository<User, Long> {
 public class UserService {
     @Autowired
     private UserRepository userRepository;
-    
+
     public Flux<User> searchUsers(String query) {
         return userRepository.findAll()
             .filter(user -> user.getName().contains(query))
             .take(10);
     }
-    
+
     public Mono<User> updateUser(Long id, User updates) {
         return userRepository.findById(id)
             .flatMap(existing -> {
@@ -551,6 +677,7 @@ public class UserService {
             title: 'Spring Boot 4 (2025)',
             subtitle: tx('Novedades de Spring Boot 4 y Spring Framework 7', 'Spring Boot 4 & Spring Framework 7 - Nov 2025'),
             icon: Zap,
+            diagram: null,
             content: [
                 {
                     topic: 'Jakarta EE 11 & Nueva Baseline',
@@ -661,14 +788,14 @@ import org.jspecify.annotations.NullMarked;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
-    
+
     // @Nullable marca explícitamente parámetros opcionales
     @GetMapping
     public List<User> getUsers(@Nullable String filter) {
         if (filter == null) return userService.findAll();
         return userService.findByFilter(filter);
     }
-    
+
     // @NonNull garantiza que no puede ser null
     @PostMapping
     public User create(@NonNull @RequestBody User user) {
@@ -694,11 +821,11 @@ public class UserController {
 @RestController
 @RequestMapping("/api")
 public class UserController {
-    
+
     @GetMapping("/v1/users")
     @ApiVersion("1.0")
     public List<UserV1> getUsersV1() { /* ... */ }
-    
+
     @GetMapping("/v2/users")
     @ApiVersion("2.0")
     public List<UserV2> getUsersV2() { /* ... */ }
@@ -734,7 +861,7 @@ spring.mvc.versioning.default-version=1.0
 @Service
 @EnableResilientMethods
 public class PaymentService {
-    
+
     // Retry automático con backoff exponencial
     @Retryable(
         retries = 3,
@@ -744,13 +871,13 @@ public class PaymentService {
     public Payment processPayment(Order order) {
         return externalPaymentGateway.charge(order);
     }
-    
+
     // Límite de concurrencia
     @ConcurrencyLimit(maxConcurrentCalls = 10)
     public List<Product> fetchFromSlowAPI() {
         return externalApi.getProducts();
     }
-    
+
     // Fallback automático si falla
     public Payment fallback(Order order, Exception ex) {
         return Payment.queued(order); // procesar después
@@ -780,9 +907,9 @@ management.endpoints.web.exposure.include=health,metrics,info,prometheus
 // En código - Observación automática
 @Service
 public class OrderService {
-    
+
     private final ObservationRegistry registry;
-    
+
     // @Observed - traza automática sin código extra
     @Observed(name = "order.process", contextualName = "ProcessOrder")
     public Order processOrder(OrderRequest req) {
@@ -803,6 +930,222 @@ Counter.builder("orders.created")
                         tx('OpenTelemetry OTLP nativo - compatible con Jaeger, Zipkin', 'Native OpenTelemetry OTLP - compatible with Jaeger, Zipkin'),
                         tx('Logs correlacionados con traceId y spanId', 'Logs correlated with traceId and spanId'),
                         tx('Exportar a Prometheus, Datadog, New Relic, etc.', 'Export to Prometheus, Datadog, New Relic, etc.')
+                    ]
+                }
+            ]
+        },
+        security: {
+            id: 'security',
+            title: tx('Spring Security', 'Spring Security'),
+            subtitle: tx('Auth, JWT, OAuth2', 'Auth, JWT, OAuth2'),
+            icon: Shield,
+            diagram: <SecurityFlowDiagram />,
+            content: [
+                {
+                    topic: tx('SecurityFilterChain Config', 'SecurityFilterChain Config'),
+                    description: tx('Configuración de seguridad con SecurityFilterChain y JWT', 'Security configuration with SecurityFilterChain and JWT'),
+                    code: `@Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           JwtAuthFilter jwtFilter) throws Exception {
+        return http
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(sm -> sm
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated())
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authManager(AuthenticationConfiguration cfg)
+            throws Exception {
+        return cfg.getAuthenticationManager();
+    }
+}`,
+                    points: [
+                        tx('SecurityFilterChain: Cadena de filtros de seguridad', 'SecurityFilterChain: Security filter chain configuration'),
+                        tx('@EnableMethodSecurity: Habilita @PreAuthorize y @Secured', '@EnableMethodSecurity: Enables @PreAuthorize and @Secured'),
+                        tx('SessionCreationPolicy.STATELESS: Sin sesiones (JWT)', 'SessionCreationPolicy.STATELESS: No sessions (JWT)'),
+                        tx('BCryptPasswordEncoder: Hash seguro de contraseñas', 'BCryptPasswordEncoder: Secure password hashing'),
+                        tx('addFilterBefore: JWT filter antes del auth filter', 'addFilterBefore: JWT filter runs before auth filter')
+                    ]
+                },
+                {
+                    topic: tx('JWT Filter Implementation', 'JWT Filter Implementation'),
+                    description: tx('Filtro JWT para validar tokens en cada request', 'JWT filter to validate tokens on every request'),
+                    code: `@Component
+@RequiredArgsConstructor
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        final String jwt = authHeader.substring(7);
+        final String userEmail = jwtService.extractUsername(jwt);
+
+        if (userEmail != null && SecurityContextHolder
+                .getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService
+                .loadUserByUsername(userEmail);
+            if (jwtService.isTokenValid(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authToken.setDetails(
+                    new WebAuthenticationDetailsSource()
+                        .buildDetails(request));
+                SecurityContextHolder.getContext()
+                    .setAuthentication(authToken);
+            }
+        }
+        filterChain.doFilter(request, response);
+    }
+}`,
+                    points: [
+                        tx('OncePerRequestFilter: Se ejecuta una vez por request', 'OncePerRequestFilter: Runs exactly once per request'),
+                        tx('Extrae Bearer token del header Authorization', 'Extracts Bearer token from Authorization header'),
+                        tx('JwtService: Valida firma, expiración y claims del JWT', 'JwtService: Validates JWT signature, expiry, and claims'),
+                        tx('@PreAuthorize("hasRole(\'ADMIN\')"): Seguridad a nivel método', "@PreAuthorize(\"hasRole('ADMIN')\"): Method-level security"),
+                        tx('OAuth2: spring-boot-starter-oauth2-client para Google/GitHub', 'OAuth2: spring-boot-starter-oauth2-client for Google/GitHub')
+                    ]
+                }
+            ]
+        },
+        cloud: {
+            id: 'cloud',
+            title: tx('Spring Cloud', 'Spring Cloud'),
+            subtitle: tx('Microservicios, Config, Eureka, Circuit Breaker', 'Microservices, Config, Eureka, Circuit Breaker'),
+            icon: Cloud,
+            diagram: <MicroservicesDiagram />,
+            content: [
+                {
+                    topic: tx('Spring Cloud Config & Eureka', 'Spring Cloud Config & Eureka'),
+                    description: tx('Config Server centralizado y service discovery con Eureka', 'Centralized Config Server and service discovery with Eureka'),
+                    code: `// Config Server
+@SpringBootApplication
+@EnableConfigServer
+public class ConfigServerApp {
+    public static void main(String[] args) {
+        SpringApplication.run(ConfigServerApp.class, args);
+    }
+}
+
+// application.yml - Config Server
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/myorg/config-repo
+          default-label: main
+
+// Eureka Server
+@SpringBootApplication
+@EnableEurekaServer
+public class EurekaServerApp {
+    public static void main(String[] args) {
+        SpringApplication.run(EurekaServerApp.class, args);
+    }
+}
+
+// Eureka Client (en cada microservicio)
+@SpringBootApplication
+@EnableDiscoveryClient
+public class OrderServiceApp {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderServiceApp.class, args);
+    }
+}
+
+// application.yml - Eureka Client
+spring:
+  application:
+    name: order-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/`,
+                    points: [
+                        tx('@EnableConfigServer: Servidor centralizado de configuración', '@EnableConfigServer: Centralized configuration server'),
+                        tx('@EnableEurekaServer: Registro de servicios', '@EnableEurekaServer: Service registry'),
+                        tx('@EnableDiscoveryClient: Cliente que se registra en Eureka', '@EnableDiscoveryClient: Client that registers with Eureka'),
+                        tx('spring.application.name: Identifica el microservicio', 'spring.application.name: Identifies the microservice'),
+                        tx('Config externo desde Git: sin redeploy para cambios de config', 'External config from Git: no redeploy for config changes')
+                    ]
+                },
+                {
+                    topic: tx('Resilience4j Circuit Breaker & Feign Client', 'Resilience4j Circuit Breaker & Feign Client'),
+                    description: tx('Circuit Breaker con Resilience4j y clientes HTTP declarativos con Feign', 'Circuit Breaker with Resilience4j and declarative HTTP clients with Feign'),
+                    code: `// Feign Client - cliente HTTP declarativo
+@FeignClient(name = "inventory-service", fallback = InventoryFallback.class)
+public interface InventoryClient {
+    @GetMapping("/api/inventory/{productId}")
+    InventoryResponse checkStock(@PathVariable String productId);
+}
+
+@Component
+class InventoryFallback implements InventoryClient {
+    public InventoryResponse checkStock(String productId) {
+        return InventoryResponse.unavailable(); // fallback
+    }
+}
+
+// Circuit Breaker con Resilience4j
+@Service
+public class OrderService {
+
+    @CircuitBreaker(name = "inventory", fallbackMethod = "fallback")
+    @Retry(name = "inventory", fallbackMethod = "fallback")
+    @TimeLimiter(name = "inventory")
+    public CompletableFuture<String> placeOrder(String productId) {
+        return CompletableFuture.supplyAsync(() ->
+            inventoryClient.checkStock(productId).toString());
+    }
+
+    public CompletableFuture<String> fallback(String id, Throwable t) {
+        return CompletableFuture.supplyAsync(() -> "Order queued: " + id);
+    }
+}
+
+# application.yml - Resilience4j config
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventory:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s`,
+                    points: [
+                        tx('@FeignClient: Cliente HTTP declarativo, sin boilerplate', '@FeignClient: Declarative HTTP client, no boilerplate'),
+                        tx('@CircuitBreaker: Abre el circuito si falla mucho', '@CircuitBreaker: Opens circuit on excessive failures'),
+                        tx('@Retry: Reintenta automáticamente con backoff', '@Retry: Automatically retries with backoff'),
+                        tx('Spring Cloud Gateway: API Gateway reactivo', 'Spring Cloud Gateway: Reactive API Gateway'),
+                        tx('Spring Cloud Sleuth/Zipkin: Trazabilidad distribuida', 'Spring Cloud Sleuth/Zipkin: Distributed tracing')
                     ]
                 }
             ]
@@ -854,31 +1197,64 @@ Counter.builder("orders.created")
                     <p className="text-slate-400">{currentSection.subtitle}</p>
                 </div>
 
-                <div className="space-y-6 animate-fade-in">
+                {/* Section diagram */}
+                {currentSection.diagram && (
+                    <div className="mb-6">
+                        {currentSection.diagram}
+                    </div>
+                )}
+
+                <div className="space-y-4">
                     {currentSection.content.map((item, idx) => (
-                        <div key={idx} className="bg-slate-900/50 border border-green-500/30 rounded-xl p-6">
-                            <div className="flex items-start gap-3 mb-4">
-                                <Database className="w-6 h-6 text-green-400 mt-1" />
-                                <div>
-                                    <h3 className="text-xl font-bold text-green-400">{item.topic}</h3>
-                                    <p className="text-slate-400 text-sm">{item.description}</p>
+                        <div key={idx} className="bg-slate-900/50 border border-green-500/20 rounded-xl overflow-hidden">
+                            <button
+                                onClick={() => toggleFundamental(`${activeSection}-${idx}`)}
+                                className="w-full flex items-center justify-between px-5 py-4 hover:bg-green-500/5 transition-colors text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Database className="w-5 h-5 text-green-400 flex-shrink-0" />
+                                    <div>
+                                        <h3 className="text-base font-bold text-green-400">{item.topic}</h3>
+                                        <p className="text-slate-400 text-xs">{item.description}</p>
+                                    </div>
                                 </div>
-                            </div>
+                                <motion.div
+                                    animate={{ rotate: expandedFundamentals[`${activeSection}-${idx}`] ? 180 : 0 }}
+                                    transition={{ duration: 0.25 }}
+                                >
+                                    <ChevronDown className="w-5 h-5 text-slate-400" />
+                                </motion.div>
+                            </button>
 
-                            {/* Code */}
-                            <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 mb-4 overflow-x-auto">
-                                <CodeBlock code={item.code} language="java" />
-                            </div>
+                            <AnimatePresence initial={false}>
+                                {expandedFundamentals[`${activeSection}-${idx}`] && (
+                                    <motion.div
+                                        key="content"
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="px-5 pb-5">
+                                            {/* Code */}
+                                            <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 mb-4 overflow-x-auto">
+                                                <CodeBlock code={item.code} language="java" />
+                                            </div>
 
-                            {/* Points */}
-                            <ul className="space-y-2 ml-9">
-                                {item.points.map((point, pIdx) => (
-                                    <li key={pIdx} className="flex items-start gap-2 text-slate-300 text-sm">
-                                        <span className="text-green-400">•</span>
-                                        <span>{point}</span>
-                                    </li>
-                                ))}
-                            </ul>
+                                            {/* Points */}
+                                            <ul className="space-y-2">
+                                                {item.points.map((point, pIdx) => (
+                                                    <li key={pIdx} className="flex items-start gap-2 text-slate-300 text-sm">
+                                                        <span className="text-green-400">•</span>
+                                                        <span>{point}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ))}
                 </div>

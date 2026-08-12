@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit } from 'lucide-react';
-import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin } from 'react-icons/si';
+import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin, SiApachekafka } from 'react-icons/si';
 import SearchBar from './components/SearchBar';
 import LanguageToggle from './components/LanguageToggle';
 import { useLanguage } from './contexts/LanguageContext';
@@ -32,6 +32,7 @@ const DSAPro = lazy(() => import('./components/DSAPro'));
 const AILLMPro = lazy(() => import('./components/AILLMPro'));
 const APIDesignPro = lazy(() => import('./components/APIDesignPro'));
 const GitAdvancedPro = lazy(() => import('./components/GitAdvancedPro'));
+const KafkaPro = lazy(() => import('./components/KafkaPro'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-64">
@@ -81,6 +82,7 @@ function App() {
     { id: 'spring', category: 'backend', name: 'Spring Pro', icon: SiSpring, color: 'text-green-400', bgColor: 'bg-green-500/10' },
     { id: 'graphql', category: 'backend', name: 'GraphQL Pro', icon: SiGraphql, color: 'text-pink-400', bgColor: 'bg-pink-500/10' },
     { id: 'apidesign', category: 'backend', name: common.tabAPIDesign, icon: Globe, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
+    { id: 'kafka', category: 'backend', name: common.tabKafka, icon: SiApachekafka, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
     { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
     { id: 'cloud', category: 'clouddevops', name: common.tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
@@ -181,6 +183,7 @@ function App() {
       case 'aillm': return <AILLMPro />;
       case 'apidesign': return <APIDesignPro />;
       case 'git': return <GitAdvancedPro />;
+      case 'kafka': return <KafkaPro />;
       default: return <CleanCode />;
     }
   };

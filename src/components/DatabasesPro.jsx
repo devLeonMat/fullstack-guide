@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Table, Search, Zap, Lock, GitCompare, Server, HardDrive, Layers, ArrowRight } from 'lucide-react';
+import { Database, Table, Search, Zap, Lock, GitCompare, Server, HardDrive, Layers, ArrowRight, AlertTriangle, RefreshCw, Ghost, Users, GitMerge, KeyRound, ShieldAlert } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -831,6 +831,28 @@ VACUUM ANALYZE posts;`} />
 
       <AcidDiagram tx={tx} />
 
+      {/* Concurrency problems */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-violet-300">{tx('Problemas de concurrencia', 'Concurrency Problems')}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            { title: 'Dirty Read', icon: AlertTriangle, desc: tx('Tx A lee un dato que Tx B modificó pero aún no hizo COMMIT. Si Tx B hace ROLLBACK, Tx A trabajó con un dato que nunca existió.', 'Tx A reads data that Tx B modified but hasn\'t committed yet. If Tx B rolls back, Tx A worked with data that never existed.') },
+            { title: tx('Non-Repeatable Read', 'Non-Repeatable Read'), icon: RefreshCw, desc: tx('Tx A lee la misma fila dos veces dentro de la misma transacción y obtiene valores distintos porque Tx B modificó y comiteó esa fila entre ambas lecturas.', 'Tx A reads the same row twice within the same transaction and gets different values because Tx B modified and committed that row between reads.') },
+            { title: 'Phantom Read', icon: Ghost, desc: tx('Tx A ejecuta la misma query con un WHERE dos veces y la segunda vez aparecen filas nuevas (o desaparecen) porque Tx B insertó/eliminó filas que matchean el filtro.', 'Tx A runs the same WHERE query twice and new rows appear (or vanish) the second time because Tx B inserted/deleted rows matching the filter.') },
+            { title: 'Lost Update', icon: Users, desc: tx('Dos transacciones leen el mismo valor, ambas calculan un nuevo valor basado en esa lectura y la segunda en escribir sobreescribe el cambio de la primera — un UPDATE se "pierde" silenciosamente.', 'Two transactions read the same value, both compute a new value from it, and whichever writes second silently overwrites the other\'s update.') },
+            { title: 'Write Skew', icon: GitMerge, desc: tx('Dos transacciones leen filas distintas pero relacionadas por una regla de negocio, cada una valida la regla con lo que lee, y al escribir ambas la regla queda violada aunque cada UPDATE individual parecía válido.', 'Two transactions read different but business-rule-related rows, each validates the rule against what it read, and after both write the rule ends up violated even though each individual UPDATE looked valid.') },
+          ].map(({ title, icon: Icon, desc }) => (
+            <div key={title} className="bg-slate-800/30 border border-violet-500/20 rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon className="w-4 h-4 text-violet-400" />
+                <span className="text-sm font-bold text-violet-300">{title}</span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Isolation levels table */}
       <div className="bg-slate-950/40 border border-violet-500/20 rounded-xl p-4">
         <p className="text-xs font-semibold text-violet-300 uppercase tracking-wider mb-3">{tx('Niveles de aislamiento', 'Isolation Levels')}</p>
@@ -842,32 +864,59 @@ VACUUM ANALYZE posts;`} />
                 <th className="text-center py-1.5 px-2 text-slate-400 font-semibold whitespace-nowrap">Dirty Read</th>
                 <th className="text-center py-1.5 px-2 text-slate-400 font-semibold whitespace-nowrap">Non-repeatable</th>
                 <th className="text-center py-1.5 px-2 text-slate-400 font-semibold whitespace-nowrap">Phantom</th>
+                <th className="text-center py-1.5 px-2 text-slate-400 font-semibold whitespace-nowrap">Lost Update</th>
+                <th className="text-center py-1.5 px-2 text-slate-400 font-semibold whitespace-nowrap">Write Skew</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/50">
               {[
-                { level: 'READ UNCOMMITTED', dirty: '✗', nonrep: '✗', phantom: '✗', color: 'text-red-400' },
-                { level: 'READ COMMITTED', dirty: '✓', nonrep: '✗', phantom: '✗', color: 'text-yellow-400' },
-                { level: 'REPEATABLE READ', dirty: '✓', nonrep: '✓', phantom: '✗', color: 'text-orange-400' },
-                { level: 'SERIALIZABLE', dirty: '✓', nonrep: '✓', phantom: '✓', color: 'text-emerald-400' },
+                { level: 'READ UNCOMMITTED', dirty: '✗', nonrep: '✗', phantom: '✗', lost: '✗', skew: '✗', color: 'text-red-400' },
+                { level: 'READ COMMITTED', dirty: '✓', nonrep: '✗', phantom: '✗', lost: '✗', skew: '✗', color: 'text-yellow-400' },
+                { level: 'REPEATABLE READ', dirty: '✓', nonrep: '✓', phantom: '✗', lost: '✓', skew: '✗', color: 'text-orange-400' },
+                { level: 'SERIALIZABLE', dirty: '✓', nonrep: '✓', phantom: '✓', lost: '✓', skew: '✓', color: 'text-emerald-400' },
               ].map(row => (
                 <tr key={row.level}>
                   <td className={`py-1.5 pr-3 font-mono font-semibold whitespace-nowrap ${row.color}`}>{row.level}</td>
                   <td className="text-center py-1.5 px-2 text-slate-300">{row.dirty}</td>
                   <td className="text-center py-1.5 px-2 text-slate-300">{row.nonrep}</td>
                   <td className="text-center py-1.5 px-2 text-slate-300">{row.phantom}</td>
+                  <td className="text-center py-1.5 px-2 text-slate-300">{row.lost}</td>
+                  <td className="text-center py-1.5 px-2 text-slate-300">{row.skew}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
         <p className="text-[11px] text-slate-500 mt-2">
-          {tx('PostgreSQL usa READ COMMITTED por defecto. ✓ = fenómeno prevenido', 'PostgreSQL defaults to READ COMMITTED. ✓ = phenomenon prevented')}
+          {tx('PostgreSQL usa READ COMMITTED por defecto; MySQL InnoDB usa REPEATABLE READ. ✓ = fenómeno prevenido. Write Skew solo se previene en SERIALIZABLE (o locking explícito).', 'PostgreSQL defaults to READ COMMITTED; MySQL InnoDB defaults to REPEATABLE READ. ✓ = phenomenon prevented. Write Skew is only prevented at SERIALIZABLE (or explicit locking).')}
+        </p>
+      </div>
+
+      {/* Locking strategies */}
+      <div className="space-y-2">
+        <h3 className="text-sm font-bold text-violet-300">{tx('Locks & estrategias de bloqueo', 'Locks & Locking Strategies')}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {[
+            { title: tx('Shared vs Exclusive', 'Shared vs Exclusive'), icon: Lock, desc: tx('Shared Lock (S): varias transacciones leen a la vez, ninguna escribe. Exclusive Lock (X): una sola transacción lee y escribe, bloquea a todas las demás.', 'Shared Lock (S): multiple transactions read at once, none write. Exclusive Lock (X): a single transaction reads and writes, blocks everyone else.') },
+            { title: tx('Optimistic Locking', 'Optimistic Locking'), icon: KeyRound, desc: tx('No bloquea al leer. Guarda una columna version; al hacer UPDATE valida que la versión no cambió. Si cambió, lanza conflicto y reintenta. Ideal para baja contención.', 'Doesn\'t lock on read. Keeps a version column; UPDATE checks the version hasn\'t changed. If it changed, throws a conflict to retry. Ideal for low contention.') },
+            { title: tx('Pessimistic Locking', 'Pessimistic Locking'), icon: ShieldAlert, desc: tx('Bloquea la fila desde la lectura (SELECT ... FOR UPDATE / PESSIMISTIC_WRITE). Otras transacciones esperan. Evita conflictos pero reduce concurrencia — usar en alta contención.', 'Locks the row from the read (SELECT ... FOR UPDATE / PESSIMISTIC_WRITE). Other transactions wait. Avoids conflicts but reduces concurrency — use under high contention.') },
+          ].map(({ title, icon: Icon, desc }) => (
+            <div key={title} className="bg-slate-800/30 border border-violet-500/20 rounded-xl p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Icon className="w-4 h-4 text-violet-400" />
+                <span className="text-sm font-bold text-violet-300">{title}</span>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">{desc}</p>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-500">
+          {tx('Deadlock: dos transacciones se bloquean mutuamente esperando el lock de la otra. El motor detecta el ciclo y aborta una (víctima) con rollback automático — tu código debe capturar y reintentar.', 'Deadlock: two transactions mutually block waiting on each other\'s lock. The engine detects the cycle and aborts one (victim) with automatic rollback — your code must catch and retry.')}
         </p>
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-bold text-violet-300">{tx('Ejemplos de código', 'Code Examples')}</h3>
+        <h3 className="text-sm font-bold text-violet-300">{tx('Ejemplos SQL', 'SQL Examples')}</h3>
         <CodeBlock language="sql" code={`-- Transacción básica
 BEGIN;
   UPDATE accounts SET balance = balance - 500 WHERE id = 1;
@@ -910,6 +959,61 @@ UPDATE inventory
 SET    qty = qty - 1, version = version + 1
 WHERE  id = 42 AND version = 7; -- versión leída
 -- Si rows_affected = 0 → conflicto → reintentar`} />
+      </div>
+
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-violet-300">Spring Boot & Hibernate</h3>
+        <CodeBlock language="java" code={`// @Transactional — control fino de la transacción
+@Service
+public class OrderService {
+
+    @Transactional(
+        propagation = Propagation.REQUIRED,   // se une a tx existente o crea una
+        isolation   = Isolation.READ_COMMITTED,
+        timeout     = 5,                       // segundos antes de abortar
+        readOnly    = false,
+        rollbackFor = { InsufficientStockException.class }
+    )
+    public void placeOrder(Order order) {
+        inventoryService.reserveStock(order);  // Propagation.REQUIRES_NEW internamente si aplica
+        paymentService.charge(order);
+        // RuntimeException → rollback automático
+        // Exception checked → necesita rollbackFor explícito
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void auditLog(String action) {
+        // corre en su PROPIA transacción — persiste aunque el método que lo llama haga rollback
+    }
+}
+
+// Optimistic Locking con JPA/Hibernate
+@Entity
+public class Inventory {
+    @Id
+    private Long id;
+    private int qty;
+
+    @Version                       // Hibernate incrementa y valida automáticamente
+    private long version;          // lanza OptimisticLockException si version no matchea
+}
+
+// Pessimistic Locking con Spring Data JPA
+public interface InventoryRepository extends JpaRepository<Inventory, Long> {
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)     // SELECT ... FOR UPDATE
+    @Query("SELECT i FROM Inventory i WHERE i.id = :id")
+    Optional<Inventory> findByIdForUpdate(@Param("id") Long id);
+}
+
+// Hibernate: Persistence Context & Dirty Checking
+@Transactional
+public void updatePrice(Long productId, BigDecimal newPrice) {
+    Product product = productRepository.findById(productId).orElseThrow();
+    product.setPrice(newPrice);
+    // No hace falta llamar a save() — Hibernate detecta el cambio (dirty checking)
+    // y genera el UPDATE automáticamente al hacer flush/commit
+}`} />
       </div>
     </div>
   );

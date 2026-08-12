@@ -370,6 +370,77 @@ const RateLimitDiagram = ({ tx }) => {
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
+// ─── HTTP Verbs Diagram ───────────────────────────────────────────────────────
+
+const HTTPVerbsDiagram = ({ tx }) => {
+  const [active, setActive] = useState(0);
+
+  const verbs = [
+    { method: 'GET',     safe: true,  idempotent: true,  body: false, color: 'text-emerald-300', border: 'border-emerald-500/50', bg: 'bg-emerald-500/10', desc: tx('Lee un recurso sin modificar nada', 'Reads a resource without modifying anything'), example: 'GET /users/42' },
+    { method: 'POST',    safe: false, idempotent: false, body: true,  color: 'text-blue-300',    border: 'border-blue-500/50',    bg: 'bg-blue-500/10',    desc: tx('Crea un nuevo recurso o dispara una acción', 'Creates a new resource or triggers an action'), example: 'POST /users' },
+    { method: 'PUT',     safe: false, idempotent: true,  body: true,  color: 'text-amber-300',   border: 'border-amber-500/50',   bg: 'bg-amber-500/10',   desc: tx('Reemplaza el recurso completo', 'Replaces the full resource'), example: 'PUT /users/42' },
+    { method: 'PATCH',   safe: false, idempotent: false, body: true,  color: 'text-violet-300',  border: 'border-violet-500/50',  bg: 'bg-violet-500/10',  desc: tx('Actualización parcial del recurso', 'Partial update of the resource'), example: 'PATCH /users/42' },
+    { method: 'DELETE',  safe: false, idempotent: true,  body: false, color: 'text-red-300',     border: 'border-red-500/50',     bg: 'bg-red-500/10',     desc: tx('Elimina el recurso', 'Deletes the resource'), example: 'DELETE /users/42' },
+    { method: 'HEAD',    safe: true,  idempotent: true,  body: false, color: 'text-cyan-300',    border: 'border-cyan-500/50',    bg: 'bg-cyan-500/10',    desc: tx('Como GET pero sin body de respuesta', 'Like GET but without response body'), example: 'HEAD /files/report.pdf' },
+    { method: 'OPTIONS', safe: true,  idempotent: true,  body: false, color: 'text-pink-300',    border: 'border-pink-500/50',    bg: 'bg-pink-500/10',    desc: tx('Preflight CORS y métodos permitidos', 'CORS preflight and allowed methods'), example: 'OPTIONS /users' },
+  ];
+
+  useEffect(() => {
+    const id = setInterval(() => setActive(a => (a + 1) % verbs.length), 1800);
+    return () => clearInterval(id);
+  }, [verbs.length]);
+
+  const cur = verbs[active];
+
+  const Badge = ({ label, ok }) => (
+    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${ok ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' : 'border-red-500/40 bg-red-500/10 text-red-400'}`}>
+      {ok ? '✓' : '✗'} {label}
+    </span>
+  );
+
+  return (
+    <div className="bg-slate-950/40 border border-orange-500/20 rounded-xl p-4 space-y-3">
+      <p className="text-center text-xs font-semibold text-orange-300 uppercase tracking-wider">
+        {tx('Métodos HTTP — propiedades y uso', 'HTTP Methods — properties and usage')}
+      </p>
+
+      {/* Verb pills */}
+      <div className="flex flex-wrap gap-1.5 justify-center">
+        {verbs.map((v, i) => (
+          <button key={v.method} onClick={() => setActive(i)}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all duration-200 ${i === active ? `${v.bg} ${v.border} ${v.color}` : 'bg-slate-800 border-slate-700 text-slate-500 hover:text-slate-300'}`}>
+            {v.method}
+          </button>
+        ))}
+      </div>
+
+      {/* Active verb detail */}
+      <AnimatePresence mode="wait">
+        <motion.div key={active} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+          className={`border rounded-xl p-3 space-y-2.5 ${cur.border} ${cur.bg}`}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <span className={`text-lg font-black font-mono ${cur.color}`}>{cur.method}</span>
+            <div className="flex gap-1.5 flex-wrap">
+              <Badge label={tx('Seguro', 'Safe')} ok={cur.safe} />
+              <Badge label={tx('Idempotente', 'Idempotent')} ok={cur.idempotent} />
+              <Badge label={tx('Body', 'Body')} ok={cur.body} />
+            </div>
+          </div>
+          <p className="text-xs text-slate-300">{cur.desc}</p>
+          <code className="block text-xs font-mono text-slate-400 bg-slate-900/60 rounded px-2 py-1">{cur.example}</code>
+        </motion.div>
+      </AnimatePresence>
+
+      {/* Properties legend */}
+      <div className="grid grid-cols-3 gap-2 text-[10px] text-slate-400">
+        <div><span className="text-emerald-400 font-bold">{tx('Seguro:', 'Safe:')}</span>{tx(' no modifica estado', ' does not modify state')}</div>
+        <div><span className="text-emerald-400 font-bold">{tx('Idempotente:', 'Idempotent:')}</span>{tx(' repetir = mismo resultado', ' repeat = same result')}</div>
+        <div><span className="text-emerald-400 font-bold">{tx('Body:', 'Body:')}</span>{tx(' acepta cuerpo en el request', ' accepts body in request')}</div>
+      </div>
+    </div>
+  );
+};
+
 const SectionTitle = ({ title, subtitle }) => (
   <div className="mb-1">
     <h2 className="text-xl lg:text-3xl font-bold text-white mb-1">{title}</h2>
@@ -388,6 +459,7 @@ export default function APIDesignPro() {
 
   const sections = [
     { id: 'rest',      title: 'REST',               subtitle: tx('Principios, recursos e idempotencia', 'Principles, resources & idempotency') },
+    { id: 'verbs',     title: tx('Verbos HTTP', 'HTTP Verbs'), subtitle: tx('GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS', 'GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS') },
     { id: 'http',      title: 'HTTP',                subtitle: tx('Códigos de estado y cabeceras', 'Status codes & headers') },
     { id: 'versioning',title: tx('Versionado', 'Versioning'), subtitle: tx('URL, header y query param', 'URL, header & query param') },
     { id: 'auth',      title: tx('Autenticación', 'Authentication'), subtitle: tx('JWT, OAuth2 y refresh tokens', 'JWT, OAuth2 & refresh tokens') },
@@ -395,6 +467,226 @@ export default function APIDesignPro() {
     { id: 'ratelimit', title: tx('Rate Limiting', 'Rate Limiting'), subtitle: tx('Token bucket, caché y compresión', 'Token bucket, caching & compression') },
     { id: 'interview', title: 'Interview',           subtitle: tx('Preguntas Junior / Mid / Senior', 'Junior / Mid / Senior questions') },
   ];
+
+  // ─── HTTP Verbs ───────────────────────────────────────────────────────────
+
+  const renderVerbs = () => (
+    <div className="space-y-6">
+      <SectionTitle title={tx('Verbos HTTP', 'HTTP Verbs')}
+        subtitle={tx('Cada método tiene semántica precisa: seguridad, idempotencia y propósito. Usarlos correctamente es la base de una API REST limpia.', 'Each method has precise semantics: safety, idempotency and purpose. Using them correctly is the foundation of a clean REST API.')} />
+      <HTTPVerbsDiagram tx={tx} />
+
+      {/* Verb deep-dives */}
+      <div className="space-y-3">
+        {[
+          {
+            method: 'GET',
+            color: 'text-emerald-300', border: 'border-emerald-500/30', bg: 'bg-emerald-500/5',
+            badge: tx('Seguro · Idempotente · Sin body', 'Safe · Idempotent · No body'),
+            points: [
+              tx('Recupera un recurso sin efectos secundarios. El servidor nunca cambia estado.', 'Retrieves a resource with no side effects. The server never changes state.'),
+              tx('Se puede cachear: Cache-Control, ETag, CDN.', 'Can be cached: Cache-Control, ETag, CDN.'),
+              tx('Parámetros en la query string: GET /users?role=admin&page=2', 'Parameters in the query string: GET /users?role=admin&page=2'),
+              tx('Nunca uses GET para operaciones que modifiquen datos.', 'Never use GET for operations that modify data.'),
+            ],
+            cases: [
+              tx('Listar recursos: GET /products', 'List resources: GET /products'),
+              tx('Obtener uno: GET /products/42', 'Get one: GET /products/42'),
+              tx('Buscar: GET /products?q=laptop&sort=price:asc', 'Search: GET /products?q=laptop&sort=price:asc'),
+              tx('Recursos anidados: GET /users/5/orders', 'Nested resources: GET /users/5/orders'),
+            ],
+          },
+          {
+            method: 'POST',
+            color: 'text-blue-300', border: 'border-blue-500/30', bg: 'bg-blue-500/5',
+            badge: tx('No seguro · No idempotente · Con body', 'Not safe · Not idempotent · Has body'),
+            points: [
+              tx('Crea un recurso nuevo o dispara una acción no idempotente.', 'Creates a new resource or triggers a non-idempotent action.'),
+              tx('El servidor decide el ID del recurso creado y lo devuelve en Location.', 'The server decides the created resource ID and returns it in Location.'),
+              tx('Respuesta: 201 Created + Location: /users/99 + body del recurso.', 'Response: 201 Created + Location: /users/99 + resource body.'),
+              tx('Dos POST iguales crean dos recursos distintos (no idempotente).', 'Two identical POSTs create two different resources (not idempotent).'),
+            ],
+            cases: [
+              tx('Crear usuario: POST /users { name, email }', 'Create user: POST /users { name, email }'),
+              tx('Autenticar: POST /auth/login { email, password }', 'Authenticate: POST /auth/login { email, password }'),
+              tx('Acción de dominio: POST /orders/42/cancel', 'Domain action: POST /orders/42/cancel'),
+              tx('Subir archivo: POST /uploads (multipart/form-data)', 'Upload file: POST /uploads (multipart/form-data)'),
+            ],
+          },
+          {
+            method: 'PUT',
+            color: 'text-amber-300', border: 'border-amber-500/30', bg: 'bg-amber-500/5',
+            badge: tx('No seguro · Idempotente · Con body', 'Not safe · Idempotent · Has body'),
+            points: [
+              tx('Reemplaza el recurso completo. Envías todos los campos, incluso los que no cambian.', 'Replaces the full resource. You send all fields, even unchanged ones.'),
+              tx('Si el recurso no existe, algunos servidores lo crean (upsert). Define tu política.', 'If resource does not exist, some servers create it (upsert). Define your policy.'),
+              tx('Idempotente: PUT /users/42 con el mismo body siempre produce el mismo estado.', 'Idempotent: PUT /users/42 with the same body always produces the same state.'),
+              tx('❌ No uses PUT para actualizaciones parciales — usa PATCH.', '❌ Do not use PUT for partial updates — use PATCH.'),
+            ],
+            cases: [
+              tx('Reemplazar perfil: PUT /users/42 { name, email, age, role }', 'Replace profile: PUT /users/42 { name, email, age, role }'),
+              tx('Configuración completa: PUT /settings/theme { mode, colors, font }', 'Full config: PUT /settings/theme { mode, colors, font }'),
+              tx('Upsert por clave natural: PUT /inventory/SKU-001 { qty: 50 }', 'Upsert by natural key: PUT /inventory/SKU-001 { qty: 50 }'),
+            ],
+          },
+          {
+            method: 'PATCH',
+            color: 'text-violet-300', border: 'border-violet-500/30', bg: 'bg-violet-500/5',
+            badge: tx('No seguro · Generalmente no idempotente · Con body', 'Not safe · Generally not idempotent · Has body'),
+            points: [
+              tx('Actualización parcial: envías solo los campos que cambian.', 'Partial update: you send only the fields that change.'),
+              tx('Más eficiente que PUT en APIs con objetos grandes.', 'More efficient than PUT in APIs with large objects.'),
+              tx('Puede ser idempotente si el body es un conjunto de valores absolutos (no operaciones incrementales).', 'Can be idempotent if body is a set of absolute values (not incremental operations).'),
+              tx('JSON Patch (RFC 6902): operaciones tipadas — add, remove, replace, move, copy, test.', 'JSON Patch (RFC 6902): typed operations — add, remove, replace, move, copy, test.'),
+            ],
+            cases: [
+              tx('Cambiar email: PATCH /users/42 { email: "new@example.com" }', 'Change email: PATCH /users/42 { email: "new@example.com" }'),
+              tx('Activar feature: PATCH /users/42 { isActive: true }', 'Toggle feature: PATCH /users/42 { isActive: true }'),
+              tx('JSON Patch: PATCH /doc [{ op: "replace", path: "/title", value: "New Title" }]', 'JSON Patch: PATCH /doc [{ op: "replace", path: "/title", value: "New Title" }]'),
+            ],
+          },
+          {
+            method: 'DELETE',
+            color: 'text-red-300', border: 'border-red-500/30', bg: 'bg-red-500/5',
+            badge: tx('No seguro · Idempotente · Sin body', 'Not safe · Idempotent · No body'),
+            points: [
+              tx('Elimina el recurso identificado por la URI.', 'Deletes the resource identified by the URI.'),
+              tx('Idempotente: llamar DELETE /users/42 cuando ya fue eliminado devuelve 404 o 204 — el estado es el mismo (no existe).', 'Idempotent: calling DELETE /users/42 when already deleted returns 404 or 204 — state is the same (non-existent).'),
+              tx('Respuesta: 204 No Content (más común) o 200 OK con el recurso eliminado.', 'Response: 204 No Content (most common) or 200 OK with the deleted resource.'),
+              tx('Soft delete: no borres el registro — añade deletedAt y filtra en queries. DELETE sigue siendo el verbo correcto.', 'Soft delete: do not delete the record — add deletedAt and filter in queries. DELETE is still the correct verb.'),
+            ],
+            cases: [
+              tx('Eliminar usuario: DELETE /users/42', 'Delete user: DELETE /users/42'),
+              tx('Desconectar relación: DELETE /users/42/roles/admin', 'Disconnect relation: DELETE /users/42/roles/admin'),
+              tx('Borrar lote (body opcional): DELETE /products con [ "id1", "id2" ]', 'Bulk delete (optional body): DELETE /products with [ "id1", "id2" ]'),
+            ],
+          },
+          {
+            method: 'HEAD',
+            color: 'text-cyan-300', border: 'border-cyan-500/30', bg: 'bg-cyan-500/5',
+            badge: tx('Seguro · Idempotente · Sin body de respuesta', 'Safe · Idempotent · No response body'),
+            points: [
+              tx('Idéntico a GET pero el servidor no devuelve body. Solo headers.', 'Identical to GET but server returns no body. Headers only.'),
+              tx('Útil para comprobar si un recurso existe sin descargarlo.', 'Useful to check if a resource exists without downloading it.'),
+              tx('Verifica metadatos: tamaño (Content-Length), tipo (Content-Type), última modificación.', 'Checks metadata: size (Content-Length), type (Content-Type), last modified.'),
+              tx('Los navegadores lo usan para verificar cachés antes de descargar.', 'Browsers use it to validate caches before downloading.'),
+            ],
+            cases: [
+              tx('Comprobar si un archivo existe: HEAD /files/report.pdf', 'Check if file exists: HEAD /files/report.pdf'),
+              tx('Obtener tamaño antes de descargar: Content-Length en la respuesta', 'Get size before download: Content-Length in response'),
+              tx('Validar caché: HEAD + If-None-Match: "etag" → 304 si no cambió', 'Validate cache: HEAD + If-None-Match: "etag" → 304 if unchanged'),
+            ],
+          },
+          {
+            method: 'OPTIONS',
+            color: 'text-pink-300', border: 'border-pink-500/30', bg: 'bg-pink-500/5',
+            badge: tx('Seguro · Idempotente · Sin body', 'Safe · Idempotent · No body'),
+            points: [
+              tx('Devuelve los métodos HTTP permitidos en una URI (header Allow: GET, POST, PUT).', 'Returns the HTTP methods allowed on a URI (Allow: GET, POST, PUT header).'),
+              tx('El navegador lo envía automáticamente como preflight CORS antes de requests cross-origin.', 'Browser sends it automatically as CORS preflight before cross-origin requests.'),
+              tx('El servidor responde con Access-Control-Allow-* para autorizar el request real.', 'Server responds with Access-Control-Allow-* to authorize the actual request.'),
+              tx('Si el preflight falla (CORS mal configurado), el request real nunca se envía.', 'If preflight fails (bad CORS config), the actual request is never sent.'),
+            ],
+            cases: [
+              tx('Preflight automático: OPTIONS /api/users — antes de POST cross-origin', 'Automatic preflight: OPTIONS /api/users — before cross-origin POST'),
+              tx('Descubrir métodos: OPTIONS /products → Allow: GET, POST', 'Discover methods: OPTIONS /products → Allow: GET, POST'),
+              tx('APIs de descubrimiento: describir capacidades del endpoint', 'Discovery APIs: describe endpoint capabilities'),
+            ],
+          },
+        ].map((verb, i) => (
+          <motion.div key={verb.method} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+            className={`border rounded-xl p-4 space-y-3 ${verb.border} ${verb.bg}`}>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className={`text-base font-black font-mono ${verb.color}`}>{verb.method}</span>
+              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${verb.border} ${verb.color}`}>{verb.badge}</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{tx('Comportamiento', 'Behavior')}</p>
+                <ul className="space-y-1">
+                  {verb.points.map((p, j) => (
+                    <li key={j} className="flex items-start gap-1.5 text-xs text-slate-300">
+                      <ArrowRight className="w-3 h-3 text-orange-400 mt-0.5 flex-shrink-0" />{p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">{tx('Cuándo usarlo', 'When to use it')}</p>
+                <ul className="space-y-1">
+                  {verb.cases.map((c, j) => (
+                    <li key={j} className="flex items-start gap-1.5 text-xs text-slate-300 font-mono">
+                      <span className={`text-xs flex-shrink-0 ${verb.color}`}>→</span>{c}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      <CodeBlock language="typescript" code={`// ─── GET — leer sin efectos secundarios ──────────────────────────────────────
+// GET /users?role=admin&sort=name:asc&limit=20
+router.get('/users', authenticate, async (req, res) => {
+  const users = await userService.list(req.query);
+  return res.status(200).json({ data: users, meta: { total: users.length } });
+});
+
+// ─── POST — crear recurso ─────────────────────────────────────────────────────
+// POST /users  →  201 Created + Location: /users/99
+router.post('/users', authenticate, validate(createUserSchema), async (req, res) => {
+  const user = await userService.create(req.body);
+  return res.status(201)
+    .header('Location', \`/users/\${user.id}\`)
+    .json({ data: user });
+});
+
+// ─── PUT — reemplazar completo ────────────────────────────────────────────────
+// PUT /users/42  →  envías TODOS los campos
+router.put('/users/:id', authenticate, validate(fullUserSchema), async (req, res) => {
+  const user = await userService.replace(req.params.id, req.body);
+  return res.status(200).json({ data: user });
+});
+
+// ─── PATCH — actualización parcial ───────────────────────────────────────────
+// PATCH /users/42  →  solo los campos que cambian
+router.patch('/users/:id', authenticate, validate(partialUserSchema), async (req, res) => {
+  const user = await userService.update(req.params.id, req.body);
+  return res.status(200).json({ data: user });
+});
+
+// ─── DELETE — eliminar ────────────────────────────────────────────────────────
+// DELETE /users/42  →  204 No Content
+router.delete('/users/:id', authenticate, async (req, res) => {
+  await userService.delete(req.params.id); // soft-delete internamente
+  return res.status(204).send();
+});
+
+// ─── HEAD — verificar existencia sin body ─────────────────────────────────────
+// HEAD /files/report.pdf  →  headers sin body
+router.head('/files/:name', async (req, res) => {
+  const file = await fileService.findByName(req.params.name);
+  if (!file) return res.status(404).send();
+  return res
+    .status(200)
+    .header('Content-Length', String(file.sizeBytes))
+    .header('Content-Type', file.mimeType)
+    .header('Last-Modified', file.updatedAt.toUTCString())
+    .send(); // sin body
+});
+
+// ─── OPTIONS — preflight CORS ─────────────────────────────────────────────────
+// El navegador lo envía automáticamente; Express + cors() lo gestiona:
+import cors from 'cors';
+app.use(cors({
+  origin: ['https://app.example.com'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400, // cachea el preflight 24h
+}));`} />
+    </div>
+  );
 
   // ─── REST ─────────────────────────────────────────────────────────────────
 
@@ -1020,6 +1312,7 @@ router.get('/products', cacheResponse(300), productController.list); // caché 5
   const renderContent = () => {
     switch (active) {
       case 'rest':       return renderRest();
+      case 'verbs':      return renderVerbs();
       case 'http':       return renderHttp();
       case 'versioning': return renderVersioning();
       case 'auth':       return renderAuth();

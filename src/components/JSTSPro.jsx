@@ -1038,9 +1038,19 @@ const InterviewSection = ({ tx }) => {
         {
           q: tx('var vs let vs const — ¿cuál es la diferencia?', 'var vs let vs const — what is the difference?'),
           a: tx(
-            'var: function-scoped (ignora bloques {}), se hoistea e inicializa en undefined, se puede re-declarar en el mismo scope sin error. let: block-scoped, se hoistea pero queda en la Temporal Dead Zone (TDZ) hasta la línea de declaración — acceder antes lanza ReferenceError — no re-declarable, sí re-asignable. const: igual que let pero el binding no se puede re-asignar; el objeto o array que apunta SÍ es mutable por dentro (const arr = [] seguido de arr.push(1) es válido). Trampa clásica de entrevista: var en un for-loop comparte una sola variable entre callbacks async (setTimeout loggea 3,3,3), let crea un binding nuevo por iteración (loggea 0,1,2).',
-            'var: function-scoped (ignores {} blocks), hoisted and initialized to undefined, can be re-declared in the same scope without error. let: block-scoped, hoisted but sits in the Temporal Dead Zone (TDZ) until its declaration line — accessing it earlier throws a ReferenceError — not re-declarable, but re-assignable. const: same as let but the binding can\'t be re-assigned; the object/array it points to IS still mutable internally (const arr = [] then arr.push(1) is valid). Classic interview trap: var in a for-loop shares one variable across async callbacks (setTimeout logs 3,3,3), let creates a fresh binding per iteration (logs 0,1,2).'
+            'Trampa clásica de entrevista: var en un for-loop comparte una sola variable entre callbacks async (setTimeout loggea 3,3,3); let crea un binding nuevo por iteración (loggea 0,1,2).',
+            'Classic interview trap: var in a for-loop shares one variable across async callbacks (setTimeout logs 3,3,3); let creates a fresh binding per iteration (logs 0,1,2).'
           ),
+          table: {
+            headers: ['', 'var', 'let', 'const'],
+            rows: [
+              [tx('Scope', 'Scope'), tx('Función', 'Function'), tx('Bloque', 'Block'), tx('Bloque', 'Block')],
+              [tx('Hoisting', 'Hoisting'), tx('sí, init. undefined', 'yes, init. undefined'), tx('sí, en TDZ', 'yes, in TDZ'), tx('sí, en TDZ', 'yes, in TDZ')],
+              [tx('Re-declarable', 'Re-declarable'), tx('Sí', 'Yes'), tx('No', 'No'), tx('No', 'No')],
+              [tx('Re-asignable', 'Re-assignable'), tx('Sí', 'Yes'), tx('Sí', 'Yes'), tx('No', 'No')],
+              [tx('Uso recomendado', 'Recommended use'), tx('Evitar', 'Avoid'), tx('Variable mutable', 'Mutable variable'), tx('Default', 'Default')],
+            ],
+          },
         },
         {
           q: tx('¿Qué es hoisting?', 'What is hoisting?'),
@@ -1052,30 +1062,70 @@ const InterviewSection = ({ tx }) => {
         {
           q: '== vs ===',
           a: tx(
-            '== (equalidad abstracta) permite coerción de tipo antes de comparar (1 == "1" → true, null == undefined → true, 0 == false → true). === (equalidad estricta) compara valor Y tipo sin coerción (1 === "1" → false). Convención: usar siempre === salvo el caso idiomático x == null (cubre null y undefined a la vez). Caso especial: NaN === NaN es false; usar Number.isNaN() u Object.is().',
-            '== (abstract equality) coerces types before comparing (1 == "1" → true, null == undefined → true, 0 == false → true). === (strict equality) compares value AND type with no coercion (1 === "1" → false). Convention: always use ===, except the idiomatic x == null (covers both null and undefined). Edge case: NaN === NaN is false; use Number.isNaN() or Object.is() instead.'
+            'Convención: usar siempre === salvo el caso idiomático x == null (cubre null y undefined a la vez). Caso especial: NaN === NaN es false; usar Number.isNaN() u Object.is().',
+            'Convention: always use === except the idiomatic x == null (covers both null and undefined). Edge case: NaN === NaN is false; use Number.isNaN() or Object.is() instead.'
           ),
+          table: {
+            headers: [tx('operandos', 'operands'), '==', '==='],
+            rows: [
+              [tx('Coerción de tipo', 'Type coercion'), tx('Sí', 'Yes'), tx('No', 'No')],
+              ['1, "1"', 'true', 'false'],
+              ['null, undefined', 'true', 'false'],
+              ['0, false', 'true', 'false'],
+              ['NaN, NaN', 'false', 'false'],
+            ],
+          },
         },
         {
           q: tx('typeof vs instanceof', 'typeof vs instanceof'),
           a: tx(
-            'typeof devuelve un string con el tipo primitivo ("string", "number", "boolean", "undefined", "object", "function", "symbol", "bigint") — pero typeof null es "object" (bug histórico) y typeof [] también es "object". instanceof verifica si el prototype de un objeto está en la cadena de prototipos de un constructor (arr instanceof Array → true). Para arrays usar Array.isArray(), más confiable entre realms/iframes.',
-            'typeof returns a string with the primitive type ("string", "number", "boolean", "undefined", "object", "function", "symbol", "bigint") — but typeof null is "object" (a historical bug) and typeof [] is also "object". instanceof checks whether an object\'s prototype sits in a constructor\'s prototype chain (arr instanceof Array → true). For arrays prefer Array.isArray(), more reliable across realms/iframes.'
+            'Para arrays preferir Array.isArray() en vez de instanceof — más confiable entre realms/iframes.',
+            'For arrays prefer Array.isArray() over instanceof — more reliable across realms/iframes.'
           ),
+          table: {
+            headers: ['', 'typeof', 'instanceof'],
+            rows: [
+              [tx('Qué verifica', 'What it checks'), tx('Tipo primitivo', 'Primitive type'), tx('Cadena de prototipos', 'Prototype chain')],
+              [tx('Retorna', 'Returns'), tx('string', 'string'), 'boolean'],
+              ['typeof null', '"object" ⚠', '—'],
+              ['typeof []', '"object"', '—'],
+              ['[] instanceof Array', '—', 'true'],
+            ],
+          },
         },
         {
           q: 'null vs undefined',
           a: tx(
-            'undefined: valor por defecto de una variable declarada sin asignar, de un parámetro no pasado, o de una property inexistente. null: ausencia de valor asignada intencionalmente por el programador. typeof undefined → "undefined", typeof null → "object". Se comparan iguales con == pero no con ===. Buena práctica: usar null explícito para "vacío a propósito" y dejar undefined para "nunca se asignó".',
-            'undefined: the default value of a declared-but-unassigned variable, a missing parameter, or a nonexistent property. null: absence of value assigned intentionally by the developer. typeof undefined → "undefined", typeof null → "object". They compare equal with == but not ===. Good practice: use explicit null for "intentionally empty", leave undefined for "never assigned".'
+            'Buena práctica: usar null explícito para "vacío a propósito" y dejar undefined para "nunca se asignó".',
+            'Good practice: use explicit null for "intentionally empty", leave undefined for "never assigned".'
           ),
+          table: {
+            headers: ['', 'null', 'undefined'],
+            rows: [
+              [tx('Significado', 'Meaning'), tx('Ausencia intencional', 'Intentional absence'), tx('Nunca asignado', 'Never assigned')],
+              ['typeof', '"object"', '"undefined"'],
+              [tx('Asignado por', 'Assigned by'), tx('El programador', 'The developer'), tx('El motor JS', 'The JS engine')],
+              ['null == undefined', 'true', 'true'],
+              ['null === undefined', 'false', 'false'],
+            ],
+          },
         },
         {
           q: tx('Arrow function vs función tradicional', 'Arrow function vs regular function'),
           a: tx(
-            'Arrow functions no tienen su propio this, arguments, super ni new.target — los heredan léxicamente del scope donde se definen, lo que las hace ideales dentro de callbacks y class methods (evita el patrón const self = this). No se pueden usar como constructores (new arrowFn() lanza TypeError) ni tienen prototype. Las funciones tradicionales sí bindean this dinámicamente según cómo se invocan (objeto.metodo(), call/apply/bind, o global/undefined en strict mode).',
-            'Arrow functions have no own this, arguments, super or new.target — they inherit them lexically from the defining scope, which makes them ideal inside callbacks and class fields (avoids the const self = this pattern). They can\'t be used as constructors (new arrowFn() throws a TypeError) and have no prototype. Regular functions bind this dynamically based on how they\'re invoked (obj.method(), call/apply/bind, or global/undefined in strict mode).'
+            'Arrow functions heredan this léxicamente del scope donde se definen — ideales dentro de callbacks y class fields (evita el patrón const self = this).',
+            'Arrow functions inherit this lexically from the defining scope — ideal inside callbacks and class fields (avoids the const self = this pattern).'
           ),
+          table: {
+            headers: ['', tx('Arrow', 'Arrow'), tx('Tradicional', 'Regular')],
+            rows: [
+              ['this', tx('Léxico (heredado)', 'Lexical (inherited)'), tx('Dinámico (call-site)', 'Dynamic (call-site)')],
+              ['arguments', tx('No tiene', 'None'), tx('Sí', 'Yes')],
+              [tx('Constructor (new)', 'Constructor (new)'), tx('No (TypeError)', 'No (TypeError)'), tx('Sí', 'Yes')],
+              ['prototype', tx('No', 'No'), tx('Sí', 'Yes')],
+              [tx('Uso ideal', 'Ideal use'), tx('Callbacks, class fields', 'Callbacks, class fields'), tx('Métodos, constructores', 'Methods, constructors')],
+            ],
+          },
         },
         {
           q: tx('Destructuring y spread/rest — ¿para qué sirven?', 'Destructuring and spread/rest — what are they for?'),
@@ -1101,9 +1151,18 @@ const InterviewSection = ({ tx }) => {
         {
           q: tx('¿Promise vs async/await?', 'Promise vs async/await?'),
           a: tx(
-            'async/await es syntactic sugar sobre Promises — toda función async retorna una Promise implícitamente, y await simplemente pausa la ejecución hasta que esa Promise se resuelve o rechaza. Bajo el capó comparten el mismo motor de microtasks. async/await mejora la legibilidad (código con forma síncrona) y el manejo de errores (try/catch en vez de .catch encadenado), pero para ejecución paralela sigues necesitando Promise.all/.allSettled/.race/.any — no hay equivalente sintáctico directo en await. Top-level await ya es válido en ES modules.',
-            'async/await is syntactic sugar over Promises — every async function implicitly returns a Promise, and await simply pauses execution until that Promise settles. Under the hood they share the same microtask engine. async/await improves readability (synchronous-looking code) and error handling (try/catch instead of chained .catch), but for parallel execution you still need Promise.all/.allSettled/.race/.any — there\'s no direct syntactic await equivalent. Top-level await is now valid in ES modules.'
+            'async/await es syntactic sugar sobre Promises — toda función async retorna una Promise implícitamente, y await pausa la ejecución hasta que esa Promise se resuelve o rechaza. Comparten el mismo motor de microtasks bajo el capó.',
+            'async/await is syntactic sugar over Promises — every async function implicitly returns a Promise, and await pauses execution until that Promise settles. They share the same microtask engine under the hood.'
           ),
+          table: {
+            headers: ['', 'Promise (.then)', 'async/await'],
+            rows: [
+              [tx('Sintaxis', 'Syntax'), '.then().catch()', 'try/catch'],
+              [tx('Legibilidad', 'Readability'), tx('Encadenado', 'Chained'), tx('Estilo síncrono', 'Synchronous-looking')],
+              [tx('Ejecución paralela', 'Parallel execution'), 'Promise.all/.race/...', tx('Igual, vía Promise.all + await', 'Same, via Promise.all + await')],
+              [tx('Top-level', 'Top-level'), 'N/A', tx('Soportado en ES modules', 'Supported in ES modules')],
+            ],
+          },
         },
         {
           q: tx('¿Qué son los generadores?', 'What are generators?'),
@@ -1115,9 +1174,19 @@ const InterviewSection = ({ tx }) => {
         {
           q: tx('WeakMap vs Map', 'WeakMap vs Map'),
           a: tx(
-            'WeakMap: las keys deben ser objetos, son referencias débiles (si no hay otra referencia al objeto, el garbage collector puede recolectarlo y la entrada desaparece sola), no es iterable ni tiene .size — por eso no puede tener memory leaks de metadatos. Map: acepta cualquier tipo de key (primitivos incluidos), mantiene referencias fuertes, es iterable y ordenado por inserción. WeakMap es ideal para asociar datos privados a un objeto (ej. estado interno de una clase) sin impedir su GC.',
-            'WeakMap: keys must be objects, held via weak references (if nothing else references the object, the garbage collector can reclaim it and the entry vanishes on its own), not iterable and no .size — which means it can\'t leak metadata. Map: accepts any key type (primitives included), holds strong references, is iterable and insertion-ordered. WeakMap is ideal for attaching private data to an object (e.g. a class\'s internal state) without blocking its GC.'
+            'WeakMap es ideal para asociar datos privados a un objeto (ej. estado interno de una clase) sin impedir su garbage collection.',
+            'WeakMap is ideal for attaching private data to an object (e.g. a class\'s internal state) without blocking its garbage collection.'
           ),
+          table: {
+            headers: ['', 'WeakMap', 'Map'],
+            rows: [
+              [tx('Keys', 'Keys'), tx('Solo objetos', 'Objects only'), tx('Cualquier tipo', 'Any type')],
+              [tx('Referencias', 'References'), tx('Débiles (permite GC)', 'Weak (allows GC)'), tx('Fuertes', 'Strong')],
+              [tx('Iterable', 'Iterable'), tx('No', 'No'), tx('Sí', 'Yes')],
+              ['.size', tx('No', 'No'), tx('Sí', 'Yes')],
+              [tx('Uso ideal', 'Ideal use'), tx('Metadata privada', 'Private metadata'), tx('Colecciones clave-valor', 'General key-value collections')],
+            ],
+          },
         },
         {
           q: tx('¿Cómo funciona this y cómo se controla con call/apply/bind?', 'How does this work and how do you control it with call/apply/bind?'),
@@ -1136,9 +1205,17 @@ const InterviewSection = ({ tx }) => {
         {
           q: 'Debounce vs throttle',
           a: tx(
-            'Ambos limitan cuántas veces se ejecuta una función ante eventos frecuentes (scroll, resize, input), pero con estrategias distintas. Debounce: espera a que pase X ms de silencio desde la ÚLTIMA llamada antes de ejecutar — ideal para search-as-you-type o validación de formularios, donde solo importa el resultado final. Throttle: garantiza que la función se ejecute como máximo una vez cada X ms, sin importar cuántas veces se dispare el evento — ideal para scroll handlers o actualizar posición de un drag, donde necesitas feedback continuo pero limitado.',
-            'Both limit how often a function runs in response to frequent events (scroll, resize, input), but with different strategies. Debounce: waits for X ms of silence since the LAST call before executing — ideal for search-as-you-type or form validation, where only the final result matters. Throttle: guarantees the function runs at most once every X ms, no matter how often the event fires — ideal for scroll handlers or updating drag position, where you need continuous but rate-limited feedback.'
+            'Ambos limitan cuántas veces se ejecuta una función ante eventos frecuentes (scroll, resize, input), pero con estrategias distintas.',
+            'Both limit how often a function runs in response to frequent events (scroll, resize, input), but with different strategies.'
           ),
+          table: {
+            headers: ['', tx('Debounce', 'Debounce'), tx('Throttle', 'Throttle')],
+            rows: [
+              [tx('Estrategia', 'Strategy'), tx('Espera silencio de X ms', 'Waits for X ms of silence'), tx('Máx. 1 ejecución cada X ms', 'Max 1 execution per X ms')],
+              [tx('Ejecuta', 'Executes'), tx('Solo tras la última llamada', 'Only after the last call'), tx('Periódicamente mientras dispara', 'Periodically while firing')],
+              [tx('Caso de uso', 'Use case'), tx('Search-as-you-type, validación', 'Search-as-you-type, validation'), tx('Scroll handlers, drag', 'Scroll handlers, drag')],
+            ],
+          },
         },
         {
           q: 'Optional chaining (?.) y nullish coalescing (??)',
@@ -1264,10 +1341,48 @@ const InterviewSection = ({ tx }) => {
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-4 pt-1">
-                          <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/40 border border-yellow-500/10 rounded-lg p-3">
-                            {item.a}
-                          </p>
+                        <div className="px-4 pb-4 pt-1 space-y-3">
+                          {item.a && (
+                            <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/40 border border-yellow-500/10 rounded-lg p-3">
+                              {item.a}
+                            </p>
+                          )}
+                          {item.table && (
+                            <div className="overflow-x-auto rounded-lg border border-yellow-500/10">
+                              <table className="w-full text-xs border-collapse min-w-[420px]">
+                                <thead>
+                                  <tr className="bg-slate-900/70">
+                                    {item.table.headers.map((h, hi) => (
+                                      <th
+                                        key={hi}
+                                        className={`text-left px-3 py-2 border-b border-slate-700/50 whitespace-nowrap ${
+                                          hi === 0 ? 'text-slate-500 font-medium' : 'text-yellow-300 font-bold font-mono'
+                                        }`}
+                                      >
+                                        {h}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {item.table.rows.map((row, ri) => (
+                                    <tr key={ri} className={ri % 2 === 0 ? 'bg-slate-950/50' : 'bg-slate-900/25'}>
+                                      {row.map((cell, ci) => (
+                                        <td
+                                          key={ci}
+                                          className={`px-3 py-2 border-b border-slate-800/40 align-top ${
+                                            ci === 0 ? 'text-slate-400 font-medium whitespace-nowrap' : 'text-slate-200 font-mono'
+                                          }`}
+                                        >
+                                          {cell}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}

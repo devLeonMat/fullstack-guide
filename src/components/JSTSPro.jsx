@@ -1031,29 +1031,57 @@ const InterviewSection = ({ tx }) => {
         {
           q: tx('¿Qué es un closure?', 'What is a closure?'),
           a: tx(
-            'Una función que "recuerda" las variables de su scope exterior incluso cuando se ejecuta fuera de ese scope. Permite encapsulación y estado privado.',
-            'A function that "remembers" variables from its outer scope even when executed outside that scope. Enables encapsulation and private state.'
+            'Una función que "recuerda" las variables de su scope léxico exterior aunque se ejecute fuera de él — el scope no se destruye mientras algo lo referencie. Se forma cada vez que una función anida a otra, no solo cuando se retorna explícitamente. Casos típicos: contadores privados, memoización, curry y manejo de estado en callbacks (ej. handlers de event listeners que "recuerdan" el elemento del loop).',
+            'A function that "remembers" variables from its enclosing lexical scope even when executed outside it — the scope isn\'t destroyed while something still references it. It forms every time a function nests another, not only when explicitly returned. Typical uses: private counters, memoization, currying and state in callbacks (e.g. event listeners that "remember" a loop element).'
           ),
         },
         {
           q: tx('var vs let vs const — ¿cuál es la diferencia?', 'var vs let vs const — what is the difference?'),
           a: tx(
-            'var: function-scoped, hoisted como undefined, re-declarable. let: block-scoped, TDZ, re-asignable. const: block-scoped, TDZ, no re-asignable (pero objetos mutables).',
-            'var: function-scoped, hoisted as undefined, re-declarable. let: block-scoped, TDZ, re-assignable. const: block-scoped, TDZ, not re-assignable (but objects are mutable).'
+            'var: function-scoped (ignora bloques {}), se hoistea e inicializa en undefined, se puede re-declarar en el mismo scope sin error. let: block-scoped, se hoistea pero queda en la Temporal Dead Zone (TDZ) hasta la línea de declaración — acceder antes lanza ReferenceError — no re-declarable, sí re-asignable. const: igual que let pero el binding no se puede re-asignar; el objeto o array que apunta SÍ es mutable por dentro (const arr = [] seguido de arr.push(1) es válido). Trampa clásica de entrevista: var en un for-loop comparte una sola variable entre callbacks async (setTimeout loggea 3,3,3), let crea un binding nuevo por iteración (loggea 0,1,2).',
+            'var: function-scoped (ignores {} blocks), hoisted and initialized to undefined, can be re-declared in the same scope without error. let: block-scoped, hoisted but sits in the Temporal Dead Zone (TDZ) until its declaration line — accessing it earlier throws a ReferenceError — not re-declarable, but re-assignable. const: same as let but the binding can\'t be re-assigned; the object/array it points to IS still mutable internally (const arr = [] then arr.push(1) is valid). Classic interview trap: var in a for-loop shares one variable across async callbacks (setTimeout logs 3,3,3), let creates a fresh binding per iteration (logs 0,1,2).'
           ),
         },
         {
           q: tx('¿Qué es hoisting?', 'What is hoisting?'),
           a: tx(
-            'El motor JS mueve las declaraciones de var y funciones al tope del scope durante la fase de compilación. let/const también se hoistean pero entran en la Temporal Dead Zone (TDZ).',
-            'JS engine moves var and function declarations to the top of their scope during the compilation phase. let/const are also hoisted but enter the Temporal Dead Zone (TDZ).'
+            'Durante la fase de compilación, el motor JS registra las declaraciones (var, let, const, function, class) en el scope antes de ejecutar ninguna línea. Las function declarations se hoistean completas (se pueden llamar antes de su definición). var se hoistea inicializada en undefined. let/const/class se hoistean pero quedan en la TDZ — existen pero son inaccesibles hasta su línea. Las function expressions y arrow functions asignadas a var/let NO se hoistean con su valor, solo el nombre de la variable.',
+            'During the compilation phase, the JS engine registers declarations (var, let, const, function, class) in scope before executing any line. Function declarations hoist fully (callable before their definition). var hoists initialized to undefined. let/const/class hoist but sit in the TDZ — they exist but are inaccessible until their line. Function expressions and arrow functions assigned to var/let do NOT hoist with their value, only the variable name does.'
           ),
         },
         {
           q: '== vs ===',
           a: tx(
-            '== permite coerción de tipo (1 == "1" → true). === compara valor Y tipo sin coerción (1 === "1" → false). Siempre usar ===.',
-            '== allows type coercion (1 == "1" → true). === compares value AND type without coercion (1 === "1" → false). Always use ===.'
+            '== (equalidad abstracta) permite coerción de tipo antes de comparar (1 == "1" → true, null == undefined → true, 0 == false → true). === (equalidad estricta) compara valor Y tipo sin coerción (1 === "1" → false). Convención: usar siempre === salvo el caso idiomático x == null (cubre null y undefined a la vez). Caso especial: NaN === NaN es false; usar Number.isNaN() u Object.is().',
+            '== (abstract equality) coerces types before comparing (1 == "1" → true, null == undefined → true, 0 == false → true). === (strict equality) compares value AND type with no coercion (1 === "1" → false). Convention: always use ===, except the idiomatic x == null (covers both null and undefined). Edge case: NaN === NaN is false; use Number.isNaN() or Object.is() instead.'
+          ),
+        },
+        {
+          q: tx('typeof vs instanceof', 'typeof vs instanceof'),
+          a: tx(
+            'typeof devuelve un string con el tipo primitivo ("string", "number", "boolean", "undefined", "object", "function", "symbol", "bigint") — pero typeof null es "object" (bug histórico) y typeof [] también es "object". instanceof verifica si el prototype de un objeto está en la cadena de prototipos de un constructor (arr instanceof Array → true). Para arrays usar Array.isArray(), más confiable entre realms/iframes.',
+            'typeof returns a string with the primitive type ("string", "number", "boolean", "undefined", "object", "function", "symbol", "bigint") — but typeof null is "object" (a historical bug) and typeof [] is also "object". instanceof checks whether an object\'s prototype sits in a constructor\'s prototype chain (arr instanceof Array → true). For arrays prefer Array.isArray(), more reliable across realms/iframes.'
+          ),
+        },
+        {
+          q: 'null vs undefined',
+          a: tx(
+            'undefined: valor por defecto de una variable declarada sin asignar, de un parámetro no pasado, o de una property inexistente. null: ausencia de valor asignada intencionalmente por el programador. typeof undefined → "undefined", typeof null → "object". Se comparan iguales con == pero no con ===. Buena práctica: usar null explícito para "vacío a propósito" y dejar undefined para "nunca se asignó".',
+            'undefined: the default value of a declared-but-unassigned variable, a missing parameter, or a nonexistent property. null: absence of value assigned intentionally by the developer. typeof undefined → "undefined", typeof null → "object". They compare equal with == but not ===. Good practice: use explicit null for "intentionally empty", leave undefined for "never assigned".'
+          ),
+        },
+        {
+          q: tx('Arrow function vs función tradicional', 'Arrow function vs regular function'),
+          a: tx(
+            'Arrow functions no tienen su propio this, arguments, super ni new.target — los heredan léxicamente del scope donde se definen, lo que las hace ideales dentro de callbacks y class methods (evita el patrón const self = this). No se pueden usar como constructores (new arrowFn() lanza TypeError) ni tienen prototype. Las funciones tradicionales sí bindean this dinámicamente según cómo se invocan (objeto.metodo(), call/apply/bind, o global/undefined en strict mode).',
+            'Arrow functions have no own this, arguments, super or new.target — they inherit them lexically from the defining scope, which makes them ideal inside callbacks and class fields (avoids the const self = this pattern). They can\'t be used as constructors (new arrowFn() throws a TypeError) and have no prototype. Regular functions bind this dynamically based on how they\'re invoked (obj.method(), call/apply/bind, or global/undefined in strict mode).'
+          ),
+        },
+        {
+          q: tx('Destructuring y spread/rest — ¿para qué sirven?', 'Destructuring and spread/rest — what are they for?'),
+          a: tx(
+            'Destructuring extrae valores de arrays/objetos en variables individuales, con valores por defecto y renombrado: const { name: n = "?" } = user. Spread (...) expande un iterable/objeto en elementos individuales — clonado superficial, merge de objetos, pasar args: [...arr1, ...arr2], { ...defaults, ...overrides }. Rest (mismo símbolo, contexto distinto) agrupa lo restante: function f(a, ...rest) o const { id, ...others } = obj. Ambos hacen copias shallow, no deep clone.',
+            'Destructuring pulls values out of arrays/objects into individual variables, with defaults and renaming: const { name: n = "?" } = user. Spread (...) expands an iterable/object into individual elements — shallow clone, object merge, passing args: [...arr1, ...arr2], { ...defaults, ...overrides }. Rest (same symbol, different context) collects what\'s left: function f(a, ...rest) or const { id, ...others } = obj. Both produce shallow copies, not deep clones.'
           ),
         },
       ],
@@ -1066,29 +1094,57 @@ const InterviewSection = ({ tx }) => {
         {
           q: tx('Explica el event loop', 'Explain the event loop'),
           a: tx(
-            'JS es single-threaded. El call stack ejecuta código síncrono. Las Web APIs manejan async tasks. Al completarse, los callbacks van a las queues. El event loop los mueve al stack cuando está vacío. Microtasks (Promises) tienen prioridad sobre macrotasks (setTimeout).',
-            'JS is single-threaded. The call stack executes synchronous code. Web APIs handle async tasks. On completion, callbacks go to queues. The event loop moves them to the stack when empty. Microtasks (Promises) have priority over macrotasks (setTimeout).'
+            'JS es single-threaded. El call stack ejecuta código síncrono (LIFO). Las Web APIs / APIs del runtime (timers, I/O, fetch) manejan las tareas async fuera del stack. Al completarse, sus callbacks van a la microtask queue (Promises, queueMicrotask) o macrotask queue (setTimeout, I/O). El event loop mueve tareas al stack solo cuando este está vacío, y SIEMPRE vacía toda la microtask queue antes de tomar la siguiente macrotask — por eso Promises "corren antes" que setTimeout aunque ambos tengan delay 0.',
+            'JS is single-threaded. The call stack executes synchronous code (LIFO). Web APIs / runtime APIs (timers, I/O, fetch) handle async work outside the stack. On completion their callbacks land in the microtask queue (Promises, queueMicrotask) or macrotask queue (setTimeout, I/O). The event loop moves tasks to the stack only when it\'s empty, and ALWAYS fully drains the microtask queue before taking the next macrotask — which is why Promises "run before" setTimeout even with a 0ms delay.'
           ),
         },
         {
           q: tx('¿Promise vs async/await?', 'Promise vs async/await?'),
           a: tx(
-            'async/await es syntactic sugar sobre Promises. Ambos manejan lo mismo bajo el capó. async/await produce código más legible y facilita el manejo de errores con try/catch. Promise.all/.race no tienen equivalente directo en async/await.',
-            'async/await is syntactic sugar over Promises. Both handle the same underlying mechanism. async/await produces more readable code and easier error handling with try/catch. Promise.all/.race have no direct async/await equivalent.'
+            'async/await es syntactic sugar sobre Promises — toda función async retorna una Promise implícitamente, y await simplemente pausa la ejecución hasta que esa Promise se resuelve o rechaza. Bajo el capó comparten el mismo motor de microtasks. async/await mejora la legibilidad (código con forma síncrona) y el manejo de errores (try/catch en vez de .catch encadenado), pero para ejecución paralela sigues necesitando Promise.all/.allSettled/.race/.any — no hay equivalente sintáctico directo en await. Top-level await ya es válido en ES modules.',
+            'async/await is syntactic sugar over Promises — every async function implicitly returns a Promise, and await simply pauses execution until that Promise settles. Under the hood they share the same microtask engine. async/await improves readability (synchronous-looking code) and error handling (try/catch instead of chained .catch), but for parallel execution you still need Promise.all/.allSettled/.race/.any — there\'s no direct syntactic await equivalent. Top-level await is now valid in ES modules.'
           ),
         },
         {
           q: tx('¿Qué son los generadores?', 'What are generators?'),
           a: tx(
-            'Funciones que pueden pausar su ejecución con yield y reanudarla. Retornan un iterador. Útiles para secuencias infinitas, lazy evaluation y async/await (bajo el capó en transpilers).',
-            'Functions that can pause execution with yield and resume it. Return an iterator. Useful for infinite sequences, lazy evaluation and async/await (under the hood in transpilers).'
+            'Funciones (function*) que pueden pausar su ejecución en cada yield y reanudarla donde quedaron, manteniendo su estado interno entre pausas. Retornan un objeto iterador con .next()/.return()/.throw(). Casos de uso: secuencias infinitas y lazy evaluation, implementar iterables custom (Symbol.iterator), y históricamente fueron la base de librerías como co/redux-saga para manejar async antes de que async/await existiera — de hecho async/await se puede pensar como generadores + Promises + un runner automático.',
+            'Functions (function*) that can pause execution at each yield and resume where they left off, keeping internal state across pauses. They return an iterator object with .next()/.return()/.throw(). Use cases: infinite sequences and lazy evaluation, implementing custom iterables (Symbol.iterator), and historically they underpinned libraries like co/redux-saga for handling async before async/await existed — in fact async/await can be thought of as generators + Promises + an automatic runner.'
           ),
         },
         {
           q: tx('WeakMap vs Map', 'WeakMap vs Map'),
           a: tx(
-            'WeakMap: keys son objetos, referencias débiles (no evitan GC), no iterable. Map: cualquier tipo de key, referencias fuertes, iterable. WeakMap es ideal para metadatos privados de objetos.',
-            'WeakMap: keys are objects, weak references (don\'t prevent GC), non-iterable. Map: any key type, strong references, iterable. WeakMap is ideal for private object metadata.'
+            'WeakMap: las keys deben ser objetos, son referencias débiles (si no hay otra referencia al objeto, el garbage collector puede recolectarlo y la entrada desaparece sola), no es iterable ni tiene .size — por eso no puede tener memory leaks de metadatos. Map: acepta cualquier tipo de key (primitivos incluidos), mantiene referencias fuertes, es iterable y ordenado por inserción. WeakMap es ideal para asociar datos privados a un objeto (ej. estado interno de una clase) sin impedir su GC.',
+            'WeakMap: keys must be objects, held via weak references (if nothing else references the object, the garbage collector can reclaim it and the entry vanishes on its own), not iterable and no .size — which means it can\'t leak metadata. Map: accepts any key type (primitives included), holds strong references, is iterable and insertion-ordered. WeakMap is ideal for attaching private data to an object (e.g. a class\'s internal state) without blocking its GC.'
+          ),
+        },
+        {
+          q: tx('¿Cómo funciona this y cómo se controla con call/apply/bind?', 'How does this work and how do you control it with call/apply/bind?'),
+          a: tx(
+            'this se determina en tiempo de EJECUCIÓN según cómo se llama la función, no dónde se define (excepto en arrow functions). Reglas en orden de prioridad: new Foo() → this es la instancia nueva; fn.call(ctx)/fn.apply(ctx) → this es ctx explícito; obj.method() → this es obj (implicit binding); llamada suelta fn() → this es undefined en strict mode o globalThis en sloppy mode. call/apply invocan la función inmediatamente con un this dado (call recibe args uno a uno, apply como array); bind retorna una nueva función con this fijado permanentemente, útil para pasar métodos como callbacks sin perder contexto.',
+            'this is resolved at CALL TIME based on how the function is invoked, not where it\'s defined (except in arrow functions). Priority order: new Foo() → this is the new instance; fn.call(ctx)/fn.apply(ctx) → this is the explicit ctx; obj.method() → this is obj (implicit binding); a bare fn() call → this is undefined in strict mode or globalThis in sloppy mode. call/apply invoke the function immediately with a given this (call takes args one by one, apply as an array); bind returns a new function with this permanently fixed — useful for passing methods as callbacks without losing context.'
+          ),
+        },
+        {
+          q: tx('Cadena de prototipos: ¿cómo funciona la herencia en JS?', 'Prototype chain: how does inheritance work in JS?'),
+          a: tx(
+            'JS usa herencia prototípica, no clases reales (las class de ES6 son sugar sobre prototypes). Cada objeto tiene un link interno [[Prototype]] (accesible vía Object.getPrototypeOf u obj.__proto__) a otro objeto. Al leer una propiedad, el motor busca en el objeto y, si no está, sube por la cadena hasta encontrarla o llegar a null. Object.create(proto) crea un objeto con ese prototype explícito. class Foo extends Bar establece Foo.prototype.__proto__ = Bar.prototype automáticamente.',
+            'JS uses prototypal inheritance, not real classes (ES6 class is sugar over prototypes). Every object has an internal [[Prototype]] link (accessible via Object.getPrototypeOf or obj.__proto__) to another object. When reading a property, the engine looks on the object itself, then walks up the chain until it finds it or hits null. Object.create(proto) creates an object with that explicit prototype. class Foo extends Bar sets Foo.prototype.__proto__ = Bar.prototype automatically.'
+          ),
+        },
+        {
+          q: 'Debounce vs throttle',
+          a: tx(
+            'Ambos limitan cuántas veces se ejecuta una función ante eventos frecuentes (scroll, resize, input), pero con estrategias distintas. Debounce: espera a que pase X ms de silencio desde la ÚLTIMA llamada antes de ejecutar — ideal para search-as-you-type o validación de formularios, donde solo importa el resultado final. Throttle: garantiza que la función se ejecute como máximo una vez cada X ms, sin importar cuántas veces se dispare el evento — ideal para scroll handlers o actualizar posición de un drag, donde necesitas feedback continuo pero limitado.',
+            'Both limit how often a function runs in response to frequent events (scroll, resize, input), but with different strategies. Debounce: waits for X ms of silence since the LAST call before executing — ideal for search-as-you-type or form validation, where only the final result matters. Throttle: guarantees the function runs at most once every X ms, no matter how often the event fires — ideal for scroll handlers or updating drag position, where you need continuous but rate-limited feedback.'
+          ),
+        },
+        {
+          q: 'Optional chaining (?.) y nullish coalescing (??)',
+          a: tx(
+            'Optional chaining (?.) corta cortocircuito y retorna undefined si cualquier eslabón de la cadena es null/undefined, evitando el clásico Cannot read property of undefined: user?.address?.street, arr?.[0], fn?.(). Nullish coalescing (??) devuelve el operando derecho solo si el izquierdo es null o undefined — a diferencia de ||, NO trata 0, "" o false como "vacíos": count ?? 10 respeta count = 0, mientras count || 10 lo pisaría con 10.',
+            'Optional chaining (?.) short-circuits and returns undefined if any link in the chain is null/undefined, avoiding the classic Cannot read property of undefined: user?.address?.street, arr?.[0], fn?.(). Nullish coalescing (??) returns the right-hand operand only when the left is null or undefined — unlike ||, it does NOT treat 0, "" or false as "empty": count ?? 10 respects count = 0, while count || 10 would overwrite it with 10.'
           ),
         },
       ],
@@ -1101,29 +1157,57 @@ const InterviewSection = ({ tx }) => {
         {
           q: tx('¿Cómo funcionan los conditional types de TS?', 'Explain TypeScript conditional types'),
           a: tx(
-            'T extends U ? X : Y — evaluados en tiempo de compilación. Con infer se pueden extraer tipos internos. Son distributivos sobre unions. Forman la base de ReturnType, Parameters, Awaited y otras utility types.',
-            'T extends U ? X : Y — evaluated at compile time. With infer you can extract inner types. They\'re distributive over unions. They form the basis of ReturnType, Parameters, Awaited and other utility types.'
+            'T extends U ? X : Y — evaluados en tiempo de compilación, permiten ramificar un tipo según si T es asignable a U. Con infer se pueden extraer tipos internos dentro de la rama true (ej. Unwrap<Promise<T>>). Son distributivos automáticamente sobre union types: si T es A | B, el conditional se aplica a cada miembro por separado y luego se unen los resultados (a menos que envuelvas T en [T] para desactivar la distribución). Forman la base de ReturnType, Parameters, Awaited, Exclude y Extract.',
+            'T extends U ? X : Y — evaluated at compile time, they branch a type based on whether T is assignable to U. With infer you can extract inner types within the true branch (e.g. Unwrap<Promise<T>>). They automatically distribute over union types: if T is A | B, the conditional applies to each member separately and the results are unioned back (unless you wrap T in [T] to opt out of distribution). They form the basis of ReturnType, Parameters, Awaited, Exclude and Extract.'
           ),
         },
         {
           q: tx('¿Cómo optimiza V8 el JavaScript?', 'How does V8 optimize JavaScript?'),
           a: tx(
-            'V8 usa JIT compilation: primero interpreta (Ignition), luego optimiza código "hot" con Turbofan. Usa hidden classes para objetos con la misma forma. Inline caches aceleran property access. Deoptimiza si los tipos cambian (evitar polimorfismo).',
-            'V8 uses JIT compilation: first interprets (Ignition), then optimizes "hot" code with Turbofan. Uses hidden classes for objects with the same shape. Inline caches speed up property access. Deoptimizes if types change (avoid polymorphism).'
+            'V8 usa JIT compilation: primero interpreta bytecode con Ignition, luego perfila el código en ejecución y compila con Turbofan las funciones "hot" a máquina optimizada. Usa hidden classes: objetos creados con la misma forma (mismas properties, mismo orden de asignación) comparten shape, lo que permite acceso a properties en tiempo O(1) vía inline caches en vez de lookup dinámico. Si una función recibe tipos distintos en llamadas sucesivas (polimorfismo), V8 deoptimiza y vuelve a interpretar — por eso mantener shapes consistentes y evitar cambiar el tipo de una variable importa para performance.',
+            'V8 uses JIT compilation: it first interprets bytecode with Ignition, then profiles running code and compiles "hot" functions to optimized machine code with Turbofan. It uses hidden classes: objects created with the same shape (same properties, same assignment order) share a class, enabling O(1) property access via inline caches instead of dynamic lookup. If a function receives different types across successive calls (polymorphism), V8 deoptimizes and falls back to interpreting — which is why keeping shapes consistent and avoiding type-changing variables matters for performance.'
           ),
         },
         {
           q: tx('Microtask vs macrotask queue en detalle', 'Microtask vs macrotask queue in detail'),
           a: tx(
-            'Tras cada macrotask, el motor vacía COMPLETAMENTE la microtask queue (incluyendo las microtasks encoladas durante el vaciado). Esto puede starvar las macrotasks. Node.js añade setImmediate (check phase) y process.nextTick (mayor prioridad que Promise microtasks).',
-            'After each macrotask, the engine fully drains the microtask queue (including microtasks enqueued during draining). This can starve macrotasks. Node.js adds setImmediate (check phase) and process.nextTick (higher priority than Promise microtasks).'
+            'Tras cada macrotask, el motor vacía COMPLETAMENTE la microtask queue (incluyendo las microtasks encoladas durante el propio vaciado), antes de renderizar o tomar la siguiente macrotask. Esto puede starvar macrotasks e incluso bloquear el render si se encolan microtasks infinitamente. Node.js añade dos colas extra con prioridades propias: process.nextTick (mayor prioridad que Promise microtasks, se vacía primero) y setImmediate (macrotask de la check phase, corre después de I/O callbacks en cada vuelta del loop).',
+            'After each macrotask, the engine fully drains the microtask queue (including microtasks enqueued during the draining itself), before rendering or taking the next macrotask. This can starve macrotasks and even block rendering if microtasks are enqueued infinitely. Node.js adds two extra queues with their own priorities: process.nextTick (higher priority than Promise microtasks, drained first) and setImmediate (a check-phase macrotask, runs after I/O callbacks on each loop turn).'
           ),
         },
         {
           q: tx('Tree shaking: ¿qué es y cómo habilitarlo?', 'Tree shaking: what is it and how to enable it?'),
           a: tx(
-            'Eliminación de código no utilizado (dead code) en tiempo de build. Requiere: ES modules (import/export estático), bundler que lo soporte (Rollup/Webpack/Vite), "sideEffects": false en package.json, y evitar re-exportar todo desde barrel files.',
-            'Dead code elimination at build time. Requires: ES modules (static import/export), a supporting bundler (Rollup/Webpack/Vite), "sideEffects": false in package.json, and avoiding re-exporting everything from barrel files.'
+            'Eliminación de código no utilizado (dead code) en tiempo de build, basada en el análisis estático del grafo de dependencias de ES modules. Requiere: import/export estático (no require ni import dinámico condicional), un bundler que lo soporte (Rollup/Webpack/Vite/esbuild), declarar "sideEffects": false en package.json para que el bundler sepa que puede eliminar módulos sin usar con seguridad, y evitar re-exportar todo desde barrel files (index.js con export * suele arrastrar código innecesario porque rompe el análisis estático).',
+            'Dead code elimination at build time, based on static analysis of the ES modules dependency graph. Requires: static import/export (no require or conditional dynamic import), a bundler that supports it (Rollup/Webpack/Vite/esbuild), declaring "sideEffects": false in package.json so the bundler knows it can safely drop unused modules, and avoiding re-exporting everything from barrel files (an index.js with export * usually drags in unnecessary code because it breaks static analysis).'
+          ),
+        },
+        {
+          q: tx('¿Qué son Proxy y Reflect?', 'What are Proxy and Reflect?'),
+          a: tx(
+            'Proxy envuelve un objeto y permite interceptar operaciones fundamentales (get, set, has, deleteProperty, apply...) mediante "traps", habilitando reactividad (así funciona Vue 3), validación automática, objetos observables o APIs con acceso dinámico tipo ORM. Reflect es el complemento: expone las mismas operaciones fundamentales como métodos estáticos (Reflect.get, Reflect.set) con comportamiento por defecto consistente — dentro de un trap de Proxy se usa Reflect.metodo(...args) para delegar al comportamiento original sin reimplementarlo a mano.',
+            'Proxy wraps an object and lets you intercept fundamental operations (get, set, has, deleteProperty, apply...) via "traps", enabling reactivity (this is how Vue 3 works), automatic validation, observable objects, or ORM-style dynamic access APIs. Reflect is the counterpart: it exposes those same fundamental operations as static methods (Reflect.get, Reflect.set) with consistent default behavior — inside a Proxy trap you call Reflect.method(...args) to delegate to the original behavior instead of reimplementing it by hand.'
+          ),
+        },
+        {
+          q: tx('¿Cómo funciona el garbage collector en V8?', 'How does the garbage collector work in V8?'),
+          a: tx(
+            'V8 usa un GC generacional: el heap se divide en young generation (objetos nuevos, se recolecta frecuentemente con el algoritmo Scavenge, rápido y barato) y old generation (objetos que sobreviven varias rondas, se recolecta con Mark-Sweep-Compact, más lento pero menos frecuente). El algoritmo base es mark-and-sweep: desde raíces alcanzables (globals, stack) marca todo objeto vivo, y lo no marcado se libera. Memory leaks comunes en JS: listeners no removidos, closures que retienen referencias grandes innecesariamente, timers no limpiados, y variables globales accidentales.',
+            'V8 uses a generational GC: the heap splits into young generation (new objects, collected frequently via the Scavenge algorithm, fast and cheap) and old generation (objects that survive several rounds, collected via Mark-Sweep-Compact, slower but less frequent). The underlying algorithm is mark-and-sweep: starting from reachable roots (globals, stack) it marks every live object, and anything unmarked gets freed. Common JS memory leaks: listeners never removed, closures unnecessarily retaining large references, uncleared timers, and accidental global variables.'
+          ),
+        },
+        {
+          q: tx('Structural typing en TS: ¿cómo se compara con nominal typing?', 'Structural typing in TS: how does it compare to nominal typing?'),
+          a: tx(
+            'TS usa structural typing (duck typing): dos tipos son compatibles si tienen la misma forma (shape), sin importar su nombre o jerarquía declarada — si camina como pato y grazna como pato, es un pato. Esto contrasta con nominal typing (Java, C#), donde la compatibilidad depende del nombre/herencia explícita de la clase. Consecuencia práctica: un objeto literal que cumple una interface es asignable aunque nunca la haya implementado explícitamente. Para simular nominal typing en TS se usa "branding" con una property privada única (tipo { __brand: "UserId" }).',
+            'TS uses structural typing (duck typing): two types are compatible if they have the same shape, regardless of their declared name or hierarchy — if it walks like a duck and quacks like a duck, it\'s a duck. This contrasts with nominal typing (Java, C#), where compatibility depends on the class\'s explicit name/inheritance. Practical consequence: an object literal satisfying an interface is assignable even if it never explicitly implemented it. To simulate nominal typing in TS, developers use "branding" with a unique private property (like { __brand: "UserId" }).'
+          ),
+        },
+        {
+          q: tx('Varianza en TS: covarianza y contravarianza en genéricos', 'Variance in TS: covariance and contravariance in generics'),
+          a: tx(
+            'Covarianza: si Dog extends Animal, entonces Dog[] se puede usar donde se espera Animal[] — TS permite esto por posiciones de "salida" (return types, propiedades de lectura). Contravarianza: para posiciones de "entrada" (parámetros de función), lo seguro es lo inverso — un handler que acepta Animal es asignable donde se espera uno que acepte Dog, porque puede manejar cualquier Dog. TS relaja esto por defecto con "bivariant method checking" para parámetros de métodos (no de function types standalone) por compatibilidad práctica, lo cual es técnicamente unsound pero evita falsos positivos comunes en APIs orientadas a objetos.',
+            'Covariance: if Dog extends Animal, then Dog[] can be used wherever Animal[] is expected — TS allows this for "output" positions (return types, readable properties). Contravariance: for "input" positions (function parameters), the safe direction is the reverse — a handler accepting Animal is assignable where one accepting Dog is expected, because it can handle any Dog. TS relaxes this by default via "bivariant method checking" for method parameters (not standalone function types) for practical compatibility, which is technically unsound but avoids common false positives in object-oriented APIs.'
           ),
         },
       ],

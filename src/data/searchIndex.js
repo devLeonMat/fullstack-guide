@@ -4,6 +4,7 @@ export function buildSearchIndex(language) {
   const tabJsTs = t('common', language).tabJsTs;
   const tabCloud = t('common', language).tabCloud;
   const tabContainers = t('common', language).tabContainers;
+  const tabHTMLCSS = t('common', language).tabHTMLCSS;
   const isEs = language === 'es';
 
   return [
@@ -34,6 +35,14 @@ export function buildSearchIndex(language) {
     { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Arquitecturas' : 'Architectures', title: 'Microservices', preview: isEs ? 'Arquitectura distribuida donde cada servicio es independiente y auto-contenido.' : 'Distributed architecture where each service is independent and self-contained.' },
     { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Arquitecturas' : 'Architectures', title: 'Event-Driven Architecture', preview: isEs ? 'Los componentes se comunican a través de eventos asíncronos.' : 'Components communicate via asynchronous events.' },
     { tab: 'architecture', tabName: 'Architecture', tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Arquitecturas' : 'Architectures', title: 'Hexagonal Architecture', preview: isEs ? 'Aísla la lógica de negocio de dependencias externas mediante puertos y adaptadores.' : 'Isolates business logic from external dependencies via ports and adapters.' },
+
+    // HTML & CSS
+    { tab: 'htmlcss', tabName: tabHTMLCSS, tabColor: 'bg-lime-500/20 text-lime-400', section: 'HTML', title: isEs ? 'Semántica & Estructura' : 'Semantics & Structure', preview: isEs ? 'header, nav, main, article, section, aside, footer. Block vs inline vs inline-block.' : 'header, nav, main, article, section, aside, footer. Block vs inline vs inline-block.' },
+    { tab: 'htmlcss', tabName: tabHTMLCSS, tabColor: 'bg-lime-500/20 text-lime-400', section: 'CSS', title: isEs ? 'Box Model & Especificidad' : 'Box Model & Specificity', preview: isEs ? 'content/padding/border/margin, box-sizing, orden de especificidad inline > ID > clase > elemento.' : 'content/padding/border/margin, box-sizing, specificity order inline > ID > class > element.' },
+    { tab: 'htmlcss', tabName: tabHTMLCSS, tabColor: 'bg-lime-500/20 text-lime-400', section: 'Layout', title: 'Flexbox & Grid', preview: isEs ? 'Flexbox para 1 dimensión, Grid para 2. justify-content, align-items, fr, grid-template-areas.' : '1D layouts with Flexbox, 2D with Grid. justify-content, align-items, fr, grid-template-areas.' },
+    { tab: 'htmlcss', tabName: tabHTMLCSS, tabColor: 'bg-lime-500/20 text-lime-400', section: 'Responsive', title: isEs ? 'Media Queries & BEM' : 'Media Queries & BEM', preview: isEs ? 'Mobile-first, unidades rem/em/vw, pseudo-clases/elementos, convención BEM.' : 'Mobile-first, rem/em/vw units, pseudo-classes/elements, BEM convention.' },
+    { tab: 'htmlcss', tabName: tabHTMLCSS, tabColor: 'bg-lime-500/20 text-lime-400', section: isEs ? 'Avanzado' : 'Advanced', title: isEs ? 'Variables, Animaciones & Cascade Layers' : 'Variables, Animations & Cascade Layers', preview: isEs ? 'Custom properties, transiciones/@keyframes, @layer, stacking context y z-index.' : 'Custom properties, transitions/@keyframes, @layer, stacking context and z-index.' },
+    { tab: 'htmlcss', tabName: tabHTMLCSS, tabColor: 'bg-lime-500/20 text-lime-400', section: isEs ? 'Moderno' : 'Modern', title: 'Container Queries & :has()', preview: isEs ? 'Container queries, selector :has(), nesting nativo y critical rendering path.' : 'Container queries, :has() selector, native nesting and critical rendering path.' },
 
     // JavaScript/TypeScript
     { tab: 'jsts', tabName: tabJsTs, tabColor: 'bg-yellow-500/20 text-yellow-300', section: 'JavaScript', title: isEs ? 'Scope, Hoisting y Closure' : 'Scope, Hoisting and Closure', preview: isEs ? 'Fundamentos críticos para entrevistas técnicas.' : 'Critical fundamentals for technical interviews.' },

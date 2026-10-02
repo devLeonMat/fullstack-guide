@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit } from 'lucide-react';
-import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin, SiApachekafka } from 'react-icons/si';
+import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin, SiApachekafka, SiHtml5 } from 'react-icons/si';
 import SearchBar from './components/SearchBar';
 import LanguageToggle from './components/LanguageToggle';
 import { useLanguage } from './contexts/LanguageContext';
@@ -15,6 +15,7 @@ const Solid = lazy(() => import('./components/Solid'));
 const Patterns = lazy(() => import('./components/Patterns'));
 const Architecture = lazy(() => import('./components/Architecture'));
 const JSTSPro = lazy(() => import('./components/JSTSPro'));
+const HTMLCSSPro = lazy(() => import('./components/HTMLCSSPro'));
 const JavaPro = lazy(() => import('./components/JavaPro'));
 const SpringPro = lazy(() => import('./components/SpringPro'));
 const ReactPro = lazy(() => import('./components/ReactPro'));
@@ -83,6 +84,7 @@ function App() {
     { id: 'graphql', category: 'backend', name: 'GraphQL Pro', icon: SiGraphql, color: 'text-pink-400', bgColor: 'bg-pink-500/10' },
     { id: 'apidesign', category: 'backend', name: common.tabAPIDesign, icon: Globe, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
     { id: 'kafka', category: 'backend', name: common.tabKafka, icon: SiApachekafka, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
+    { id: 'htmlcss', category: 'frontend', name: common.tabHTMLCSS, icon: SiHtml5, color: 'text-lime-400', bgColor: 'bg-lime-500/10' },
     { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
     { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
     { id: 'cloud', category: 'clouddevops', name: common.tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
@@ -166,6 +168,7 @@ function App() {
       case 'patterns': return <Patterns />;
       case 'architecture': return <Architecture />;
       case 'jsts': return <JSTSPro />;
+      case 'htmlcss': return <HTMLCSSPro />;
       case 'cloud': return <CloudBasics />;
       case 'containers': return <ContainersPro />;
       case 'node': return <NodePro />;

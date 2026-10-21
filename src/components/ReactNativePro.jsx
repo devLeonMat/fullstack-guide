@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Cpu, Palette, List, Compass, Plug, Rocket, MessageCircleQuestion, ChevronDown } from 'lucide-react';
+import { Smartphone, Cpu, Palette, List, Compass, Plug, Rocket, MessageCircleQuestion, ChevronDown, FileCode2 } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -245,6 +245,7 @@ function ReactNativePro() {
 
   const sections = [
     { id: 'fundamentals', title: tx('Fundamentos', 'Fundamentals'), subtitle: tx('Core components, Expo', 'Core components, Expo'), icon: Smartphone },
+    { id: 'typescript', title: 'TypeScript', subtitle: tx('Props, navegación, listas', 'Props, navigation, lists'), icon: FileCode2 },
     { id: 'architecture', title: tx('Arquitectura', 'Architecture'), subtitle: 'JSI, Fabric, TurboModules', icon: Cpu },
     { id: 'styling', title: tx('Estilos & Layout', 'Styling & Layout'), subtitle: 'StyleSheet, Flexbox, Platform', icon: Palette },
     { id: 'performance', title: tx('Listas & Performance', 'Lists & Performance'), subtitle: 'FlatList, Reanimated', icon: List },
@@ -356,6 +357,202 @@ npx expo run:android
 
 # Alternativa sin framework (bare)
 npx @react-native-community/cli@latest init MyApp`} />
+    </div>
+  );
+
+  // ─── Section: TypeScript ────────────────────────────────────────────────────
+
+  const renderTypeScript = () => (
+    <div className="space-y-6">
+      <SectionHeader
+        title={tx('TypeScript en React Native', 'TypeScript in React Native')}
+        subtitle={tx(
+          'TypeScript es el default en proyectos nuevos de RN (desde 0.71) y de Expo. Hoy es lo esperado en cualquier entrevista.',
+          'TypeScript is the default for new RN (since 0.71) and Expo projects. It is what any interview expects today.'
+        )}
+      />
+
+      <Cards cards={[
+        {
+          title: tx('Setup', 'Setup'),
+          points: [
+            tx('tsconfig extiende "expo/tsconfig.base" o "@react-native/typescript-config"', 'tsconfig extends "expo/tsconfig.base" or "@react-native/typescript-config"'),
+            tx('Activa "strict": true desde el día uno', 'Enable "strict": true from day one'),
+            tx('Babel/Metro solo BORRA los tipos: no verifica nada al compilar', 'Babel/Metro only STRIPS types: nothing is checked at build time'),
+            tx('Por eso: tsc --noEmit en CI y en pre-commit', 'Hence: tsc --noEmit in CI and pre-commit'),
+          ],
+        },
+        {
+          title: tx('Props & componentes', 'Props & components'),
+          points: [
+            tx('type Props = { ... } y tipar el parámetro de la función', 'type Props = { ... } and type the function parameter'),
+            tx('children: React.ReactNode', 'children: React.ReactNode'),
+            tx('Extiende props nativas: PressableProps, TextInputProps, ComponentProps<typeof X>', 'Extend native props: PressableProps, TextInputProps, ComponentProps<typeof X>'),
+            tx('Uniones discriminadas para variantes: { variant: "primary" } | { variant: "link"; href: string }', 'Discriminated unions for variants: { variant: "primary" } | { variant: "link"; href: string }'),
+          ],
+        },
+        {
+          title: tx('Navegación tipada', 'Typed navigation'),
+          points: [
+            tx('RootStackParamList: mapa pantalla → params (undefined si no tiene)', 'RootStackParamList: screen → params map (undefined if none)'),
+            'NativeStackScreenProps<RootStackParamList, "Details">',
+            tx('declare global ReactNavigation.RootParamList → useNavigation() tipado en toda la app', 'declare global ReactNavigation.RootParamList → typed useNavigation() app-wide'),
+            tx('Expo Router: typedRoutes + useLocalSearchParams<{ id: string }>()', 'Expo Router: typedRoutes + useLocalSearchParams<{ id: string }>()'),
+          ],
+        },
+        {
+          title: tx('Datos & runtime', 'Data & runtime'),
+          points: [
+            tx('TS no valida en runtime: la API puede devolver cualquier cosa', 'TS does not validate at runtime: the API can return anything'),
+            tx('Zod/Valibot para validar respuestas y derivar el tipo (z.infer)', 'Zod/Valibot to validate responses and derive the type (z.infer)'),
+            tx('TanStack Query infiere el tipo desde queryFn', 'TanStack Query infers the type from queryFn'),
+            tx('Zustand: create<State>()(...) — la forma "curried" es necesaria para inferir bien', 'Zustand: create<State>()(...) — the curried form is needed for correct inference'),
+          ],
+        },
+      ]} />
+
+      <CompareTable
+        headers={[tx('Tipo', 'Type'), tx('Para qué', 'Used for')]}
+        rows={[
+          ['ViewStyle / TextStyle / ImageStyle', tx('Estilos de cada tipo de componente', 'Styles for each component kind')],
+          ['StyleProp<ViewStyle>', tx('Prop "style" que acepta objeto, array, false o undefined', '"style" prop accepting object, array, false or undefined')],
+          ['PressableProps, TextInputProps', tx('Reenviar props de un componente nativo', 'Forward props of a native component')],
+          ['ComponentProps<typeof X>', tx('Extraer las props de cualquier componente', 'Extract the props of any component')],
+          ['ListRenderItem<T>', tx('Tipar renderItem de FlatList', 'Type FlatList renderItem')],
+          ['useRef<TextInput>(null)', tx('Refs para focus(), scrollToIndex(), etc.', 'Refs for focus(), scrollToIndex(), etc.')],
+          ['NativeStackScreenProps<List, "Screen">', tx('Props de navigation y route de una pantalla', 'navigation and route props for a screen')],
+          ['GestureResponderEvent', tx('Evento de onPress', 'onPress event')],
+        ]}
+      />
+
+      <CodeBlock language="json" code={`// tsconfig.json (Expo)
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}
+
+// package.json → "typecheck": "tsc --noEmit"   (Metro NO verifica tipos)`} />
+
+      <CodeBlock language="tsx" code={`import { Pressable, Text, StyleSheet, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+
+// Extiende las props nativas de Pressable y agrega las propias
+type ButtonProps = Omit<PressableProps, 'style'> & {
+  title: string;
+  variant?: 'primary' | 'secondary';
+  style?: StyleProp<ViewStyle>;     // acepta objeto, array o condicionales
+};
+
+export function Button({ title, variant = 'primary', style, ...rest }: ButtonProps) {
+  return (
+    <Pressable
+      {...rest}                     // onPress, disabled, accessibilityLabel... tipados
+      style={({ pressed }) => [styles.base, styles[variant], pressed && styles.pressed, style]}
+    >
+      <Text style={styles.text}>{title}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  base: { padding: 12, borderRadius: 8, alignItems: 'center' },
+  primary: { backgroundColor: '#0ea5e9' },
+  secondary: { backgroundColor: '#334155' },
+  pressed: { opacity: 0.7 },
+  text: { color: '#fff', fontWeight: '600' },
+});
+
+// <Button title="OK" variant="danger" />  ❌ error de compilación`} />
+
+      <CodeBlock language="tsx" code={`// React Navigation tipado
+import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { Button } from './Button';
+
+export type RootStackParamList = {
+  Home: undefined;                       // sin params
+  Details: { id: string };
+  Checkout: { cartId: string; coupon?: string };
+};
+
+// useNavigation() queda tipado en toda la app sin genéricos
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}
+
+const Stack = createNativeStackNavigator<RootStackParamList>();
+
+type DetailsProps = NativeStackScreenProps<RootStackParamList, 'Details'>;
+
+function DetailsScreen({ route, navigation }: DetailsProps) {
+  const { id } = route.params;           // id: string
+  return <Button title="Pagar" onPress={() => navigation.navigate('Checkout', { cartId: id })} />;
+}
+
+function HomeScreen() {
+  const navigation = useNavigation();
+  // navigation.navigate('Details');            ❌ falta { id }
+  // navigation.navigate('Detail', { id: '1' }); ❌ la pantalla no existe
+  return <Button title="Ver" onPress={() => navigation.navigate('Details', { id: '42' })} />;
+}
+
+// ── Expo Router: app.json → "experiments": { "typedRoutes": true }
+// const { id } = useLocalSearchParams<{ id: string }>();
+// router.push('/product/42');   // la ruta se valida contra la carpeta app/`} />
+
+      <CodeBlock language="tsx" code={`import { useRef } from 'react';
+import { FlatList, TextInput, Text, type ListRenderItem } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import { create } from 'zustand';
+import { z } from 'zod';
+
+// 1) Un solo origen de verdad: schema → tipo + validación en runtime
+const ProductSchema = z.object({ id: z.string(), name: z.string(), price: z.number() });
+type Product = z.infer<typeof ProductSchema>;
+
+async function fetchProducts(): Promise<Product[]> {
+  const res = await fetch('https://api.example.com/products');
+  return z.array(ProductSchema).parse(await res.json()); // falla si la API cambia
+}
+
+// 2) Zustand tipado (fíjate en el doble paréntesis)
+type CartState = {
+  items: Product[];
+  add: (p: Product) => void;
+};
+export const useCart = create<CartState>()(set => ({
+  items: [],
+  add: p => set(s => ({ items: [...s.items, p] })),
+}));
+
+// 3) FlatList genérica + refs tipadas
+const renderItem: ListRenderItem<Product> = ({ item }) => <Text>{item.name}</Text>;
+
+export function ProductList() {
+  const { data = [] } = useQuery({ queryKey: ['products'], queryFn: fetchProducts }); // data: Product[]
+  const listRef = useRef<FlatList<Product>>(null);
+  const searchRef = useRef<TextInput>(null);
+
+  return (
+    <>
+      <TextInput ref={searchRef} onSubmitEditing={() => listRef.current?.scrollToOffset({ offset: 0 })} />
+      <FlatList ref={listRef} data={data} renderItem={renderItem} keyExtractor={p => p.id} />
+    </>
+  );
+}`} />
+
+      <Callout title={tx('Pregunta típica:', 'Typical question:')}>
+        {tx(
+          '"Si tengo TypeScript, ¿por qué falló en producción con un undefined?" — porque los tipos desaparecen al compilar y la API devolvió algo distinto a lo declarado. Valida los bordes del sistema (red, storage, deep links) con Zod y usa los tipos derivados del schema.',
+          '"If I have TypeScript, why did it crash in production with undefined?" — because types are erased at build time and the API returned something other than declared. Validate the system boundaries (network, storage, deep links) with Zod and use types derived from the schema.'
+        )}
+      </Callout>
     </div>
   );
 
@@ -958,6 +1155,20 @@ appId: com.example.myapp
       ),
     },
     {
+      q: tx('¿TypeScript verifica los tipos cuando Metro compila la app?', 'Does TypeScript check types when Metro builds the app?'),
+      a: tx(
+        'No. Metro usa Babel, que solo elimina las anotaciones de tipo; la app compila aunque haya errores de tipos. Por eso se corre tsc --noEmit en CI y en pre-commit. Y como los tipos no existen en runtime, los datos externos (API, storage, deep links) se validan con algo como Zod.',
+        'No. Metro uses Babel, which only strips type annotations; the app builds even with type errors. That is why tsc --noEmit runs in CI and pre-commit. And since types do not exist at runtime, external data (API, storage, deep links) is validated with something like Zod.'
+      ),
+    },
+    {
+      q: tx('¿Cómo tipas la navegación?', 'How do you type navigation?'),
+      a: tx(
+        'Con un ParamList que mapea cada pantalla a sus params (undefined si no tiene), pasado a createNativeStackNavigator<RootStackParamList>(). Las pantallas usan NativeStackScreenProps<RootStackParamList, "Details">, y declarando global ReactNavigation.RootParamList, useNavigation() queda tipado en toda la app. En Expo Router se activa typedRoutes y se tipan los params con useLocalSearchParams<{ id: string }>().',
+        'With a ParamList mapping each screen to its params (undefined if none), passed to createNativeStackNavigator<RootStackParamList>(). Screens use NativeStackScreenProps<RootStackParamList, "Details">, and declaring the global ReactNavigation.RootParamList makes useNavigation() typed app-wide. In Expo Router you enable typedRoutes and type params with useLocalSearchParams<{ id: string }>().'
+      ),
+    },
+    {
       q: tx('¿Qué problema resuelve la New Architecture?', 'What problem does the New Architecture solve?'),
       a: tx(
         'El bridge asíncrono serializaba todo a JSON, lo que añadía latencia, impedía llamadas síncronas y cargaba todos los módulos al inicio. JSI permite que JS tenga referencias directas a objetos C++; TurboModules carga módulos bajo demanda; Fabric habilita el render concurrente de React y layout síncrono; Codegen aporta type safety entre JS y nativo.',
@@ -1046,6 +1257,7 @@ appId: com.example.myapp
   const renderContent = () => {
     switch (active) {
       case 'fundamentals': return renderFundamentals();
+      case 'typescript': return renderTypeScript();
       case 'architecture': return renderArchitecture();
       case 'styling': return renderStyling();
       case 'performance': return renderPerformance();

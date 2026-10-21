@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Smartphone, Cpu, Palette, List, Compass, Plug, Rocket, MessageCircleQuestion, ChevronDown, FileCode2 } from 'lucide-react';
+import { Smartphone, Cpu, Palette, List, Compass, Plug, Rocket, MessageCircleQuestion, ChevronDown, FileCode2, Layers } from 'lucide-react';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -37,6 +37,16 @@ const Callout = ({ title, children }) => (
       <span className="font-bold text-cyan-300">{title} </span>
       {children}
     </p>
+  </div>
+);
+
+const SubHeader = ({ id, n, title, subtitle }) => (
+  <div id={id} className="pt-2 border-t border-slate-800">
+    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+      <span className="w-6 h-6 rounded-md bg-cyan-500/20 text-cyan-300 text-xs flex items-center justify-center flex-shrink-0">{n}</span>
+      {title}
+    </h3>
+    {subtitle && <p className="text-slate-400 text-xs mt-1">{subtitle}</p>}
   </div>
 );
 
@@ -206,6 +216,208 @@ const VirtualizationDiagram = ({ tx }) => {
   );
 };
 
+// ─── Pattern Explorer (MVC / MVP / MVVM / MVI / VIPER) ───────────────────────────
+
+const PatternExplorer = ({ tx }) => {
+  const patterns = [
+    {
+      id: 'mvc',
+      name: 'MVC',
+      nodes: ['View', 'Controller', 'Model'],
+      arrows: [tx('evento', 'event'), tx('actualiza', 'updates')],
+      loop: tx('El Model cambia → el Controller actualiza la View a mano', 'Model changes → the Controller updates the View manually'),
+      summary: tx('El Controller recibe eventos de la View, cambia el Model y vuelve a pintar la View.', 'The Controller receives View events, changes the Model and repaints the View.'),
+      pros: [tx('Simple, poco código', 'Simple, little code'), tx('Fácil de entender', 'Easy to understand')],
+      cons: [tx('"Massive View Controller": todo termina en el Controller', '"Massive View Controller": everything ends up in the Controller'), tx('Difícil de testear (acoplado a UIKit)', 'Hard to test (coupled to UIKit)')],
+      usedIn: tx('iOS UIKit clásico', 'Classic iOS UIKit'),
+    },
+    {
+      id: 'mvp',
+      name: 'MVP',
+      nodes: [tx('View (pasiva)', 'View (passive)'), 'Presenter', 'Model'],
+      arrows: ['onClick()', tx('pide datos', 'requests data')],
+      loop: tx('El Presenter llama view.showItems(): la View solo implementa una interfaz', 'The Presenter calls view.showItems(): the View only implements an interface'),
+      summary: tx('La View es "tonta" y delega todo al Presenter, que le dice exactamente qué mostrar.', 'The View is "dumb" and delegates everything to the Presenter, which tells it exactly what to show.'),
+      pros: [tx('Presenter testeable con una View mock', 'Presenter testable with a mock View'), tx('Separación clara UI / lógica', 'Clear UI / logic separation')],
+      cons: [tx('Mucho boilerplate (interfaces)', 'Lots of boilerplate (interfaces)'), tx('Presenter y View acoplados 1 a 1', 'Presenter and View coupled 1-to-1')],
+      usedIn: tx('Android legacy (antes de Jetpack)', 'Legacy Android (pre-Jetpack)'),
+    },
+    {
+      id: 'mvvm',
+      name: 'MVVM',
+      nodes: ['View', 'ViewModel', 'Model'],
+      arrows: [tx('comandos', 'commands'), tx('datos', 'data')],
+      loop: tx('La View OBSERVA el estado del ViewModel; el ViewModel no conoce a la View', 'The View OBSERVES the ViewModel state; the ViewModel does not know the View'),
+      summary: tx('El ViewModel expone estado y acciones; la View se suscribe y se re-renderiza sola.', 'The ViewModel exposes state and actions; the View subscribes and re-renders by itself.'),
+      pros: [tx('ViewModel sin referencias a la UI → muy testeable', 'ViewModel has no UI references → very testable'), tx('Encaja natural con hooks en React', 'Fits hooks in React naturally')],
+      cons: [tx('Varios estados sueltos pueden quedar inconsistentes', 'Several loose states can become inconsistent'), tx('Riesgo de ViewModels gigantes', 'Risk of giant ViewModels')],
+      usedIn: tx('Android Jetpack, SwiftUI, React Native (custom hooks)', 'Android Jetpack, SwiftUI, React Native (custom hooks)'),
+    },
+    {
+      id: 'mvi',
+      name: 'MVI',
+      nodes: ['View', 'Intent', 'Reducer', 'State'],
+      arrows: ['dispatch', tx('(estado, intent)', '(state, intent)'), tx('nuevo estado', 'new state')],
+      loop: tx('Un único State inmutable vuelve a la View: flujo unidireccional', 'A single immutable State flows back to the View: unidirectional flow'),
+      summary: tx('La View emite intenciones; un reducer puro calcula el nuevo estado completo.', 'The View emits intents; a pure reducer computes the whole new state.'),
+      pros: [tx('Una sola fuente de verdad, estados imposibles evitados', 'Single source of truth, impossible states avoided'), tx('Reducer = función pura → test trivial, time-travel debugging', 'Reducer = pure function → trivial tests, time-travel debugging')],
+      cons: [tx('Más ceremonia para pantallas simples', 'More ceremony for simple screens'), tx('Cada cambio crea un objeto de estado nuevo', 'Every change creates a new state object')],
+      usedIn: tx('Jetpack Compose, Redux / useReducer, TCA en iOS', 'Jetpack Compose, Redux / useReducer, TCA on iOS'),
+    },
+    {
+      id: 'viper',
+      name: 'VIPER',
+      nodes: ['View', 'Presenter', 'Interactor', 'Entity'],
+      arrows: [tx('evento', 'event'), tx('caso de uso', 'use case'), tx('datos', 'data')],
+      loop: tx('+ Router para la navegación: 5 piezas por pantalla', '+ Router for navigation: 5 pieces per screen'),
+      summary: tx('Divide cada pantalla en View, Interactor (negocio), Presenter, Entity y Router.', 'Splits each screen into View, Interactor (business), Presenter, Entity and Router.'),
+      pros: [tx('Responsabilidades muy separadas', 'Very separated responsibilities'), tx('Escala en equipos grandes', 'Scales in large teams')],
+      cons: [tx('Muchísimos archivos por pantalla', 'Lots of files per screen'), tx('Overkill para la mayoría de apps', 'Overkill for most apps')],
+      usedIn: tx('Apps iOS grandes (UIKit)', 'Large iOS apps (UIKit)'),
+    },
+  ];
+
+  const [activeId, setActiveId] = useState('mvvm');
+  const [step, setStep] = useState(0);
+  const p = patterns.find(x => x.id === activeId);
+
+  useEffect(() => {
+    const id = setInterval(() => setStep(s => (s + 1) % p.nodes.length), 1100);
+    return () => clearInterval(id);
+  }, [p.nodes.length]);
+
+  return (
+    <div className="bg-slate-950/40 border border-cyan-500/20 rounded-xl p-4 space-y-4">
+      <div className="flex flex-wrap justify-center gap-2">
+        {patterns.map(x => (
+          <button
+            key={x.id}
+            onClick={() => { setActiveId(x.id); setStep(0); }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all ${
+              activeId === x.id
+                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                : 'bg-slate-900/50 border-slate-700 text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            {x.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-stretch gap-2">
+        {p.nodes.map((node, i) => (
+          <div key={`${p.id}-${i}`} className="flex flex-col sm:flex-row items-center gap-2 sm:flex-1">
+            <motion.div
+              animate={{
+                boxShadow: step === i ? '0 0 18px rgba(34,211,238,0.45)' : '0 0 0px transparent',
+                opacity: step === i ? 1 : 0.55,
+              }}
+              transition={{ duration: 0.3 }}
+              className="w-full flex-1 border border-cyan-500/40 bg-cyan-500/10 rounded-xl px-3 py-3 text-center font-bold text-sm text-cyan-300"
+            >
+              {node}
+            </motion.div>
+            {i < p.nodes.length - 1 && (
+              <div className="flex flex-col items-center text-[10px] text-slate-500 whitespace-nowrap">
+                <span className="hidden sm:block">{p.arrows[i]}</span>
+                <span className="text-slate-600 rotate-90 sm:rotate-0">→</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <p className="text-center text-xs text-slate-500">↻ {p.loop}</p>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={p.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.2 }}
+          className="space-y-3"
+        >
+          <p className="text-sm text-slate-300 text-center">{p.summary}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <div className="border border-green-500/30 bg-green-500/5 rounded-lg p-3">
+              <div className="font-bold text-green-300 mb-1">{tx('Ventajas', 'Pros')}</div>
+              {p.pros.map((x, i) => <div key={i} className="text-slate-400">+ {x}</div>)}
+            </div>
+            <div className="border border-red-500/30 bg-red-500/5 rounded-lg p-3">
+              <div className="font-bold text-red-300 mb-1">{tx('Desventajas', 'Cons')}</div>
+              {p.cons.map((x, i) => <div key={i} className="text-slate-400">− {x}</div>)}
+            </div>
+            <div className="border border-cyan-500/30 bg-cyan-500/5 rounded-lg p-3">
+              <div className="font-bold text-cyan-300 mb-1">{tx('Dónde se usa', 'Where it is used')}</div>
+              <div className="text-slate-400">{p.usedIn}</div>
+            </div>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── Clean Architecture Layers Diagram ───────────────────────────────────────────
+
+const CleanLayersDiagram = ({ tx }) => {
+  const [active, setActive] = useState(0);
+
+  const layers = [
+    {
+      name: 'Presentation',
+      items: tx('Screens, componentes, ViewModels (hooks)', 'Screens, components, ViewModels (hooks)'),
+      depends: tx('depende de Domain', 'depends on Domain'),
+      color: 'border-blue-500/40 bg-blue-500/10 text-blue-300',
+    },
+    {
+      name: 'Domain',
+      items: tx('Entidades, casos de uso, interfaces de repositorio', 'Entities, use cases, repository interfaces'),
+      depends: tx('no depende de NADA (TS puro, sin React Native)', 'depends on NOTHING (pure TS, no React Native)'),
+      color: 'border-cyan-400/60 bg-cyan-500/15 text-cyan-200',
+    },
+    {
+      name: 'Data',
+      items: tx('API (fetch), storage (MMKV/SQLite), implementación de repositorios', 'API (fetch), storage (MMKV/SQLite), repository implementations'),
+      depends: tx('implementa interfaces de Domain', 'implements Domain interfaces'),
+      color: 'border-violet-500/40 bg-violet-500/10 text-violet-300',
+    },
+  ];
+
+  useEffect(() => {
+    const id = setInterval(() => setActive(a => (a + 1) % layers.length), 1600);
+    return () => clearInterval(id);
+  }, [layers.length]);
+
+  return (
+    <div className="bg-slate-950/40 border border-cyan-500/20 rounded-xl p-4 space-y-2">
+      <p className="text-center text-xs font-semibold text-cyan-400 uppercase tracking-wider">
+        {tx('Regla de dependencia: todo apunta hacia el dominio', 'Dependency rule: everything points to the domain')}
+      </p>
+      {layers.map((layer, i) => (
+        <div key={layer.name}>
+          <motion.div
+            animate={{
+              boxShadow: active === i ? '0 0 18px rgba(34,211,238,0.35)' : '0 0 0px transparent',
+              opacity: active === i ? 1 : 0.6,
+            }}
+            transition={{ duration: 0.35 }}
+            className={`border rounded-xl px-4 py-3 ${layer.color}`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+              <span className="font-bold text-sm">{layer.name}</span>
+              <span className="text-[11px] text-slate-500">{layer.depends}</span>
+            </div>
+            <div className="text-xs text-slate-400 mt-1">{layer.items}</div>
+          </motion.div>
+          {i === 0 && <div className="text-center text-slate-500 text-sm leading-5">↓</div>}
+          {i === 1 && <div className="text-center text-slate-500 text-sm leading-5">↑</div>}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 // ─── Interview Q&A ──────────────────────────────────────────────────────────────
 
 const QAItem = ({ q, a }) => {
@@ -246,7 +458,8 @@ function ReactNativePro() {
   const sections = [
     { id: 'fundamentals', title: tx('Fundamentos', 'Fundamentals'), subtitle: tx('Core components, Expo', 'Core components, Expo'), icon: Smartphone },
     { id: 'typescript', title: 'TypeScript', subtitle: tx('Props, navegación, listas', 'Props, navigation, lists'), icon: FileCode2 },
-    { id: 'architecture', title: tx('Arquitectura', 'Architecture'), subtitle: 'JSI, Fabric, TurboModules', icon: Cpu },
+    { id: 'architecture', title: tx('Arquitectura interna', 'Internal Architecture'), subtitle: 'JSI, Fabric, TurboModules', icon: Cpu },
+    { id: 'apparch', title: tx('Arquitectura de apps', 'App Architecture'), subtitle: 'MVVM, MVI, Clean, offline-first', icon: Layers },
     { id: 'styling', title: tx('Estilos & Layout', 'Styling & Layout'), subtitle: 'StyleSheet, Flexbox, Platform', icon: Palette },
     { id: 'performance', title: tx('Listas & Performance', 'Lists & Performance'), subtitle: 'FlatList, Reanimated', icon: List },
     { id: 'navigation', title: tx('Navegación & Estado', 'Navigation & State'), subtitle: 'React Navigation, Expo Router', icon: Compass },
@@ -624,6 +837,522 @@ export function ProductList() {
   );
 
   // ─── Section: Styling ───────────────────────────────────────────────────────
+
+  // ─── Section: App Architecture ──────────────────────────────────────────────
+
+  // Desktop scrolls the content panel; mobile scrolls the window below the sticky nav.
+  const scrollToAnchor = id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const panel = el.closest('[data-scroll-panel]');
+    if (panel && panel.scrollHeight > panel.clientHeight) {
+      const top = el.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+      panel.scrollBy({ top: top - 8, behavior: 'smooth' });
+    } else {
+      const navBottom = document.querySelector('nav')?.getBoundingClientRect().bottom ?? 0;
+      window.scrollBy({ top: el.getBoundingClientRect().top - navBottom - 12, behavior: 'smooth' });
+    }
+  };
+
+  const archIndex = [
+    { id: 'apparch-patterns', label: tx('Patrones', 'Patterns') },
+    { id: 'apparch-mvvm', label: 'MVVM' },
+    { id: 'apparch-mvi', label: 'MVI' },
+    { id: 'apparch-clean', label: 'Clean Architecture' },
+    { id: 'apparch-folders', label: tx('Carpetas', 'Folders') },
+    { id: 'apparch-offline', label: 'Offline-first' },
+    { id: 'apparch-qa', label: tx('Preguntas', 'Questions') },
+  ];
+
+  const archQA = [
+    {
+      q: tx('¿MVVM o MVI?', 'MVVM or MVI?'),
+      a: tx(
+        'Depende de la complejidad del estado. MVVM (un custom hook que expone estado y acciones) alcanza para la mayoría de pantallas. Si la pantalla tiene muchos estados que dependen entre sí (un checkout, un formulario de varios pasos, un chat), prefiero MVI con un reducer: un único estado inmutable, transiciones explícitas y un reducer puro fácil de testear. En la práctica se combinan: MVVM por fuera, y el ViewModel usa un reducer por dentro.',
+        'It depends on how complex the state is. MVVM (a custom hook exposing state and actions) is enough for most screens. If the screen has many interdependent states (a checkout, a multi-step form, a chat), I prefer MVI with a reducer: a single immutable state, explicit transitions and a pure, easily tested reducer. In practice they combine: MVVM on the outside, with a reducer inside the ViewModel.'
+      ),
+    },
+    {
+      q: tx('¿Qué es el "ViewModel" en React Native si no hay clases ViewModel?', 'What is the "ViewModel" in React Native if there are no ViewModel classes?'),
+      a: tx(
+        'Un custom hook (useCartViewModel) que concentra la lógica de la pantalla: pide datos, deriva valores, expone acciones y devuelve un objeto listo para pintar. El componente queda "tonto": solo llama al hook y renderiza. El hook se testea con renderHook sin montar la UI.',
+        'A custom hook (useCartViewModel) that holds the screen logic: fetches data, derives values, exposes actions and returns an object ready to render. The component stays "dumb": it only calls the hook and renders. The hook is tested with renderHook without mounting the UI.'
+      ),
+    },
+    {
+      q: tx('¿Cómo estructurarías una app grande de React Native?', 'How would you structure a large React Native app?'),
+      a: tx(
+        'Por feature, no por tipo de archivo: src/features/cart, src/features/auth, cada una con sus componentes, hooks, api y tipos, exponiendo solo un index.ts público. Código compartido en shared/ (UI kit, utils) y configuración en core/ (cliente HTTP, navegación, DI). Las features no importan internals de otras, y lo hago cumplir con reglas de ESLint. Si hay web y mobile, un monorepo con paquetes compartidos.',
+        'By feature, not by file type: src/features/cart, src/features/auth, each with its components, hooks, api and types, exposing only a public index.ts. Shared code in shared/ (UI kit, utils) and setup in core/ (HTTP client, navigation, DI). Features do not import each other\'s internals, enforced with ESLint rules. With web and mobile, a monorepo with shared packages.'
+      ),
+    },
+    {
+      q: tx('¿Clean Architecture no es overkill en mobile?', 'Isn\'t Clean Architecture overkill on mobile?'),
+      a: tx(
+        'Aplicada al pie de la letra en una app chica, sí. Lo que siempre vale la pena es la idea central: que la lógica de negocio no dependa de React Native, de fetch ni del storage. Con eso ya puedo testear reglas sin emulador y cambiar la API o la base local sin tocar pantallas. Empiezo simple (hooks + repositorio) y agrego casos de uso cuando la lógica de negocio crece.',
+        'Applied to the letter in a small app, yes. What always pays off is the core idea: business logic must not depend on React Native, fetch or storage. That alone lets me test rules without an emulator and swap the API or local DB without touching screens. I start simple (hooks + repository) and add use cases as business logic grows.'
+      ),
+    },
+    {
+      q: tx('¿Cómo diseñarías una app que funcione sin conexión?', 'How would you design an app that works offline?'),
+      a: tx(
+        'Offline-first: la base local (SQLite/WatermelonDB) es la fuente de verdad y la UI siempre lee de ahí. Las escrituras se aplican localmente al instante (optimistic) y se guardan en una cola (outbox). Un sync engine envía la cola cuando vuelve la conexión (NetInfo, AppState), con reintentos y backoff, usando un idempotency key para no duplicar. Para conflictos defino una estrategia: last-write-wins, el servidor gana, o merge por campo.',
+        'Offline-first: the local DB (SQLite/WatermelonDB) is the source of truth and the UI always reads from it. Writes are applied locally right away (optimistic) and stored in a queue (outbox). A sync engine sends the queue when connectivity returns (NetInfo, AppState), with retries and backoff, using an idempotency key to avoid duplicates. For conflicts I pick a strategy: last-write-wins, server wins, or per-field merge.'
+      ),
+    },
+    {
+      q: tx('¿Qué es "Massive View Controller" y cómo lo evitas?', 'What is "Massive View Controller" and how do you avoid it?'),
+      a: tx(
+        'Es el problema típico de MVC en iOS: el controller termina con red, validación, navegación y UI mezcladas, y es imposible de testear. El equivalente en React Native es el "componente de 800 líneas". Se evita separando responsabilidades: lógica de pantalla en un ViewModel (hook), negocio en casos de uso, datos en repositorios, y componentes pequeños y presentacionales.',
+        'It is the classic MVC problem on iOS: the controller ends up mixing networking, validation, navigation and UI, and becomes impossible to test. The React Native equivalent is the "800-line component". You avoid it by separating responsibilities: screen logic in a ViewModel (hook), business in use cases, data in repositories, and small presentational components.'
+      ),
+    },
+  ];
+
+  const renderAppArchitecture = () => (
+    <div className="space-y-6">
+      <SectionHeader
+        title={tx('Arquitectura de apps móviles', 'Mobile App Architecture')}
+        subtitle={tx(
+          'Cómo organizar el código de una app para que escale y se pueda testear. Pregunta casi segura en entrevistas mid y senior.',
+          'How to organize an app\'s code so it scales and stays testable. An almost certain question in mid and senior interviews.'
+        )}
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {archIndex.map((item, i) => (
+          <button
+            key={item.id}
+            onClick={() => scrollToAnchor(item.id)}
+            className="px-3 py-1 rounded-full text-xs border border-slate-700 bg-slate-900/50 text-slate-400 hover:text-cyan-300 hover:border-cyan-500/40 transition-colors"
+          >
+            {i + 1}. {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="border border-cyan-500/30 bg-cyan-500/5 rounded-xl p-4">
+        <p className="text-xs font-bold text-cyan-300 uppercase tracking-wider mb-2">
+          {tx('Tu respuesta de 30 segundos', 'Your 30-second answer')}
+        </p>
+        <p className="text-sm text-slate-300 leading-relaxed">
+          {tx(
+            '"Organizo la app por features. Cada pantalla tiene un componente tonto y un ViewModel en un custom hook (MVVM); si el estado es complejo, ese hook usa un reducer (MVI). La lógica de negocio vive en casos de uso que no dependen de React Native, y los datos se acceden por repositorios, así puedo cambiar la API o el storage sin tocar la UI. Estado de servidor con TanStack Query, estado de cliente con Zustand, y si la app debe funcionar sin red, la base local es la fuente de verdad con una cola de sincronización."',
+            '"I organize the app by feature. Each screen has a dumb component and a ViewModel in a custom hook (MVVM); if the state is complex, that hook uses a reducer (MVI). Business logic lives in use cases that do not depend on React Native, and data is accessed through repositories, so I can swap the API or storage without touching the UI. Server state with TanStack Query, client state with Zustand, and if the app must work offline, the local DB is the source of truth with a sync queue."'
+          )}
+        </p>
+      </div>
+
+      {/* 1. Patterns */}
+      <SubHeader
+        id="apparch-patterns"
+        n={1}
+        title={tx('Patrones de presentación', 'Presentation patterns')}
+        subtitle={tx('Todos responden lo mismo: ¿dónde vive la lógica de la pantalla y cómo llega el estado a la vista? Toca cada patrón.', 'They all answer the same thing: where does screen logic live and how does state reach the view? Tap each pattern.')}
+      />
+      <PatternExplorer tx={tx} />
+      <CompareTable
+        headers={[tx('Patrón', 'Pattern'), tx('Lógica de UI en', 'UI logic in'), tx('La View...', 'The View...'), tx('Testeabilidad', 'Testability'), tx('Hoy se usa en', 'Used today in')]}
+        rows={[
+          ['MVC', 'Controller', tx('conoce al Controller', 'knows the Controller'), tx('Baja', 'Low'), 'iOS UIKit legacy'],
+          ['MVP', 'Presenter', tx('es pasiva (interfaz)', 'is passive (interface)'), tx('Alta', 'High'), 'Android legacy'],
+          ['MVVM', 'ViewModel', tx('observa el estado', 'observes state'), tx('Alta', 'High'), 'Jetpack, SwiftUI, RN hooks'],
+          ['MVI', 'Reducer', tx('renderiza un único State', 'renders a single State'), tx('Muy alta', 'Very high'), 'Compose, Redux, TCA'],
+          ['VIPER', 'Presenter + Interactor', tx('es pasiva', 'is passive'), tx('Alta, mucho boilerplate', 'High, lots of boilerplate'), tx('iOS grandes', 'Large iOS apps')],
+        ]}
+      />
+
+      {/* 2. MVVM */}
+      <SubHeader
+        id="apparch-mvvm"
+        n={2}
+        title={tx('MVVM en React Native: custom hook = ViewModel', 'MVVM in React Native: custom hook = ViewModel')}
+        subtitle={tx('El patrón por defecto. El hook piensa, el componente pinta.', 'The default pattern. The hook thinks, the component paints.')}
+      />
+      <Cards cards={[
+        {
+          title: tx('El ViewModel (hook)', 'The ViewModel (hook)'),
+          points: [
+            tx('Pide los datos (TanStack Query / repositorio)', 'Fetches data (TanStack Query / repository)'),
+            tx('Deriva valores: total, canCheckout, isEmpty', 'Derives values: total, canCheckout, isEmpty'),
+            tx('Expone acciones con nombres de negocio: removeItem()', 'Exposes business-named actions: removeItem()'),
+            tx('No devuelve JSX ni conoce estilos', 'Returns no JSX and knows no styles'),
+          ],
+        },
+        {
+          title: tx('La View (componente)', 'The View (component)'),
+          points: [
+            tx('Llama al hook y renderiza lo que recibe', 'Calls the hook and renders what it gets'),
+            tx('Sin fetch, sin cálculos, sin reglas de negocio', 'No fetch, no calculations, no business rules'),
+            tx('Se puede mostrar en Storybook con datos falsos', 'Can be shown in Storybook with fake data'),
+            tx('El hook se testea con renderHook, sin UI', 'The hook is tested with renderHook, no UI'),
+          ],
+        },
+      ]} />
+      <CodeBlock language="tsx" code={`// features/cart/hooks/useCartViewModel.ts  ← ViewModel
+import { useMemo } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { cartRepository } from '../data/cartRepository';
+
+export function useCartViewModel() {
+  const queryClient = useQueryClient();
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ['cart'],
+    queryFn: cartRepository.getItems,
+  });
+
+  const remove = useMutation({
+    mutationFn: cartRepository.removeItem,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cart'] }),
+  });
+
+  const total = useMemo(
+    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [items]
+  );
+
+  return {
+    items,
+    total,
+    isLoading,
+    canCheckout: items.length > 0,
+    removeItem: (id: string) => remove.mutate(id),
+  };
+}
+
+// features/cart/CartScreen.tsx  ← View: solo pinta
+export function CartScreen() {
+  const vm = useCartViewModel();
+
+  if (vm.isLoading) return <ActivityIndicator />;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={vm.items}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => <CartRow item={item} onRemove={vm.removeItem} />}
+      />
+      <Text>Total: \${vm.total.toFixed(2)}</Text>
+      <Button title="Pagar" disabled={!vm.canCheckout} onPress={() => router.push('/checkout')} />
+    </View>
+  );
+}`} />
+
+      {/* 3. MVI */}
+      <SubHeader
+        id="apparch-mvi"
+        n={3}
+        title={tx('MVI: flujo unidireccional con un reducer', 'MVI: unidirectional flow with a reducer')}
+        subtitle={tx('Para pantallas con muchos estados que dependen entre sí.', 'For screens with many interdependent states.')}
+      />
+      <Cards cards={[
+        {
+          title: tx('Las 3 piezas', 'The 3 pieces'),
+          points: [
+            tx('State: UN objeto inmutable con todo lo que la pantalla muestra', 'State: ONE immutable object with everything the screen shows'),
+            tx('Intent (action): lo que el usuario o el sistema quiere hacer', 'Intent (action): what the user or system wants to do'),
+            tx('Reducer: (state, intent) → nuevo state. Función pura', 'Reducer: (state, intent) → new state. Pure function'),
+          ],
+        },
+        {
+          title: tx('Por qué conviene', 'Why it helps'),
+          points: [
+            tx('Evita estados imposibles (loading y error a la vez)', 'Avoids impossible states (loading and error at once)'),
+            tx('Cada transición es explícita y se puede loguear', 'Every transition is explicit and loggable'),
+            tx('El reducer se testea sin React: entra estado, sale estado', 'The reducer is tested without React: state in, state out'),
+          ],
+        },
+      ]} />
+      <CodeBlock language="tsx" code={`// features/search/searchReducer.ts
+type State =
+  | { status: 'idle'; query: string }
+  | { status: 'loading'; query: string }
+  | { status: 'success'; query: string; results: Product[] }
+  | { status: 'error'; query: string; message: string };
+
+type Intent =
+  | { type: 'QUERY_CHANGED'; query: string }
+  | { type: 'SEARCH_STARTED' }
+  | { type: 'SEARCH_SUCCEEDED'; results: Product[] }
+  | { type: 'SEARCH_FAILED'; message: string };
+
+export function searchReducer(state: State, intent: Intent): State {
+  switch (intent.type) {
+    case 'QUERY_CHANGED':    return { status: 'idle', query: intent.query };
+    case 'SEARCH_STARTED':   return { status: 'loading', query: state.query };
+    case 'SEARCH_SUCCEEDED': return { status: 'success', query: state.query, results: intent.results };
+    case 'SEARCH_FAILED':    return { status: 'error', query: state.query, message: intent.message };
+  }
+}
+
+// features/search/SearchScreen.tsx
+export function SearchScreen() {
+  const [state, dispatch] = useReducer(searchReducer, { status: 'idle', query: '' });
+
+  const search = async () => {
+    dispatch({ type: 'SEARCH_STARTED' });
+    try {
+      dispatch({ type: 'SEARCH_SUCCEEDED', results: await productApi.search(state.query) });
+    } catch {
+      dispatch({ type: 'SEARCH_FAILED', message: 'No se pudo buscar' });
+    }
+  };
+
+  return (
+    <View>
+      <TextInput
+        value={state.query}
+        onChangeText={query => dispatch({ type: 'QUERY_CHANGED', query })}
+        onSubmitEditing={search}
+      />
+      {state.status === 'loading' && <ActivityIndicator />}
+      {state.status === 'error' && <Text>{state.message}</Text>}
+      {state.status === 'success' && <ProductList products={state.results} />}
+    </View>
+  );
+}
+
+// Test: sin React, sin emulador
+expect(searchReducer({ status: 'loading', query: 'tv' }, { type: 'SEARCH_FAILED', message: 'x' }))
+  .toEqual({ status: 'error', query: 'tv', message: 'x' });`} />
+
+      {/* 4. Clean Architecture */}
+      <SubHeader
+        id="apparch-clean"
+        n={4}
+        title={tx('Clean Architecture en mobile', 'Clean Architecture on mobile')}
+        subtitle={tx('La idea clave: el negocio no depende de React Native, de la API ni del storage.', 'The key idea: business logic does not depend on React Native, the API or storage.')}
+      />
+      <CleanLayersDiagram tx={tx} />
+      <Cards cards={[
+        {
+          title: tx('Piezas', 'Pieces'),
+          points: [
+            tx('Entity: el modelo de negocio (Order, User)', 'Entity: the business model (Order, User)'),
+            tx('Use case: una acción de negocio (payOrder)', 'Use case: one business action (payOrder)'),
+            tx('Repository (interfaz): qué datos necesito, no cómo se obtienen', 'Repository (interface): what data I need, not how it is fetched'),
+            tx('Repository (implementación): HTTP, SQLite, MMKV, mocks', 'Repository (implementation): HTTP, SQLite, MMKV, mocks'),
+          ],
+        },
+        {
+          title: tx('Qué ganas', 'What you gain'),
+          points: [
+            tx('Tests de negocio rápidos, sin emulador ni red', 'Fast business tests, no emulator or network'),
+            tx('Cambias REST por GraphQL sin tocar pantallas', 'Swap REST for GraphQL without touching screens'),
+            tx('Mapeas DTOs de la API → entidades: la API puede cambiar', 'Map API DTOs → entities: the API can change'),
+            tx('Empieza simple: agrega casos de uso cuando crezca el negocio', 'Start simple: add use cases as the business grows'),
+          ],
+        },
+      ]} />
+      <CodeBlock language="typescript" code={`// domain/entities/Order.ts
+export type Order = { id: string; total: number; status: 'pending' | 'paid' };
+
+// domain/repositories/OrderRepository.ts  ← interfaz: el dominio no sabe de fetch ni SQLite
+export interface OrderRepository {
+  getById(id: string): Promise<Order>;
+  save(order: Order): Promise<void>;
+}
+export interface PaymentGateway {
+  charge(amount: number): Promise<void>;
+}
+
+// domain/usecases/payOrder.ts  ← regla de negocio pura, testeable sin React Native
+export const makePayOrder = (orders: OrderRepository, payments: PaymentGateway) =>
+  async (orderId: string): Promise<Order> => {
+    const order = await orders.getById(orderId);
+    if (order.status === 'paid') throw new Error('La orden ya fue pagada');
+
+    await payments.charge(order.total);
+    const paid = { ...order, status: 'paid' as const };
+    await orders.save(paid);
+    return paid;
+  };
+
+// data/HttpOrderRepository.ts  ← implementación concreta + mapeo DTO → entidad
+type OrderDto = { order_id: string; amount_cents: number; state: string };
+
+export class HttpOrderRepository implements OrderRepository {
+  constructor(private http: HttpClient) {}
+
+  async getById(id: string): Promise<Order> {
+    const dto = await this.http.get<OrderDto>(\`/orders/\${id}\`);
+    return { id: dto.order_id, total: dto.amount_cents / 100, status: dto.state === 'PAID' ? 'paid' : 'pending' };
+  }
+  async save(order: Order) {
+    await this.http.put(\`/orders/\${order.id}\`, { state: order.status.toUpperCase() });
+  }
+}
+
+// core/di.ts  ← composition root: el único lugar que conoce las implementaciones
+export const payOrder = makePayOrder(new HttpOrderRepository(http), new StripeGateway());
+
+// presentation/usePayOrderViewModel.ts
+export const usePayOrderViewModel = (orderId: string) =>
+  useMutation({ mutationFn: () => payOrder(orderId) });
+
+// Test del caso de uso con fakes, sin red:
+// const pay = makePayOrder(fakeOrders, fakePayments);
+// await expect(pay('already-paid')).rejects.toThrow('ya fue pagada');`} />
+
+      {/* 5. Folder structure */}
+      <SubHeader
+        id="apparch-folders"
+        n={5}
+        title={tx('Estructura de carpetas', 'Folder structure')}
+        subtitle={tx('Por feature, no por tipo de archivo.', 'By feature, not by file type.')}
+      />
+      <CodeBlock language="bash" code={`# ❌ Por tipo: funciona al inicio, se rompe al crecer
+src/
+├── components/     # 120 archivos de todas las features mezclados
+├── screens/
+├── hooks/
+├── services/
+└── store/          # para tocar "carrito" editas 5 carpetas distintas
+
+# ✅ Por feature: todo lo del carrito vive junto
+src/
+├── app/                      # rutas de Expo Router: finas, solo componen features
+│   ├── (tabs)/index.tsx
+│   └── cart.tsx              # → import { CartScreen } from '@/features/cart'
+├── features/
+│   ├── cart/
+│   │   ├── components/       # CartRow, CartSummary
+│   │   ├── hooks/            # useCartViewModel (ViewModels)
+│   │   ├── domain/           # tipos, casos de uso (si hace falta)
+│   │   ├── data/             # cartRepository, api, DTOs
+│   │   ├── store.ts          # estado de cliente de la feature
+│   │   └── index.ts          # API PÚBLICA: lo único que otras features importan
+│   ├── auth/
+│   └── catalog/
+├── shared/                   # sin lógica de negocio
+│   ├── ui/                   # Button, Card, Text (design system)
+│   ├── hooks/                # useDebounce, useAppState
+│   └── lib/                  # formatters, utils
+└── core/                     # infraestructura global
+    ├── http.ts               # cliente HTTP, interceptores, auth
+    ├── di.ts                 # composition root
+    └── navigation/types.ts`} />
+      <Cards cards={[
+        {
+          title: tx('Reglas de dependencia', 'Dependency rules'),
+          points: [
+            tx('features/* → shared, core: sí', 'features/* → shared, core: yes'),
+            tx('feature A → internals de feature B: NO (solo su index.ts)', 'feature A → feature B internals: NO (only its index.ts)'),
+            tx('shared → features: NUNCA', 'shared → features: NEVER'),
+            tx('Se hace cumplir con ESLint (boundaries / no-restricted-imports)', 'Enforced with ESLint (boundaries / no-restricted-imports)'),
+          ],
+        },
+        {
+          title: tx('Cuando hay web + mobile', 'When there is web + mobile'),
+          points: [
+            tx('Monorepo (Turborepo, Nx, pnpm workspaces)', 'Monorepo (Turborepo, Nx, pnpm workspaces)'),
+            tx('packages/domain y packages/api compartidos', 'Shared packages/domain and packages/api'),
+            tx('UI separada por plataforma (o Expo Router + react-native-web)', 'Platform-specific UI (or Expo Router + react-native-web)'),
+            tx('Lo que más se comparte: tipos, validación (Zod), lógica de negocio', 'What is shared most: types, validation (Zod), business logic'),
+          ],
+        },
+      ]} />
+
+      {/* 6. Offline-first */}
+      <SubHeader
+        id="apparch-offline"
+        n={6}
+        title={tx('Arquitectura offline-first', 'Offline-first architecture')}
+        subtitle={tx('En mobile la red falla: metro, ascensor, avión. Diseña para eso.', 'On mobile the network fails: subway, elevator, plane. Design for it.')}
+      />
+      <div className="flex flex-col sm:flex-row items-stretch gap-2 text-center text-xs">
+        {[
+          { t: 'UI', d: tx('Lee SIEMPRE de local', 'ALWAYS reads local') },
+          { t: tx('Base local', 'Local DB'), d: tx('Fuente de verdad', 'Source of truth') },
+          { t: 'Outbox', d: tx('Cola de cambios pendientes', 'Pending changes queue') },
+          { t: 'Sync engine', d: tx('Envía y descarga al reconectar', 'Pushes and pulls on reconnect') },
+          { t: 'API', d: tx('Servidor', 'Server') },
+        ].map((n, i, arr) => (
+          <div key={i} className="flex flex-col sm:flex-row items-center gap-2 sm:flex-1">
+            <div className="w-full flex-1 border border-cyan-500/30 bg-cyan-500/10 rounded-lg px-2 py-2">
+              <div className="font-bold text-cyan-300">{n.t}</div>
+              <div className="text-slate-500">{n.d}</div>
+            </div>
+            {i < arr.length - 1 && <span className="text-slate-600 rotate-90 sm:rotate-0">⇄</span>}
+          </div>
+        ))}
+      </div>
+      <Cards cards={[
+        {
+          title: tx('Principios', 'Principles'),
+          points: [
+            tx('La base local es la fuente de verdad, no la API', 'The local DB is the source of truth, not the API'),
+            tx('Escrituras optimistas: la UI cambia al instante', 'Optimistic writes: the UI changes instantly'),
+            tx('Outbox: cola persistente de mutaciones con reintentos y backoff', 'Outbox: persistent mutation queue with retries and backoff'),
+            tx('Idempotency key por mutación → reintentar no duplica', 'Idempotency key per mutation → retrying never duplicates'),
+          ],
+        },
+        {
+          title: tx('Conflictos & herramientas', 'Conflicts & tools'),
+          points: [
+            tx('Last-write-wins (simple), server-wins, o merge por campo', 'Last-write-wins (simple), server-wins, or per-field merge'),
+            tx('Guarda updatedAt / version en cada registro', 'Store updatedAt / version on every record'),
+            'WatermelonDB, expo-sqlite + Drizzle, PowerSync',
+            tx('Caso simple: TanStack Query + persistencia + onlineManager', 'Simple case: TanStack Query + persistence + onlineManager'),
+          ],
+        },
+      ]} />
+      <CodeBlock language="typescript" code={`// features/cart/data/offlineCart.ts
+import NetInfo from '@react-native-community/netinfo';
+import { AppState } from 'react-native';
+
+type PendingMutation = {
+  id: string;               // también se envía como Idempotency-Key
+  type: 'ADD_TO_CART' | 'REMOVE_FROM_CART';
+  payload: { productId: string };
+  attempts: number;
+};
+
+export async function addToCart(productId: string) {
+  await db.cart.insert({ productId, synced: false });            // 1. local primero → UI instantánea
+  await outbox.enqueue({ id: uuid(), type: 'ADD_TO_CART', payload: { productId }, attempts: 0 });
+  void syncNow();                                                // 2. intenta sincronizar
+}
+
+let syncing = false;
+export async function syncNow() {
+  if (syncing) return;
+  const { isConnected } = await NetInfo.fetch();
+  if (!isConnected) return;                                       // sin red: queda en la cola
+
+  syncing = true;
+  try {
+    for (const m of await outbox.pending()) {                     // en orden (FIFO)
+      try {
+        await api.post('/cart/mutations', m, { headers: { 'Idempotency-Key': m.id } });
+        await outbox.remove(m.id);
+      } catch {
+        await outbox.incrementAttempts(m.id);                      // reintento con backoff luego
+        break;                                                     // conserva el orden
+      }
+    }
+  } finally {
+    syncing = false;
+  }
+}
+
+// Disparadores: vuelve la red o la app vuelve a primer plano
+NetInfo.addEventListener(state => { if (state.isConnected) void syncNow(); });
+AppState.addEventListener('change', s => { if (s === 'active') void syncNow(); });`} />
+
+      {/* 7. Q&A */}
+      <SubHeader
+        id="apparch-qa"
+        n={7}
+        title={tx('Preguntas de entrevista sobre arquitectura', 'Architecture interview questions')}
+      />
+      <div className="space-y-2">
+        {archQA.map((item, i) => <QAItem key={i} q={item.q} a={item.a} />)}
+      </div>
+    </div>
+  );
 
   const renderStyling = () => (
     <div className="space-y-6">
@@ -1259,6 +1988,7 @@ appId: com.example.myapp
       case 'fundamentals': return renderFundamentals();
       case 'typescript': return renderTypeScript();
       case 'architecture': return renderArchitecture();
+      case 'apparch': return renderAppArchitecture();
       case 'styling': return renderStyling();
       case 'performance': return renderPerformance();
       case 'navigation': return renderNavigation();
@@ -1300,7 +2030,7 @@ appId: com.example.myapp
       </div>
 
       {/* Content panel */}
-      <div className="lg:col-span-3 lg:overflow-y-auto lg:pr-2 space-y-6">
+      <div data-scroll-panel className="lg:col-span-3 lg:overflow-y-auto lg:pr-2 space-y-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={active}

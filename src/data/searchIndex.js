@@ -5,6 +5,7 @@ export function buildSearchIndex(language) {
   const tabCloud = t('common', language).tabCloud;
   const tabContainers = t('common', language).tabContainers;
   const tabHTMLCSS = t('common', language).tabHTMLCSS;
+  const tabReactNative = t('common', language).tabReactNative;
   const isEs = language === 'es';
 
   return [
@@ -85,6 +86,14 @@ export function buildSearchIndex(language) {
     { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Hooks', title: 'useState', preview: isEs ? 'Estado local en componentes funcionales' : 'Local state in functional components' },
     { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Hooks', title: 'useEffect', preview: isEs ? 'Efectos secundarios y sincronización' : 'Side effects and synchronization' },
     { tab: 'react', tabName: 'React Pro', tabColor: 'bg-blue-500/20 text-blue-400', section: 'Hooks', title: 'useMemo', preview: isEs ? 'Memoización de valores calculados' : 'Memoization of computed values' },
+
+    // React Native
+    { tab: 'reactnative', tabName: tabReactNative, tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Fundamentos' : 'Fundamentals', title: isEs ? 'Core Components & Expo' : 'Core Components & Expo', preview: isEs ? 'View, Text, Pressable, TextInput. React web vs React Native. Expo vs CLI.' : 'View, Text, Pressable, TextInput. React web vs React Native. Expo vs CLI.' },
+    { tab: 'reactnative', tabName: tabReactNative, tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Arquitectura' : 'Architecture', title: 'New Architecture: JSI, Fabric & TurboModules', preview: isEs ? 'Bridge vs JSI, threads, Hermes, Codegen y bridgeless mode.' : 'Bridge vs JSI, threads, Hermes, Codegen and bridgeless mode.' },
+    { tab: 'reactnative', tabName: tabReactNative, tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Estilos' : 'Styling', title: 'StyleSheet, Flexbox & Platform', preview: isEs ? 'Defaults de Flexbox distintos a la web, Platform.select, safe areas, dark mode.' : 'Flexbox defaults that differ from web, Platform.select, safe areas, dark mode.' },
+    { tab: 'reactnative', tabName: tabReactNative, tabColor: 'bg-cyan-500/20 text-cyan-400', section: 'Performance', title: 'FlatList, FlashList & Reanimated', preview: isEs ? 'Virtualización, getItemLayout, memo, animaciones en el UI thread.' : 'Virtualization, getItemLayout, memo, animations on the UI thread.' },
+    { tab: 'reactnative', tabName: tabReactNative, tabColor: 'bg-cyan-500/20 text-cyan-400', section: isEs ? 'Navegación' : 'Navigation', title: 'React Navigation & Expo Router', preview: isEs ? 'Stacks nativos, tabs, routing por archivos, Zustand, TanStack Query, MMKV, SecureStore.' : 'Native stacks, tabs, file-based routing, Zustand, TanStack Query, MMKV, SecureStore.' },
+    { tab: 'reactnative', tabName: tabReactNative, tabColor: 'bg-cyan-500/20 text-cyan-400', section: 'Deploy', title: isEs ? 'EAS Build, OTA Updates & Testing' : 'EAS Build, OTA Updates & Testing', preview: isEs ? 'RNTL, Maestro/Detox, EAS Build/Submit/Update, runtimeVersion, firmado.' : 'RNTL, Maestro/Detox, EAS Build/Submit/Update, runtimeVersion, signing.' },
 
     // Angular
     { tab: 'angular', tabName: 'Angular Pro', tabColor: 'bg-red-500/20 text-red-400', section: 'Building Blocks', title: 'Components', preview: isEs ? 'Bloques fundamentales de Angular' : 'Fundamental building blocks of Angular' },

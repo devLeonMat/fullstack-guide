@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
-import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit } from 'lucide-react';
+import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit, Smartphone } from 'lucide-react';
 import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin, SiApachekafka, SiHtml5 } from 'react-icons/si';
 import SearchBar from './components/SearchBar';
 import LanguageToggle from './components/LanguageToggle';
@@ -16,6 +16,7 @@ const Patterns = lazy(() => import('./components/Patterns'));
 const Architecture = lazy(() => import('./components/Architecture'));
 const JSTSPro = lazy(() => import('./components/JSTSPro'));
 const HTMLCSSPro = lazy(() => import('./components/HTMLCSSPro'));
+const ReactNativePro = lazy(() => import('./components/ReactNativePro'));
 const JavaPro = lazy(() => import('./components/JavaPro'));
 const SpringPro = lazy(() => import('./components/SpringPro'));
 const ReactPro = lazy(() => import('./components/ReactPro'));
@@ -86,6 +87,7 @@ function App() {
     { id: 'kafka', category: 'backend', name: common.tabKafka, icon: SiApachekafka, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
     { id: 'htmlcss', category: 'frontend', name: common.tabHTMLCSS, icon: SiHtml5, color: 'text-lime-400', bgColor: 'bg-lime-500/10' },
     { id: 'react', category: 'frontend', name: 'React Pro', icon: SiReact, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
+    { id: 'reactnative', category: 'frontend', name: common.tabReactNative, icon: Smartphone, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
     { id: 'angular', category: 'frontend', name: 'Angular Pro', icon: SiAngular, color: 'text-red-400', bgColor: 'bg-red-500/10' },
     { id: 'cloud', category: 'clouddevops', name: common.tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
     { id: 'containers', category: 'clouddevops', name: common.tabContainers, icon: SiDocker, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
@@ -175,6 +177,7 @@ function App() {
       case 'java': return <JavaPro />;
       case 'spring': return <SpringPro />;
       case 'react': return <ReactPro />;
+      case 'reactnative': return <ReactNativePro />;
       case 'angular': return <AngularPro />;
       case 'graphql': return <GraphQLPro />;
       case 'testing': return <TestingPro />;

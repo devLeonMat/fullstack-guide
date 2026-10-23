@@ -1,10 +1,146 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Zap, MessageCircleQuestion, Shield, Cloud, ChevronDown } from 'lucide-react';
+import { Database, Zap, MessageCircleQuestion, Shield, Cloud, ChevronDown, Cpu } from 'lucide-react';
 import { SiSpring } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
+
+// --- ConcurrencyModelsDiagram ---
+const ConcurrencyModelsDiagram = ({ tx }) => {
+    const [model, setModel] = useState('vt');
+    const [step, setStep] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => setStep(s => (s + 1) % 8), 900);
+        return () => clearInterval(interval);
+    }, []);
+
+    const models = [
+        { id: 'mvc', label: tx('MVC clásico', 'Classic MVC') },
+        { id: 'vt', label: 'MVC + Virtual Threads' },
+        { id: 'webflux', label: 'WebFlux' },
+    ];
+
+    const captions = {
+        mvc: tx(
+            '1 request = 1 thread del SO (~1 MB de stack). Mientras espera la DB, el thread queda bloqueado sin hacer nada. Con 200 threads, el request 201 espera en cola.',
+            '1 request = 1 OS thread (~1 MB stack). While waiting for the DB the thread sits blocked doing nothing. With 200 threads, request 201 waits in a queue.'
+        ),
+        vt: tx(
+            'Cada request tiene su virtual thread (muy barato). Al bloquear en I/O se desmonta y libera el carrier para otro. Código bloqueante normal, escala como reactivo.',
+            'Each request gets its own virtual thread (very cheap). When it blocks on I/O it unmounts and frees the carrier for another. Plain blocking code that scales like reactive.'
+        ),
+        webflux: tx(
+            'Pocos threads de event loop (≈ 1 por núcleo) que nunca bloquean: procesan callbacks cuando llega cada respuesta. El código se escribe como pipeline Mono/Flux.',
+            'A few event-loop threads (≈ 1 per core) that never block: they run callbacks as each response arrives. Code is written as a Mono/Flux pipeline.'
+        ),
+    };
+
+    const box = 'border rounded-lg px-2 py-2 text-center text-xs';
+
+    const renderMvc = () => (
+        <div className="space-y-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[0, 1, 2, 3].map(i => {
+                    const running = step % 4 === i;
+                    return (
+                        <div key={i} className={`${box} ${running ? 'border-green-400/60 bg-green-500/15 text-green-300' : 'border-red-500/40 bg-red-500/10 text-red-300'}`}>
+                            <div className="font-bold">OS thread {i + 1}</div>
+                            <div className="opacity-80">{running ? tx('usando CPU', 'using CPU') : tx('bloqueado: esperando DB', 'blocked: waiting for DB')}</div>
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="text-center text-xs text-slate-500">
+                {tx('Cola de requests esperando un thread libre:', 'Requests queued waiting for a free thread:')}{' '}
+                <span className="font-mono text-red-300">{'▮'.repeat(2 + (step % 4))}</span>
+            </div>
+        </div>
+    );
+
+    const renderVt = () => {
+        const mounted = [step % 8, (step + 4) % 8];
+        return (
+            <div className="space-y-3">
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+                    {Array.from({ length: 8 }).map((_, i) => {
+                        const isMounted = mounted.includes(i);
+                        return (
+                            <motion.div
+                                key={i}
+                                animate={{ scale: isMounted ? 1.08 : 1 }}
+                                className={`${box} ${isMounted ? 'border-green-400/60 bg-green-500/20 text-green-300' : 'border-slate-700 bg-slate-900/50 text-slate-500'}`}
+                            >
+                                <div className="font-bold">VT {i + 1}</div>
+                                <div className="text-[10px]">{isMounted ? tx('montado', 'mounted') : tx('parked (I/O)', 'parked (I/O)')}</div>
+                            </motion.div>
+                        );
+                    })}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    {mounted.map((vt, c) => (
+                        <div key={c} className={`${box} border-green-500/40 bg-green-500/10 text-green-300`}>
+                            <span className="font-bold">Carrier {c + 1}</span> {tx('(thread del SO) ejecuta', '(OS thread) runs')} <span className="font-mono">VT {vt + 1}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const renderWebflux = () => (
+        <div className="space-y-3">
+            <div className="flex flex-wrap justify-center gap-1.5">
+                {Array.from({ length: 8 }).map((_, i) => (
+                    <div key={i} className={`${box} ${i === step ? 'border-green-400/60 bg-green-500/20 text-green-300' : 'border-slate-700 bg-slate-900/50 text-slate-500'}`}>
+                        {tx('callback', 'callback')} #{i + 1}
+                    </div>
+                ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+                {[0, 1].map(c => (
+                    <div key={c} className={`${box} border-green-500/40 bg-green-500/10 text-green-300`}>
+                        <span className="font-bold">Event loop {c + 1}</span> → {tx('nunca bloquea', 'never blocks')}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="w-full bg-slate-950/40 border border-green-500/20 rounded-xl p-5 space-y-4">
+            <div className="flex flex-wrap justify-center gap-2">
+                {models.map(m => (
+                    <button
+                        key={m.id}
+                        onClick={() => setModel(m.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${model === m.id
+                            ? 'bg-green-500/20 border-green-500/50 text-green-300'
+                            : 'bg-slate-900/50 border-slate-700 text-slate-400 hover:text-slate-200'
+                            }`}
+                    >
+                        {m.label}
+                    </button>
+                ))}
+            </div>
+            {model === 'mvc' && renderMvc()}
+            {model === 'vt' && renderVt()}
+            {model === 'webflux' && renderWebflux()}
+            <AnimatePresence mode="wait">
+                <motion.p
+                    key={model}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="text-center text-xs text-slate-400"
+                >
+                    {captions[model]}
+                </motion.p>
+            </AnimatePresence>
+        </div>
+    );
+};
 
 // --- SecurityFlowDiagram ---
 const SecurityFlowDiagram = () => {
@@ -672,6 +808,230 @@ public class UserService {
                 }
             ]
         },
+        concurrency: {
+            id: 'concurrency',
+            title: 'WebFlux vs Virtual Threads',
+            subtitle: tx('Cuándo usar reactivo y cuándo Virtual Threads', 'When to go reactive and when to use Virtual Threads'),
+            icon: Cpu,
+            diagram: <ConcurrencyModelsDiagram tx={tx} />,
+            content: [
+                {
+                    topic: tx('Los 3 modelos lado a lado', 'The 3 models side by side'),
+                    description: tx('MVC clásico, MVC + Virtual Threads y WebFlux', 'Classic MVC, MVC + Virtual Threads and WebFlux'),
+                    table: {
+                        headers: [tx('Aspecto', 'Aspect'), tx('MVC clásico', 'Classic MVC'), 'MVC + Virtual Threads', 'WebFlux'],
+                        rows: [
+                            [tx('Estilo de código', 'Code style'), tx('Imperativo', 'Imperative'), tx('Imperativo', 'Imperative'), tx('Reactivo (Mono/Flux + operadores)', 'Reactive (Mono/Flux + operators)')],
+                            ['Threads', tx('1 thread del SO por request (pool ~200)', '1 OS thread per request (~200 pool)'), tx('1 virtual thread por request (miles)', '1 virtual thread per request (thousands)'), tx('Pocos event loops (≈ núcleos)', 'Few event loops (≈ cores)')],
+                            [tx('Mucha espera de I/O', 'Heavy I/O waiting'), tx('Se agota el pool', 'Pool gets exhausted'), tx('Escala bien', 'Scales well'), tx('Escala bien, si TODO es no bloqueante', 'Scales well, if EVERYTHING is non-blocking')],
+                            ['JDBC / JPA', tx('Sí', 'Yes'), tx('Sí', 'Yes'), tx('No (R2DBC o boundedElastic)', 'No (R2DBC or boundedElastic)')],
+                            ['Backpressure', tx('No', 'No'), tx('No (manual con semáforos)', 'No (manual with semaphores)'), tx('Sí, nativo (Reactive Streams)', 'Yes, built in (Reactive Streams)')],
+                            ['Streaming (SSE / WebSocket)', tx('Limitado', 'Limited'), tx('Posible, menos ergonómico', 'Possible, less ergonomic'), tx('Excelente', 'Excellent')],
+                            [tx('Debugging / stack traces', 'Debugging / stack traces'), tx('Fácil', 'Easy'), tx('Fácil (stack traces normales)', 'Easy (normal stack traces)'), tx('Difícil (checkpoint(), Hooks)', 'Hard (checkpoint(), Hooks)')],
+                            [tx('Curva de aprendizaje', 'Learning curve'), tx('Baja', 'Low'), tx('Baja', 'Low'), tx('Alta', 'High')],
+                            [tx('Requisitos', 'Requirements'), tx('Cualquier JDK', 'Any JDK'), tx('JDK 21+ (ideal 24+)', 'JDK 21+ (ideally 24+)'), tx('Stack reactivo de punta a punta', 'End-to-end reactive stack')],
+                        ],
+                    },
+                    points: [
+                        tx('Los dos resuelven el mismo problema: no desperdiciar threads esperando I/O', 'Both solve the same problem: not wasting threads while waiting on I/O'),
+                        tx('WebFlux lo resuelve cambiando cómo ESCRIBES el código', 'WebFlux solves it by changing how you WRITE code'),
+                        tx('Virtual Threads lo resuelven en la JVM: tu código bloqueante sigue igual', 'Virtual Threads solve it in the JVM: your blocking code stays the same'),
+                        tx('Ninguno acelera el trabajo de CPU ni la latencia de un request individual', 'Neither speeds up CPU work or the latency of a single request'),
+                    ],
+                },
+                {
+                    topic: tx('Mismo endpoint, dos estilos', 'Same endpoint, two styles'),
+                    description: tx('Llamar a 2 servicios en paralelo, con timeout y manejo de errores', 'Call 2 services in parallel, with timeout and error handling'),
+                    code: `// ── MVC + Virtual Threads: código imperativo normal ─────────────
+@GetMapping("/dashboard/{userId}")
+public Dashboard dashboard(@PathVariable String userId) throws Exception {
+    try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+        Future<User> user = executor.submit(() -> userClient.get(userId));      // bloquea... barato
+        Future<List<Order>> orders = executor.submit(() -> orderClient.list(userId));
+
+        return new Dashboard(
+            user.get(2, TimeUnit.SECONDS),                  // timeout
+            orders.get(2, TimeUnit.SECONDS)
+        );
+    } catch (TimeoutException e) {
+        throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT);
+    }
+}
+// userClient / orderClient usan RestClient (bloqueante) y JDBC/JPA sin problema.
+// Alternativa: StructuredTaskScope (structured concurrency, preview en JDK 21-25).
+
+// ── WebFlux: pipeline reactivo ───────────────────────────────────
+@GetMapping("/dashboard/{userId}")
+public Mono<Dashboard> dashboard(@PathVariable String userId) {
+    Mono<User> user = webClient.get().uri("/users/{id}", userId)
+        .retrieve().bodyToMono(User.class);
+    Mono<List<Order>> orders = webClient.get().uri("/orders?userId={id}", userId)
+        .retrieve().bodyToFlux(Order.class).collectList();
+
+    return Mono.zip(user, orders)                           // en paralelo
+        .map(t -> new Dashboard(t.getT1(), t.getT2()))
+        .timeout(Duration.ofSeconds(2))
+        .onErrorMap(TimeoutException.class,
+            e -> new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT));
+}
+// Todo debe ser no bloqueante: WebClient, R2DBC, Reactive Mongo/Redis.`,
+                    points: [
+                        tx('Virtual Threads: try/catch, Future y stack traces de siempre', 'Virtual Threads: the usual try/catch, Future and stack traces'),
+                        tx('WebFlux: composición con operadores (zip, map, timeout, onErrorMap)', 'WebFlux: composition with operators (zip, map, timeout, onErrorMap)'),
+                        tx('En WebFlux nada se ejecuta hasta que alguien se suscribe (lazy)', 'In WebFlux nothing runs until someone subscribes (lazy)'),
+                        tx('Con Virtual Threads puedes reutilizar librerías bloqueantes existentes', 'With Virtual Threads you can reuse existing blocking libraries'),
+                    ],
+                },
+                {
+                    topic: tx('Activar Virtual Threads en Spring Boot', 'Enabling Virtual Threads in Spring Boot'),
+                    description: tx('Una propiedad, pero los límites de recursos siguen siendo tu responsabilidad', 'One property, but resource limits are still your job'),
+                    language: 'properties',
+                    code: `# Requiere JDK 21+. Desactivado por defecto: hay que activarlo.
+spring.threads.virtual.enabled=true
+
+# Qué cambia al activarlo:
+#  - Tomcat / Jetty atienden cada request en un virtual thread
+#  - El executor de @Async y el scheduler de @Scheduled usan virtual threads
+#  - Varios listener containers de mensajería también
+
+# Los virtual threads son daemon: si la app no tiene otro thread
+# "vivo" (ej. solo @Scheduled), mantén la JVM corriendo:
+spring.main.keep-alive=true
+
+# El cuello de botella se mueve a la base de datos:
+# 10.000 requests concurrentes NO significa 10.000 conexiones.
+spring.datasource.hikari.maximum-pool-size=50
+spring.datasource.hikari.connection-timeout=2000`,
+                    points: [
+                        tx('Una línea de configuración; el código de negocio no cambia', 'One line of config; business code does not change'),
+                        tx('El pool de conexiones (HikariCP) sigue limitando la concurrencia real contra la DB', 'The connection pool (HikariCP) still caps real concurrency against the DB'),
+                        tx('Protege servicios downstream con Semaphore, rate limiting o bulkheads', 'Protect downstream services with Semaphore, rate limiting or bulkheads'),
+                        tx('Mide antes y después: throughput, latencia p99 y uso de memoria', 'Measure before and after: throughput, p99 latency and memory'),
+                    ],
+                },
+                {
+                    topic: tx('Trampas de Virtual Threads', 'Virtual Threads pitfalls'),
+                    description: tx('Pinning, ThreadLocal, pools y límites', 'Pinning, ThreadLocal, pools and limits'),
+                    code: `// ❌ 1. NO hagas pool de virtual threads: son baratos, crea uno por tarea
+ExecutorService bad  = Executors.newFixedThreadPool(100, Thread.ofVirtual().factory());
+ExecutorService good = Executors.newVirtualThreadPerTaskExecutor();
+
+// ✅ 2. Para limitar concurrencia usa un Semaphore, no el tamaño del pool
+private final Semaphore paymentsLimit = new Semaphore(20);
+
+public Receipt charge(Order order) throws InterruptedException {
+    paymentsLimit.acquire();               // máx. 20 llamadas simultáneas al proveedor
+    try {
+        return paymentClient.charge(order);
+    } finally {
+        paymentsLimit.release();
+    }
+}
+
+// ⚠️ 3. Pinning: el virtual thread queda pegado a su carrier y no se desmonta
+//    - synchronized + I/O bloqueante → pinning hasta JDK 23 (resuelto en JDK 24, JEP 491)
+//    - llamadas nativas (JNI) → siguen causando pinning
+//    En JDK 21-23 usa ReentrantLock en código caliente:
+private final ReentrantLock lock = new ReentrantLock();
+lock.lock();
+try { /* I/O */ } finally { lock.unlock(); }
+//    Detectarlo: evento JFR jdk.VirtualThreadPinned
+
+// ⚠️ 4. ThreadLocal con millones de threads = mucha memoria
+//    Prefiere ScopedValue (final en JDK 25): inmutable y con alcance acotado
+private static final ScopedValue<User> CURRENT_USER = ScopedValue.newInstance();
+
+ScopedValue.where(CURRENT_USER, user).run(() -> handleRequest());
+// dentro: CURRENT_USER.get()`,
+                    points: [
+                        tx('Nunca hagas pool de virtual threads: es un antipatrón', 'Never pool virtual threads: it is an anti-pattern'),
+                        tx('Limita recursos escasos con semáforos, no con el tamaño del pool', 'Limit scarce resources with semaphores, not pool size'),
+                        tx('Pinning con synchronized: resuelto en JDK 24; JNI todavía lo causa', 'Pinning with synchronized: fixed in JDK 24; JNI still causes it'),
+                        tx('No ayudan en trabajo CPU-bound: ahí usa platform threads ≈ núcleos', 'They do not help with CPU-bound work: use platform threads ≈ cores there'),
+                    ],
+                },
+                {
+                    topic: tx('Cuándo WebFlux sigue siendo la mejor opción', 'When WebFlux is still the best choice'),
+                    description: tx('Streaming, backpressure y gateways', 'Streaming, backpressure and gateways'),
+                    code: `// 1. Streaming en tiempo real (SSE): WebFlux brilla
+@GetMapping(value = "/prices/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+public Flux<ServerSentEvent<Price>> streamPrices() {
+    return priceService.priceUpdates()          // Flux<Price> infinito
+        .map(p -> ServerSentEvent.builder(p).event("price").build());
+}
+
+// 2. Backpressure: el consumidor marca el ritmo
+public Flux<Result> processAll() {
+    return eventRepository.findAll()             // R2DBC: Flux<Event>
+        .limitRate(100)                          // pide de a 100 elementos
+        .flatMap(this::enrich, 8);               // máx. 8 llamadas concurrentes
+}
+
+// 3. ¿Y si tengo que llamar algo bloqueante (JDBC legacy)?
+//    NUNCA en el event loop: muévelo a un scheduler elástico
+public Mono<Report> legacyReport(String id) {
+    return Mono.fromCallable(() -> legacyJdbcDao.load(id))   // bloqueante
+        .subscribeOn(Schedulers.boundedElastic());           // fuera del event loop
+}
+// BlockHound detecta llamadas bloqueantes en el event loop durante los tests.`,
+                    points: [
+                        tx('Streaming continuo: SSE, WebSocket, cotizaciones, chat, IoT', 'Continuous streaming: SSE, WebSocket, price feeds, chat, IoT'),
+                        tx('Backpressure entre productor y consumidor (limitRate, flatMap con concurrencia)', 'Backpressure between producer and consumer (limitRate, flatMap with concurrency)'),
+                        tx('Gateways/proxies con muchísimas conexiones abiertas (Spring Cloud Gateway)', 'Gateways/proxies with huge numbers of open connections (Spring Cloud Gateway)'),
+                        tx('Un bloqueo en el event loop frena a TODOS los requests', 'One block on the event loop stalls ALL requests'),
+                    ],
+                },
+                {
+                    topic: tx('Cómo decidir', 'How to decide'),
+                    description: tx('Escenario → elección', 'Scenario → choice'),
+                    table: {
+                        headers: [tx('Escenario', 'Scenario'), tx('Elección', 'Choice')],
+                        rows: [
+                            [tx('API REST / CRUD con base relacional y llamadas a otras APIs', 'REST / CRUD API with a relational DB and calls to other APIs'), 'MVC + Virtual Threads'],
+                            [tx('Equipo productivo con código bloqueante y JPA', 'Team productive with blocking code and JPA'), 'MVC + Virtual Threads'],
+                            [tx('Streaming en tiempo real (SSE, WebSocket)', 'Real-time streaming (SSE, WebSocket)'), 'WebFlux'],
+                            [tx('Gateway / proxy con miles de conexiones abiertas', 'Gateway / proxy with thousands of open connections'), 'WebFlux'],
+                            [tx('Necesitas backpressure de punta a punta', 'You need end-to-end backpressure'), 'WebFlux'],
+                            [tx('Trabajo intensivo en CPU', 'CPU-intensive work'), tx('Ninguno: pool de platform threads ≈ núcleos', 'Neither: platform thread pool ≈ cores')],
+                            [tx('App WebFlux existente que funciona bien', 'Existing WebFlux app that works well'), tx('No migres solo por moda', 'Do not migrate just because it is trendy')],
+                        ],
+                    },
+                    points: [
+                        tx('Respuesta corta: "Para un servicio nuevo tipo CRUD elijo MVC con Virtual Threads: escala con I/O y mantiene código simple, debuggeable y compatible con JPA. Uso WebFlux cuando necesito streaming o backpressure."', 'Short answer: "For a new CRUD-style service I pick MVC with Virtual Threads: it scales with I/O and keeps code simple, debuggable and JPA-compatible. I use WebFlux when I need streaming or backpressure."'),
+                    ],
+                },
+                {
+                    topic: tx('Preguntas de entrevista', 'Interview questions'),
+                    description: tx('Respuestas cortas y precisas', 'Short, precise answers'),
+                    qa: [
+                        {
+                            q: tx('¿Los Virtual Threads reemplazan a WebFlux?', 'Do Virtual Threads replace WebFlux?'),
+                            a: tx('No del todo. Resuelven el motivo principal por el que muchos adoptaban WebFlux (escalar con I/O sin agotar threads) pero con código imperativo. WebFlux sigue siendo superior para streaming, backpressure y pipelines reactivos de punta a punta.', 'Not entirely. They solve the main reason many adopted WebFlux (scaling with I/O without running out of threads) but with imperative code. WebFlux is still better for streaming, backpressure and end-to-end reactive pipelines.'),
+                        },
+                        {
+                            q: tx('¿Los Virtual Threads hacen más rápido mi código?', 'Do Virtual Threads make my code faster?'),
+                            a: tx('No. Un request tarda lo mismo y el trabajo de CPU no mejora. Lo que mejora es el throughput: más requests concurrentes cuando la mayoría del tiempo se pasa esperando I/O.', 'No. A single request takes the same time and CPU work does not improve. What improves is throughput: more concurrent requests when most time is spent waiting on I/O.'),
+                        },
+                        {
+                            q: tx('¿Qué es el pinning?', 'What is pinning?'),
+                            a: tx('Cuando un virtual thread no puede desmontarse de su carrier al bloquear, y lo ocupa. Pasaba con synchronized hasta JDK 23 (resuelto en JDK 24 con JEP 491) y sigue pasando con llamadas nativas. Se detecta con el evento JFR jdk.VirtualThreadPinned.', 'When a virtual thread cannot unmount from its carrier while blocking, so it holds it. It happened with synchronized up to JDK 23 (fixed in JDK 24 by JEP 491) and still happens with native calls. Detect it with the JFR event jdk.VirtualThreadPinned.'),
+                        },
+                        {
+                            q: tx('Con Virtual Threads, ¿mi base de datos aguanta 10.000 requests concurrentes?', 'With Virtual Threads, can my database handle 10,000 concurrent requests?'),
+                            a: tx('No necesariamente: el cuello de botella pasa al pool de conexiones y a los servicios downstream. El pool de HikariCP sigue limitando, y para otros recursos uso semáforos, rate limiting o bulkheads.', 'Not necessarily: the bottleneck moves to the connection pool and downstream services. The HikariCP pool still caps it, and for other resources I use semaphores, rate limiting or bulkheads.'),
+                        },
+                        {
+                            q: tx('¿Puedo usar JPA con WebFlux?', 'Can I use JPA with WebFlux?'),
+                            a: tx('No de forma correcta: JDBC/JPA bloquean el event loop. Las opciones son R2DBC (reactivo) o envolver las llamadas con subscribeOn(Schedulers.boundedElastic()), perdiendo parte del beneficio. Si el proyecto depende de JPA, MVC con Virtual Threads es la mejor opción.', 'Not properly: JDBC/JPA block the event loop. Options are R2DBC (reactive) or wrapping calls with subscribeOn(Schedulers.boundedElastic()), losing part of the benefit. If the project relies on JPA, MVC with Virtual Threads is the better choice.'),
+                        },
+                        {
+                            q: tx('¿Por qué no se hace pool de virtual threads?', 'Why are virtual threads not pooled?'),
+                            a: tx('Porque crearlos es barato: su stack vive en el heap y crece según lo necesite, en lugar de reservar ~1 MB como un thread del SO. El pool existía para reutilizar threads caros. Se crea uno por tarea con newVirtualThreadPerTaskExecutor(), y para limitar concurrencia se usa un Semaphore.', 'Because they are cheap to create: their stack lives on the heap and grows as needed, instead of reserving ~1 MB like an OS thread. Pools existed to reuse expensive threads. Create one per task with newVirtualThreadPerTaskExecutor(), and use a Semaphore to limit concurrency.'),
+                        },
+                    ],
+                },
+            ],
+        },
         boot4: {
             id: 'boot4',
             title: 'Spring Boot 4 (2025)',
@@ -713,17 +1073,18 @@ public class UserService {
                 },
                 {
                     topic: 'Virtual Threads Out-of-the-Box',
-                    description: tx('Spring Boot 4 soporta Virtual Threads (Project Loom) sin configuración adicional. Maneja millones de requests con menos memoria', 'Spring Boot 4 supports Virtual Threads (Project Loom) out-of-the-box. Handles millions of requests with less memory'),
-                    code: `# application.properties - Spring Boot 4
-# Habilitar Virtual Threads (default en SB4 con JDK 21+)
+                    description: tx('Con JDK 21+ se activan con una sola propiedad (desactivada por defecto). Muchos más requests concurrentes con I/O bloqueante', 'With JDK 21+ they are enabled with a single property (off by default). Far more concurrent requests with blocking I/O'),
+                    code: `# application.properties
+# Desactivado por defecto: hay que activarlo explícitamente (JDK 21+)
 spring.threads.virtual.enabled=true
 
-# Tomcat usa Virtual Threads automáticamente
-# No necesitas configurar thread pools manualmente
+# Tomcat/Jetty atienden cada request en un Virtual Thread
+# No necesitas dimensionar el thread pool de Tomcat
 
-# Resultado: cada request HTTP corre en un Virtual Thread
-# - Antes (SB3): 200-400 platform threads por instancia
-# - SB4 + Virtual Threads: millones de threads ligeros
+# Resultado:
+# - Sin Virtual Threads: ~200 platform threads por instancia (server.tomcat.threads.max)
+# - Con Virtual Threads: miles de requests concurrentes esperando I/O
+#   (el límite real pasa a ser el pool de la DB y los servicios downstream)
 
 // También disponible en código
 @Bean
@@ -734,7 +1095,8 @@ public TomcatProtocolHandlerCustomizer<?> protocolHandler() {
                     points: [
                         tx('spring.threads.virtual.enabled=true - configuración simple', 'spring.threads.virtual.enabled=true - simple config'),
                         tx('Tomcat y Jetty usan Virtual Threads automáticamente', 'Tomcat and Jetty use Virtual Threads automatically'),
-                        tx('Escala a millones de conexiones concurrentes', 'Scales to millions of concurrent connections'),
+                        tx('Escala a miles de requests concurrentes limitados por I/O', 'Scales to thousands of concurrent I/O-bound requests'),
+                        tx('Comparación completa en la sección "WebFlux vs Virtual Threads"', 'Full comparison in the "WebFlux vs Virtual Threads" section'),
                         tx('Sin cambios en tu código de negocio existente', 'No changes to your existing business code'),
                         tx('Requiere JDK 21+ (JDK 25 LTS recomendado)', 'Requires JDK 21+ (JDK 25 LTS recommended)')
                     ]
@@ -1237,14 +1599,48 @@ resilience4j:
                                         className="overflow-hidden"
                                     >
                                         <div className="px-5 pb-5">
-                                            {/* Code */}
-                                            <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 mb-4 overflow-x-auto">
-                                                <CodeBlock code={item.code} language="java" />
-                                            </div>
+                                            {item.table && (
+                                                <div className="overflow-x-auto border border-green-500/20 rounded-lg mb-4">
+                                                    <table className="w-full text-xs">
+                                                        <thead className="bg-green-500/10">
+                                                            <tr>
+                                                                {item.table.headers.map((h, hIdx) => (
+                                                                    <th key={hIdx} className="text-left px-3 py-2 text-green-300 font-semibold whitespace-nowrap">{h}</th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {item.table.rows.map((row, rIdx) => (
+                                                                <tr key={rIdx} className="border-t border-slate-800">
+                                                                    {row.map((cell, cIdx) => (
+                                                                        <td key={cIdx} className={`px-3 py-2 align-top ${cIdx === 0 ? 'text-slate-200 font-semibold' : 'text-slate-400'}`}>{cell}</td>
+                                                                    ))}
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
 
-                                            {/* Points */}
+                                            {item.code && (
+                                                <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 mb-4 overflow-x-auto">
+                                                    <CodeBlock code={item.code} language={item.language || 'java'} />
+                                                </div>
+                                            )}
+
+                                            {item.qa && (
+                                                <div className="space-y-3 mb-2">
+                                                    {item.qa.map((qaItem, qIdx) => (
+                                                        <div key={qIdx} className="border border-slate-800 rounded-lg p-3">
+                                                            <p className="text-sm font-semibold text-green-300 mb-1">{qaItem.q}</p>
+                                                            <p className="text-sm text-slate-400 leading-relaxed">{qaItem.a}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
                                             <ul className="space-y-2">
-                                                {item.points.map((point, pIdx) => (
+                                                {(item.points || []).map((point, pIdx) => (
                                                     <li key={pIdx} className="flex items-start gap-2 text-slate-300 text-sm">
                                                         <span className="text-green-400">•</span>
                                                         <span>{point}</span>

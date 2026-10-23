@@ -79,6 +79,7 @@ export function buildSearchIndex(language) {
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Core', title: 'Dependency Injection', preview: isEs ? 'Inyección de dependencias en Spring' : 'Dependency injection in Spring' },
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Core', title: 'Bean Scopes', preview: isEs ? 'Singleton, Prototype, Request, Session' : 'Singleton, Prototype, Request, Session' },
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Data', title: 'JPA Repositories', preview: isEs ? 'CRUD sin escribir SQL' : 'CRUD without writing SQL' },
+    { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: isEs ? 'Concurrencia' : 'Concurrency', title: 'WebFlux vs Virtual Threads', preview: isEs ? 'MVC clásico vs Virtual Threads vs WebFlux: tabla comparativa, mismo endpoint en ambos estilos, pinning, ScopedValue y cuándo elegir cada uno.' : 'Classic MVC vs Virtual Threads vs WebFlux: comparison table, same endpoint in both styles, pinning, ScopedValue and when to choose each.' },
     { tab: 'spring', tabName: 'Spring Pro', tabColor: 'bg-green-500/20 text-green-400', section: 'Spring Boot 4', title: 'Virtual Threads Out-of-the-Box', preview: isEs ? 'Spring Boot 4 - soporte nativo de Project Loom' : 'Spring Boot 4 - native Project Loom support' },
 
     // React

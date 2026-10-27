@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useStudyMode } from '../contexts/StudyModeContext';
@@ -75,15 +75,78 @@ const monokaiTheme = {
     'italic': { fontStyle: 'italic' },
 };
 
-function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
+const highlightStyles = {
+    bad: { background: 'rgba(239, 68, 68, 0.18)', boxShadow: 'inset 3px 0 0 #ef4444' },
+    good: { background: 'rgba(34, 197, 94, 0.16)', boxShadow: 'inset 3px 0 0 #22c55e' },
+};
+
+function CodeBlock({
+    code,
+    language = 'javascript',
+    showLineNumbers = false,
+    highlightLines = [],
+    highlightTone = 'bad',
+    collapsible = true,
+}) {
     const { language: currentLanguage } = useLanguage();
     const { studyMode } = useStudyMode();
-    const [isOpen, setIsOpen] = useState(!studyMode);
+    const [isOpen, setIsOpen] = useState(!collapsible || !studyMode);
+    const [prevStudyMode, setPrevStudyMode] = useState(studyMode);
     const common = t('common', currentLanguage);
 
-    useEffect(() => {
-        if (studyMode) setIsOpen(false);
-    }, [studyMode]);
+    // Collapse when study mode is switched on (adjusting state during render)
+    if (studyMode !== prevStudyMode) {
+        setPrevStudyMode(studyMode);
+        if (studyMode && collapsible) setIsOpen(false);
+    }
+
+    // Optional line highlighting (1-based line numbers)
+    const highlighted = new Set(highlightLines);
+    const lineProps = highlighted.size > 0
+        ? (lineNumber) => ({
+            style: highlighted.has(lineNumber)
+                ? { display: 'block', ...highlightStyles[highlightTone] }
+                : { display: 'block' },
+        })
+        : undefined;
+
+    const codeView = (
+        <div className="relative rounded-lg overflow-hidden shadow-lg w-full">
+            {/* Gradient top border */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-cyan-400 to-green-400 z-10"></div>
+
+            {/* Language badge */}
+            <div className="absolute top-3 right-3 z-10">
+                <span className="px-2 py-1 bg-slate-800/80 backdrop-blur-sm text-slate-300 text-xs font-semibold rounded border border-slate-700">
+                    {language.toUpperCase()}
+                </span>
+            </div>
+
+            {/* Code block */}
+            <SyntaxHighlighter
+                language={language}
+                style={monokaiTheme}
+                showLineNumbers={showLineNumbers}
+                wrapLines={highlighted.size > 0}
+                lineProps={lineProps}
+                customStyle={{
+                    margin: 0,
+                    paddingTop: '2rem',
+                    background: '#272822',
+                    fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
+                }}
+                codeTagProps={{
+                    style: {
+                        fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
+                    }
+                }}
+            >
+                {code}
+            </SyntaxHighlighter>
+        </div>
+    );
+
+    if (!collapsible) return codeView;
 
     if (!isOpen) {
         return (
@@ -107,37 +170,7 @@ function CodeBlock({ code, language = 'javascript', showLineNumbers = false }) {
                 <span>{common.hideExample}</span>
             </button>
 
-            <div className="relative rounded-lg overflow-hidden shadow-lg w-full">
-                {/* Gradient top border */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-cyan-400 to-green-400 z-10"></div>
-
-                {/* Language badge */}
-                <div className="absolute top-3 right-3 z-10">
-                    <span className="px-2 py-1 bg-slate-800/80 backdrop-blur-sm text-slate-300 text-xs font-semibold rounded border border-slate-700">
-                        {language.toUpperCase()}
-                    </span>
-                </div>
-
-                {/* Code block */}
-                <SyntaxHighlighter
-                    language={language}
-                    style={monokaiTheme}
-                    showLineNumbers={showLineNumbers}
-                    customStyle={{
-                        margin: 0,
-                        paddingTop: '2rem',
-                        background: '#272822',
-                        fontSize: 'clamp(0.75rem, 2vw, 0.875rem)',
-                    }}
-                    codeTagProps={{
-                        style: {
-                            fontFamily: 'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace',
-                        }
-                    }}
-                >
-                    {code}
-                </SyntaxHighlighter>
-            </div>
+            {codeView}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
-import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit, Smartphone } from 'lucide-react';
+import { Code, Box, Puzzle, Network, Search, Cloud, Coffee, Star, BookOpen, Sun, Moon, GitBranch, Bot, Globe, BrainCircuit, Smartphone, Wrench } from 'lucide-react';
 import { SiSpring, SiReact, SiAngular, SiNodedotjs, SiDocker, SiJavascript, SiGraphql, SiPython, SiKotlin, SiApachekafka, SiHtml5 } from 'react-icons/si';
 import SearchBar from './components/SearchBar';
 import LanguageToggle from './components/LanguageToggle';
@@ -35,6 +35,7 @@ const AILLMPro = lazy(() => import('./components/AILLMPro'));
 const APIDesignPro = lazy(() => import('./components/APIDesignPro'));
 const GitAdvancedPro = lazy(() => import('./components/GitAdvancedPro'));
 const KafkaPro = lazy(() => import('./components/KafkaPro'));
+const DevOpsToolbox = lazy(() => import('./components/DevOpsToolbox'));
 
 const LoadingSpinner = () => (
   <div className="flex items-center justify-center h-64">
@@ -92,6 +93,7 @@ function App() {
     { id: 'cloud', category: 'clouddevops', name: common.tabCloud, icon: Cloud, color: 'text-sky-400', bgColor: 'bg-sky-500/10' },
     { id: 'containers', category: 'clouddevops', name: common.tabContainers, icon: SiDocker, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
     { id: 'git', category: 'clouddevops', name: common.tabGit, icon: GitBranch, color: 'text-rose-400', bgColor: 'bg-rose-500/10' },
+    { id: 'toolbox', category: 'clouddevops', name: common.tabToolbox, icon: Wrench, color: 'text-teal-400', bgColor: 'bg-teal-500/10' },
     { id: 'testing', category: 'databases', name: common.tabTesting, icon: Code, color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
     { id: 'databases', category: 'databases', name: common.tabDatabases, icon: Network, color: 'text-violet-400', bgColor: 'bg-violet-500/10' },
     { id: 'security', category: 'databases', name: common.tabSecurity, icon: Box, color: 'text-red-400', bgColor: 'bg-red-500/10' },
@@ -190,6 +192,7 @@ function App() {
       case 'apidesign': return <APIDesignPro />;
       case 'git': return <GitAdvancedPro />;
       case 'kafka': return <KafkaPro />;
+      case 'toolbox': return <DevOpsToolbox />;
       default: return <CleanCode />;
     }
   };

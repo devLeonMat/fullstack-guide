@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowRight, BookOpen, CheckCircle, ListChecks, RotateCcw } from 'lucide-react';
+import { ArrowRight, CheckCircle, RotateCcw } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Blocks } from './solid/LessonBlocks';
 import { Inline } from './solid/Inline';
 import Exercise from './solid/Exercise';
 import PrincipleLesson from './solid/PrincipleLesson';
+import Tabs from './solid/Tabs';
+import { Pictogram, VisualMap } from './solid/Diagrams';
 import { useSolidProgress } from './solid/useSolidProgress';
 import { ACCENTS, FOCUS_RING } from './solid/theme';
 import { buildIntro, buildLessons, buildReview } from './solid/lessons/index.js';
@@ -61,10 +63,68 @@ const ProgressBar = ({ lessons, completed, onReset, tx }) => {
 
 // ─── Intro: ¿Qué es SOLID? ─────────────────────────────────────────────────────
 
+const PrincipleCards = ({ lessons, completed, onStart, tx }) => (
+  <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+    {lessons.map(l => {
+      const accent = ACCENTS[l.color];
+      const isDone = completed.includes(l.id);
+      return (
+        <li key={l.id} className={`flex flex-col rounded-xl border ${accent.border} bg-slate-800/30 p-4 space-y-3`}>
+          <div className="flex items-start gap-3">
+            <span className={`shrink-0 w-11 h-11 rounded-xl ${accent.bg} border ${accent.border} flex items-center justify-center text-2xl font-black ${accent.text}`} aria-hidden="true">
+              {l.letter}
+            </span>
+            <div className="min-w-0">
+              <h4 className="text-sm font-bold text-slate-100">{l.nameEn}</h4>
+              <p className="text-xs text-slate-400">{tx('', 'ES: ')}{l.nameEs}</p>
+            </div>
+            {isDone && <CheckCircle className="ml-auto w-5 h-5 shrink-0 text-green-400" aria-label={tx('Completado', 'Completed')} />}
+          </div>
+          <Pictogram letter={l.letter} tx={tx} className={`w-full h-16 ${accent.text}`} />
+          <p className="text-sm text-slate-300 leading-relaxed"><Inline text={l.definition} /></p>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            <span className="font-semibold text-slate-300">{tx('Resuelve: ', 'Solves: ')}</span>
+            <Inline text={l.solves} />
+          </p>
+          <button
+            type="button"
+            onClick={() => onStart(l.id)}
+            className={`mt-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${accent.border} ${accent.bg} text-sm font-semibold ${accent.text} hover:bg-slate-800/50 ${FOCUS_RING}`}
+          >
+            {isDone ? tx('Repasar', 'Review') : tx('Comenzar', 'Start')}
+            <span className="sr-only"> {l.nameEn}</span>
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </li>
+      );
+    })}
+  </ul>
+);
+
+const StudyPath = ({ intro, tx }) => (
+  <div className="space-y-4">
+    <ol className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      {intro.path.map((item, i) => (
+        <li key={item} className="flex items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2 text-xs text-slate-300">
+          <span className="shrink-0 font-black text-violet-300">{i + 1}</span>
+          {item}
+        </li>
+      ))}
+    </ol>
+    <p className="text-sm text-slate-400">
+      {tx(
+        'Cada principio tiene 10 pestañas: idea, diagrama, escenario, código incorrecto, por qué está mal, código corregido, comparación, Spring Boot, regla y ejercicio. Para repasar antes de una entrevista, ve directo a «Diagrama» y «Regla».',
+        'Each principle has 10 tabs: idea, diagram, scenario, problematic code, why it is wrong, fixed code, comparison, Spring Boot, rule and exercise. To review before an interview, jump straight to "Diagram" and "Rule".'
+      )}
+    </p>
+    <Blocks blocks={intro.notSolid} tx={tx} />
+  </div>
+);
+
 const IntroView = ({ intro, lessons, completed, onStart, headingRef, tx }) => (
-  <div className="space-y-8">
+  <div className="space-y-6">
     <header className="relative space-y-2">
-      <div className="absolute top-0 right-0 text-[64px] lg:text-[80px] font-black text-violet-500/10 select-none pointer-events-none leading-none" aria-hidden="true">
+      <div className="absolute top-0 right-0 text-[56px] lg:text-[72px] font-black text-violet-500/10 select-none pointer-events-none leading-none" aria-hidden="true">
         SOLID
       </div>
       <h2 ref={headingRef} tabIndex={-1} className="relative z-10 text-xl lg:text-3xl font-bold text-white focus:outline-none">
@@ -72,82 +132,103 @@ const IntroView = ({ intro, lessons, completed, onStart, headingRef, tx }) => (
       </h2>
       <p className="relative z-10 text-slate-400 text-sm max-w-2xl">
         {tx(
-          'Una clase práctica, de Senior a Junior: cinco principios explicados con problemas reales de banca, código Java que falla, cómo corregirlo y ejercicios para comprobar que lo entendiste.',
-          'A hands-on class, from Senior to Junior: five principles explained with real banking problems, Java code that fails, how to fix it and exercises to check your understanding.'
+          'Cinco principios explicados con problemas reales de banca, código Java que falla, cómo corregirlo y ejercicios para comprobar que lo entendiste.',
+          'Five principles explained with real banking problems, Java code that fails, how to fix it and exercises to check your understanding.'
         )}
       </p>
     </header>
 
-    <Blocks blocks={intro.blocks} tx={tx} />
-
-    <section aria-labelledby="solid-path-title" className="space-y-3">
-      <h3 id="solid-path-title" className="flex items-center gap-2 text-base font-bold text-slate-100">
-        <ListChecks className="w-5 h-5 text-violet-400" aria-hidden="true" />
-        {tx('Cómo vas a aprender cada principio', 'How you will learn each principle')}
-      </h3>
-      <ol className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {intro.path.map((item, i) => (
-          <li key={item} className="flex items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2 text-xs text-slate-300">
-            <span className="shrink-0 font-black text-violet-300">{i + 1}</span>
-            {item}
-          </li>
-        ))}
-      </ol>
-      <p className="text-xs text-slate-500">
-        {tx(
-          'Cada lección sigue los mismos 9 pasos: explicación sencilla, escenario real, código incorrecto, por qué está mal, código corregido, comparación, aplicación profesional, regla para recordar y ejercicio.',
-          'Each lesson follows the same 9 steps: plain explanation, real scenario, problematic code, why it is wrong, fixed code, comparison, professional use, rule to remember and exercise.'
-        )}
-      </p>
-    </section>
-
-    <section aria-labelledby="solid-cards-title" className="space-y-3">
-      <h3 id="solid-cards-title" className="flex items-center gap-2 text-base font-bold text-slate-100">
-        <BookOpen className="w-5 h-5 text-violet-400" aria-hidden="true" />
-        {tx('Los cinco principios', 'The five principles')}
-      </h3>
-      <ul className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-        {lessons.map(l => {
-          const accent = ACCENTS[l.color];
-          const isDone = completed.includes(l.id);
-          return (
-            <li key={l.id} className={`flex flex-col rounded-xl border ${accent.border} bg-slate-800/30 p-4 space-y-3`}>
-              <div className="flex items-start gap-3">
-                <span className={`shrink-0 w-11 h-11 rounded-xl ${accent.bg} border ${accent.border} flex items-center justify-center text-2xl font-black ${accent.text}`} aria-hidden="true">
-                  {l.letter}
-                </span>
-                <div className="min-w-0">
-                  <h4 className="text-sm font-bold text-slate-100">{l.nameEn}</h4>
-                  <p className="text-xs text-slate-400">{tx('', 'ES: ')}{l.nameEs}</p>
-                </div>
-                {isDone && <CheckCircle className="ml-auto w-5 h-5 shrink-0 text-green-400" aria-label={tx('Completado', 'Completed')} />}
-              </div>
-              <p className="text-sm text-slate-300 leading-relaxed"><Inline text={l.definition} /></p>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                <span className="font-semibold text-slate-300">{tx('Resuelve: ', 'Solves: ')}</span>
-                <Inline text={l.solves} />
-              </p>
-              <button
-                type="button"
-                onClick={() => onStart(l.id)}
-                className={`mt-auto inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg border ${accent.border} ${accent.bg} text-sm font-semibold ${accent.text} hover:bg-slate-800/50 ${FOCUS_RING}`}
-              >
-                {isDone ? tx('Repasar', 'Review') : tx('Comenzar', 'Start')}
-                <span className="sr-only"> {l.nameEn}</span>
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
+    <Tabs
+      label={tx('Introducción a SOLID', 'Introduction to SOLID')}
+      tx={tx}
+      sticky
+      items={[
+        { id: 'what', label: tx('¿Qué es?', 'What is it?'), content: <Blocks blocks={intro.what} tx={tx} /> },
+        { id: 'principles', label: tx('Los 5 principios', 'The 5 principles'), content: <PrincipleCards lessons={lessons} completed={completed} onStart={onStart} tx={tx} /> },
+        { id: 'map', label: tx('Mapa visual', 'Visual map'), content: <VisualMap lessons={lessons} accents={ACCENTS} tx={tx} onOpen={onStart} /> },
+        { id: 'analogy', label: tx('Analogía', 'Analogy'), content: <Blocks blocks={intro.analogy} tx={tx} /> },
+        { id: 'study', label: tx('Cómo estudiar', 'How to study'), content: <StudyPath intro={intro} tx={tx} /> },
+      ]}
+    />
   </div>
 );
 
 // ─── Review: comparison table + mixed quiz ─────────────────────────────────────
 
+const ComparisonTable = ({ lessons, tx }) => (
+  <>
+    <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-700/50">
+      <table className="w-full min-w-[720px] text-xs text-left">
+        <caption className="sr-only">{tx('Tabla comparativa de SOLID', 'SOLID comparison table')}</caption>
+        <thead className="bg-slate-800/50">
+          <tr>
+            <th scope="col" className="px-3 py-2 text-slate-300">{tx('Principio', 'Principle')}</th>
+            <th scope="col" className="px-3 py-2 text-slate-300">{tx('Pregunta clave', 'Key question')}</th>
+            <th scope="col" className="px-3 py-2 text-slate-300">{tx('Señal de alerta', 'Warning sign')}</th>
+            <th scope="col" className="px-3 py-2 text-slate-300">{tx('Solución típica', 'Typical fix')}</th>
+            <th scope="col" className="px-3 py-2 text-slate-300">{tx('En esta guía', 'In this guide')}</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-800">
+          {lessons.map(l => (
+            <tr key={l.id}>
+              <th scope="row" className="px-3 py-2 align-top">
+                <span className={`text-lg font-black ${ACCENTS[l.color].text}`}>{l.letter}</span>
+                <span className="block text-slate-300 font-medium">{l.nameEn}</span>
+              </th>
+              <td className="px-3 py-2 align-top text-slate-200"><Inline text={l.summary.question} /></td>
+              <td className="px-3 py-2 align-top text-slate-400"><Inline text={l.summary.signal} /></td>
+              <td className="px-3 py-2 align-top text-slate-400"><Inline text={l.summary.solution} /></td>
+              <td className="px-3 py-2 align-top text-slate-400 font-mono text-[11px]">{l.summary.example}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <ul className="md:hidden space-y-2">
+      {lessons.map(l => (
+        <li key={l.id} className={`rounded-xl border ${ACCENTS[l.color].border} bg-slate-800/30 p-3 space-y-1.5 text-xs`}>
+          <p className="text-sm font-bold text-slate-100">
+            <span className={`font-black ${ACCENTS[l.color].text}`}>{l.letter}</span> — {l.nameEn}
+          </p>
+          <p className="text-slate-200"><Inline text={l.summary.question} /></p>
+          <p className="text-slate-400"><span className="font-semibold text-slate-300">{tx('Señal: ', 'Sign: ')}</span><Inline text={l.summary.signal} /></p>
+          <p className="text-slate-400"><span className="font-semibold text-slate-300">{tx('Solución: ', 'Fix: ')}</span><Inline text={l.summary.solution} /></p>
+        </li>
+      ))}
+    </ul>
+  </>
+);
+
+const LensCompare = ({ review, lessons, tx }) => (
+  <div className="space-y-3">
+    <p className="text-sm text-slate-300 leading-relaxed">
+      <Inline text={tx(
+        'Los tres hablan de interfaces, por eso se confunden. Pero miran cosas diferentes. Tomemos `CuentaRepository`:',
+        'All three talk about interfaces, which is why they get mixed up. But they look at different things. Take `CuentaRepository`:'
+      )} />
+    </p>
+    <ul className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {review.lens.map(item => {
+        const accent = ACCENTS[lessons.find(l => l.letter === item.letter).color];
+        return (
+          <li key={item.letter} className={`rounded-xl border ${accent.border} bg-slate-800/30 p-4 space-y-2`}>
+            <p className={`text-2xl font-black ${accent.text}`} aria-hidden="true">{item.letter}</p>
+            <h4 className="text-sm font-bold text-slate-100">{item.title}</h4>
+            <p className="text-sm text-slate-300"><Inline text={item.question} /></p>
+            <p className="text-xs text-slate-400 leading-relaxed"><Inline text={item.example} /></p>
+          </li>
+        );
+      })}
+    </ul>
+    <p className="rounded-xl border-l-4 border-violet-500 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-slate-100">
+      {tx('Para recordarlo: LSP = comportamiento · ISP = tamaño · DIP = dirección.', 'To remember: LSP = behavior · ISP = size · DIP = direction.')}
+    </p>
+  </div>
+);
+
 const ReviewView = ({ review, lessons, headingRef, tx }) => {
-  const letters = lessons.map(l => l.letter);
+  const [solved, setSolved] = useState([]);
   const quiz = review.quiz.map(q => ({
     id: q.id,
     prompt: q.prompt,
@@ -163,9 +244,30 @@ const ReviewView = ({ review, lessons, headingRef, tx }) => {
         ),
     })),
   }));
+  const onSolved = (id) => setSolved(prev => (prev.includes(id) ? prev : [...prev, id]));
+
+  const quizPanel = (
+    <div className="space-y-3">
+      <p className="text-sm text-slate-400">
+        {tx('Elige la letra que mejor describe el problema principal de cada caso.', 'Pick the letter that best describes each case\'s main problem.')}
+        {' '}<span className="font-semibold text-slate-300">{solved.length}/{quiz.length}</span>
+      </p>
+      <Tabs
+        variant="secondary"
+        label={tx('Casos del repaso', 'Review cases')}
+        tx={tx}
+        items={quiz.map((q, i) => ({
+          id: q.id,
+          label: <>{tx('Caso', 'Case')} {i + 1}{solved.includes(q.id) && <CheckCircle className="w-3.5 h-3.5 text-green-400" aria-label={tx('resuelto', 'solved')} />}</>,
+          navLabel: `${tx('Caso', 'Case')} ${i + 1}`,
+          content: <Exercise question={q} number={i + 1} tx={tx} onSolved={onSolved} />,
+        }))}
+      />
+    </div>
+  );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <header className="space-y-2">
         <h2 ref={headingRef} tabIndex={-1} className="text-xl lg:text-3xl font-bold text-white focus:outline-none">
           {tx('Resumen y repaso', 'Summary and review')}
@@ -175,82 +277,18 @@ const ReviewView = ({ review, lessons, headingRef, tx }) => {
         </p>
       </header>
 
-      <section aria-labelledby="solid-table-title" className="space-y-3">
-        <h3 id="solid-table-title" className="text-base font-bold text-slate-100">{tx('Tabla comparativa de SOLID', 'SOLID comparison table')}</h3>
-        <div className="overflow-x-auto rounded-xl border border-slate-700/50">
-          <table className="w-full min-w-[720px] text-xs text-left">
-            <thead className="bg-slate-800/50">
-              <tr>
-                <th scope="col" className="px-3 py-2 text-slate-300">{tx('Principio', 'Principle')}</th>
-                <th scope="col" className="px-3 py-2 text-slate-300">{tx('Pregunta clave', 'Key question')}</th>
-                <th scope="col" className="px-3 py-2 text-slate-300">{tx('Señal de alerta', 'Warning sign')}</th>
-                <th scope="col" className="px-3 py-2 text-slate-300">{tx('Solución típica', 'Typical fix')}</th>
-                <th scope="col" className="px-3 py-2 text-slate-300">{tx('En esta guía', 'In this guide')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {lessons.map(l => (
-                <tr key={l.id}>
-                  <th scope="row" className="px-3 py-2 align-top">
-                    <span className={`text-lg font-black ${ACCENTS[l.color].text}`}>{l.letter}</span>
-                    <span className="block text-slate-300 font-medium">{l.nameEn}</span>
-                  </th>
-                  <td className="px-3 py-2 align-top text-slate-200"><Inline text={l.summary.question} /></td>
-                  <td className="px-3 py-2 align-top text-slate-400"><Inline text={l.summary.signal} /></td>
-                  <td className="px-3 py-2 align-top text-slate-400"><Inline text={l.summary.solution} /></td>
-                  <td className="px-3 py-2 align-top text-slate-400 font-mono text-[11px]">{l.summary.example}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section aria-labelledby="solid-lens-title" className="space-y-3">
-        <h3 id="solid-lens-title" className="text-base font-bold text-slate-100">
-          {tx('LSP, ISP y DIP: misma interfaz, tres preguntas distintas', 'LSP, ISP and DIP: same interface, three different questions')}
-        </h3>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          <Inline text={tx(
-            'Los tres hablan de interfaces, por eso se confunden. Pero miran cosas diferentes. Tomemos `CuentaRepository`:',
-            'All three talk about interfaces, which is why they get mixed up. But they look at different things. Take `CuentaRepository`:'
-          )} />
-        </p>
-        <ul className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {review.lens.map(item => {
-            const lesson = lessons.find(l => l.letter === item.letter);
-            const accent = ACCENTS[lesson.color];
-            return (
-              <li key={item.letter} className={`rounded-xl border ${accent.border} bg-slate-800/30 p-4 space-y-2`}>
-                <p className={`text-2xl font-black ${accent.text}`} aria-hidden="true">{item.letter}</p>
-                <h4 className="text-sm font-bold text-slate-100">{item.title}</h4>
-                <p className="text-sm text-slate-300"><Inline text={item.question} /></p>
-                <p className="text-xs text-slate-400 leading-relaxed"><Inline text={item.example} /></p>
-              </li>
-            );
-          })}
-        </ul>
-        <p className="rounded-xl border-l-4 border-violet-500 bg-violet-500/10 px-4 py-3 text-sm font-semibold text-slate-100">
-          {tx('Para recordarlo: LSP = comportamiento · ISP = tamaño · DIP = dirección.', 'To remember: LSP = behavior · ISP = size · DIP = direction.')}
-        </p>
-      </section>
-
-      <section aria-labelledby="solid-quiz-title" className="space-y-3">
-        <h3 id="solid-quiz-title" className="text-base font-bold text-slate-100">
-          {tx('Repaso final: ¿qué principio se viola?', 'Final review: which principle is violated?')}
-        </h3>
-        <p className="text-sm text-slate-400">
-          {tx(`Elige la letra (${letters.join(', ')}) que mejor describe el problema principal de cada caso.`, `Pick the letter (${letters.join(', ')}) that best describes each case's main problem.`)}
-        </p>
-        {quiz.map((q, i) => (
-          <Exercise key={q.id} question={q} number={i + 1} tx={tx} />
-        ))}
-      </section>
-
-      <section aria-labelledby="solid-tips-title" className="space-y-3">
-        <h3 id="solid-tips-title" className="text-base font-bold text-slate-100">{tx('SOLID con criterio', 'SOLID with judgment')}</h3>
-        <Blocks blocks={[{ type: 'list', items: review.tips }]} tx={tx} />
-      </section>
+      <Tabs
+        label={tx('Resumen de SOLID', 'SOLID summary')}
+        tx={tx}
+        sticky
+        items={[
+          { id: 'map', label: tx('Mapa visual', 'Visual map'), content: <VisualMap lessons={lessons} accents={ACCENTS} tx={tx} /> },
+          { id: 'table', label: tx('Tabla comparativa', 'Comparison table'), content: <ComparisonTable lessons={lessons} tx={tx} /> },
+          { id: 'lens', label: 'LSP vs ISP vs DIP', content: <LensCompare review={review} lessons={lessons} tx={tx} /> },
+          { id: 'quiz', label: tx('Quiz final', 'Final quiz'), content: quizPanel },
+          { id: 'tips', label: tx('SOLID con criterio', 'SOLID with judgment'), content: <Blocks blocks={[{ type: 'list', items: review.tips }]} tx={tx} /> },
+        ]}
+      />
     </div>
   );
 };

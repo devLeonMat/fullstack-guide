@@ -58,6 +58,15 @@ for (const [lang, tx] of [['es', es], ['en', en]]) {
       }
     });
 
+    test(`[${lang}] ${lesson.letter}: has a before/after picture`, () => {
+      assert.ok(lesson.visual?.takeaway?.trim(), 'visual.takeaway is empty');
+      for (const side of ['before', 'after']) {
+        const data = lesson.visual[side];
+        assert.ok(data.caption.trim() && data.description.trim(), `${side} needs caption and description`);
+        assert.ok(data.rows.length > 0 && data.rows.every(r => r.length > 0), `${side} needs diagram rows`);
+      }
+    });
+
     test(`[${lang}] ${lesson.letter}: every pedagogical step has content`, () => {
       for (const key of STEP_KEYS) {
         assert.ok(Array.isArray(lesson.steps[key]) && lesson.steps[key].length > 0, `step "${key}" is empty`);
@@ -68,6 +77,7 @@ for (const [lang, tx] of [['es', es], ['en', en]]) {
       assert.ok(lesson.steps.rule.some(b => b.type === 'rule'), 'step 8 needs a rule');
       assert.ok(lesson.steps.rule.some(b => b.type === 'five'), 'step 8 needs the five-questions card');
       assert.ok(types.includes('steps'), 'step 5 must explain the fix progressively');
+      assert.ok(!types.includes('flow'), 'diagrams belong to the separate Diagram tab (lesson.visual)');
     });
 
     test(`[${lang}] ${lesson.letter}: exercises have exactly one correct answer`, () => {
@@ -100,7 +110,10 @@ for (const [lang, tx] of [['es', es], ['en', en]]) {
 
   test(`[${lang}] intro and review are complete`, () => {
     const intro = buildIntro(tx);
-    assert.ok(intro.blocks.length > 0);
+    for (const group of ['what', 'analogy', 'notSolid']) {
+      assert.ok(intro[group]?.length > 0, `intro.${group} is empty`);
+    }
+    assert.ok(intro.what.some(b => b.type === 'callout'), 'intro needs the interview answer');
     assert.equal(intro.path.length, 6);
     const review = buildReview(tx);
     assert.deepEqual(review.lens.map(l => l.letter), ['L', 'I', 'D']);

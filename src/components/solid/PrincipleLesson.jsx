@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, Trophy } from 'lucide-react';
 import { Blocks } from './LessonBlocks';
 import Exercise from './Exercise';
+import { BeforeAfterVisual, Pictogram } from './Diagrams';
+import Tabs from './Tabs';
 import { ACCENTS, FOCUS_RING } from './theme';
 import { STEP_KEYS } from './lessons/index.js';
 
 function stepMeta(tx) {
   return {
     simple: { title: tx('Explicación sencilla', 'Plain explanation'), short: tx('Idea', 'Idea') },
+    visual: { title: tx('Diagrama para recordar', 'Diagram to remember'), short: tx('Diagrama', 'Diagram') },
     scenario: { title: tx('Escenario real', 'Real scenario'), short: tx('Escenario', 'Scenario') },
     bad: { title: tx('Código incorrecto', 'Problematic code'), short: tx('Código ❌', 'Code ❌') },
     why: { title: tx('¿Por qué está mal?', 'Why is it wrong?'), short: tx('Por qué', 'Why') },
@@ -31,7 +34,7 @@ function NavButton({ target, direction, onNavigate, tx }) {
       {direction === 'prev' && <Icon className="w-4 h-4" aria-hidden="true" />}
       <span>
         <span className="block text-[10px] uppercase tracking-wider text-slate-500 text-left">
-          {direction === 'prev' ? tx('Anterior', 'Previous') : tx('Siguiente', 'Next')}
+          {direction === 'prev' ? tx('Principio anterior', 'Previous principle') : tx('Siguiente principio', 'Next principle')}
         </span>
         {target.label}
       </span>
@@ -44,8 +47,6 @@ function PrincipleLesson({ lesson, tx, headingRef, completed, onComplete, prev, 
   const [solved, setSolved] = useState([]);
   const meta = stepMeta(tx);
   const accent = ACCENTS[lesson.color];
-  const keys = [...STEP_KEYS, 'exercise'];
-  const sectionId = (n) => `solid-${lesson.id}-paso-${n}`;
 
   const handleSolved = (questionId) => {
     const nextSolved = solved.includes(questionId) ? solved : [...solved, questionId];
@@ -53,21 +54,76 @@ function PrincipleLesson({ lesson, tx, headingRef, completed, onComplete, prev, 
     if (nextSolved.length === lesson.exercises.length) onComplete(lesson.id);
   };
 
-  const scrollToStep = (n) => {
-    const el = document.getElementById(sectionId(n));
-    if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    el.focus({ preventScroll: true });
-  };
+  const stepTitle = (key, n) => (
+    <h3 className="flex items-center gap-3 text-base lg:text-lg font-bold text-slate-100 mb-4">
+      <span className={`shrink-0 flex h-8 w-8 items-center justify-center rounded-lg border ${accent.border} ${accent.bg} text-sm ${accent.text}`}>
+        {n}
+      </span>
+      <span>
+        <span className="sr-only">{tx('Paso', 'Step')} {n}: </span>
+        {meta[key].title}
+      </span>
+    </h3>
+  );
+
+  const exercisePanel = (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-400">
+        {tx(
+          'Responde sin volver a mirar el código. Si fallas, lee la explicación e inténtalo otra vez.',
+          'Answer without looking back at the code. If you miss, read the explanation and try again.'
+        )}
+      </p>
+      <Tabs
+        variant="secondary"
+        label={tx('Preguntas del ejercicio', 'Exercise questions')}
+        tx={tx}
+        items={lesson.exercises.map((q, n) => ({
+          id: q.id,
+          label: <>{tx('Pregunta', 'Question')} {n + 1}{solved.includes(q.id) && <CheckCircle className="w-3.5 h-3.5 text-green-400" aria-label={tx('resuelta', 'solved')} />}</>,
+          navLabel: `${tx('Pregunta', 'Question')} ${n + 1}`,
+          content: <Exercise question={q} number={n + 1} tx={tx} onSolved={handleSolved} />,
+        }))}
+      />
+      {completed && (
+        <div className="flex items-start gap-3 rounded-xl border border-green-500/30 bg-green-500/10 p-4" role="status">
+          <Trophy className="w-5 h-5 shrink-0 text-green-300" aria-hidden="true" />
+          <p className="text-sm text-slate-200">
+            {tx(
+              `¡Completaste ${lesson.letter}! Ya sabes identificar y corregir violaciones de ${lesson.nameEn}.`,
+              `You completed ${lesson.letter}! You can now spot and fix ${lesson.nameEn} violations.`
+            )}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+
+  // The diagram gets its own tab right after the plain explanation
+  const tabKeys = ['simple', 'visual', ...STEP_KEYS.filter(k => k !== 'simple'), 'exercise'];
+  const steps = tabKeys.map((key, i) => ({
+    id: key,
+    label: <><span className={`font-bold ${accent.text}`}>{i + 1}</span>{meta[key].short}</>,
+    navLabel: `${i + 1}. ${meta[key].short}`,
+    content: (
+      <section aria-label={meta[key].title}>
+        {stepTitle(key, i + 1)}
+        {key === 'exercise' && exercisePanel}
+        {key === 'visual' && <BeforeAfterVisual visual={lesson.visual} tx={tx} />}
+        {key !== 'exercise' && key !== 'visual' && <Blocks blocks={lesson.steps[key]} tx={tx} />}
+      </section>
+    ),
+  }));
 
   return (
-    <article className="space-y-8" aria-labelledby={`solid-${lesson.id}-title`}>
-      {/* Header */}
-      <header className="relative space-y-3">
-        <div className={`absolute top-0 right-0 text-[96px] lg:text-[120px] font-black leading-none select-none pointer-events-none opacity-20 ${accent.text}`} aria-hidden="true">
-          {lesson.letter}
-        </div>
-        <div className="relative z-10 space-y-1">
+    <article className="space-y-6" aria-labelledby={`solid-${lesson.id}-title`}>
+      <header className="relative space-y-2">
+        <Pictogram
+          letter={lesson.letter}
+          tx={tx}
+          className={`absolute top-0 right-0 hidden sm:block w-36 h-20 lg:w-44 lg:h-24 opacity-60 ${accent.text}`}
+        />
+        <div className="relative z-10 space-y-1 sm:pr-40 lg:pr-48">
           <p className={`text-xs font-semibold uppercase tracking-wider ${accent.text}`}>{tx('', 'ES: ')}{lesson.nameEs}</p>
           <h2
             id={`solid-${lesson.id}-title`}
@@ -87,71 +143,7 @@ function PrincipleLesson({ lesson, tx, headingRef, completed, onComplete, prev, 
         )}
       </header>
 
-      {/* Step navigator */}
-      <nav aria-label={tx('Pasos de la lección', 'Lesson steps')}>
-        <ol className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-          {keys.map((key, i) => (
-            <li key={key} className="shrink-0">
-              <button
-                type="button"
-                onClick={() => scrollToStep(i + 1)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-700/50 bg-slate-800/30 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 ${FOCUS_RING}`}
-              >
-                <span className={`font-bold ${accent.text}`}>{i + 1}</span>
-                {meta[key].short}
-              </button>
-            </li>
-          ))}
-        </ol>
-      </nav>
-
-      {/* Steps */}
-      {keys.map((key, i) => (
-        <section
-          key={key}
-          id={sectionId(i + 1)}
-          tabIndex={-1}
-          aria-labelledby={`${sectionId(i + 1)}-title`}
-          className="scroll-mt-4 space-y-4 focus:outline-none"
-        >
-          <h3 id={`${sectionId(i + 1)}-title`} className="flex items-center gap-3 text-base lg:text-lg font-bold text-slate-100">
-            <span className={`shrink-0 flex h-8 w-8 items-center justify-center rounded-lg border ${accent.border} ${accent.bg} text-sm ${accent.text}`}>
-              {i + 1}
-            </span>
-            <span>
-              <span className="sr-only">{tx('Paso', 'Step')} {i + 1}: </span>
-              {meta[key].title}
-            </span>
-          </h3>
-
-          {key === 'exercise' ? (
-            <div className="space-y-4">
-              <p className="text-sm text-slate-400">
-                {tx(
-                  'Responde sin volver a mirar el código. Si fallas, lee la explicación e inténtalo otra vez.',
-                  'Answer without looking back at the code. If you miss, read the explanation and try again.'
-                )}
-              </p>
-              {lesson.exercises.map((q, n) => (
-                <Exercise key={q.id} question={q} number={n + 1} tx={tx} onSolved={handleSolved} />
-              ))}
-              {completed && (
-                <div className="flex items-start gap-3 rounded-xl border border-green-500/30 bg-green-500/10 p-4" role="status">
-                  <Trophy className="w-5 h-5 shrink-0 text-green-300" aria-hidden="true" />
-                  <p className="text-sm text-slate-200">
-                    {tx(
-                      `¡Completaste ${lesson.letter}! Ya sabes identificar y corregir violaciones de ${lesson.nameEn}.`,
-                      `You completed ${lesson.letter}! You can now spot and fix ${lesson.nameEn} violations.`
-                    )}
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Blocks blocks={lesson.steps[key]} tx={tx} />
-          )}
-        </section>
-      ))}
+      <Tabs items={steps} label={tx('Pasos de la lección', 'Lesson steps')} tx={tx} sticky />
 
       <nav aria-label={tx('Navegación entre principios', 'Principle navigation')} className="flex gap-3 pt-4 border-t border-slate-800">
         <NavButton target={prev} direction="prev" onNavigate={onNavigate} tx={tx} />

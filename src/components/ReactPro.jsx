@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, Puzzle, MessageCircleQuestion, Zap, GitBranch, Star } from 'lucide-react';
 import { SiReact } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
+import Tabs from './solid/Tabs';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
 
@@ -302,6 +303,8 @@ const React19Diagram = ({ tx }) => {
     { ver: 'React 16.8', year: '2019', label: 'Hooks', color: 'border-blue-500/50 text-blue-300 bg-blue-500/10' },
     { ver: 'React 18', year: '2022', label: tx('Concurrent Mode', 'Concurrent Mode'), color: 'border-cyan-500/50 text-cyan-300 bg-cyan-500/10' },
     { ver: 'React 19', year: '2024', label: tx('Server Components', 'Server Components'), color: 'border-teal-500/50 text-teal-300 bg-teal-500/10' },
+    { ver: 'React 19.2', year: '2025', label: tx('Activity, useEffectEvent', 'Activity, useEffectEvent'), color: 'border-blue-500/50 text-blue-300 bg-blue-500/10' },
+    { ver: 'React 19.3', year: '2026', label: tx('View Transitions estables', 'Stable View Transitions'), color: 'border-cyan-500/50 text-cyan-300 bg-cyan-500/10' },
   ];
 
   useEffect(() => {
@@ -975,18 +978,311 @@ function UncontrolledInput() {
   </div>
 );
 
-const renderReact19 = (tx) => (
+// Card grid shared by the React 19.x tabs: title, what it does, when to reach for it.
+const FeatureGrid = ({ items }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {items.map(({ title, color, desc, when }) => (
+      <motion.div
+        key={title}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`bg-slate-900/50 border ${color.split(' ')[0]} rounded-xl p-4`}
+      >
+        <div className={`font-bold text-sm mb-2 ${color.split(' ')[1]}`}>{title}</div>
+        <p className="text-slate-300 text-xs leading-relaxed mb-2">{desc}</p>
+        {when && <p className="text-slate-500 text-xs leading-relaxed italic">{when}</p>}
+      </motion.div>
+    ))}
+  </div>
+);
+
+const VersionNote = ({ children }) => (
+  <p className="text-slate-300 text-sm leading-relaxed">{children}</p>
+);
+
+const renderReact192 = (tx) => (
   <div className="space-y-6">
-    <div>
-      <h2 className="text-xl lg:text-3xl font-bold text-cyan-400 mb-1">
-        React 19
-      </h2>
-      <p className="text-slate-400 text-sm">
-        {tx('Server Components, Actions, use() hook', 'Server Components, Actions, use() hook')}
-      </p>
+    <VersionNote>
+      {tx(
+        'React 19.2 salió el 1 de octubre de 2025. No cambia cómo escribes componentes, pero trae piezas que antes resolvías a mano: ocultar partes de la UI sin perder su estado, separar la lógica de “evento” de un efecto y prerenderizar en dos fases.',
+        'React 19.2 shipped on October 1, 2025. It doesn’t change how you write components, but it brings pieces you used to solve by hand: hiding parts of the UI without losing their state, splitting the “event” logic out of an effect, and prerendering in two phases.'
+      )}
+    </VersionNote>
+
+    <FeatureGrid
+      items={[
+        {
+          title: '<Activity>',
+          color: 'border-cyan-500/30 text-cyan-300',
+          desc: tx(
+            'Divide la app en “actividades” con dos modos: visible y hidden. En hidden, React esconde la parte, desmonta sus efectos y pospone sus actualizaciones, pero conserva el estado.',
+            'Splits the app into “activities” with two modes: visible and hidden. When hidden, React hides that part, unmounts its effects and defers its updates, but keeps the state.'
+          ),
+          when: tx(
+            'Para tabs o pantallas a las que el usuario vuelve: regresa y todo sigue como lo dejó.',
+            'For tabs or screens the user comes back to: they return and everything is as they left it.'
+          ),
+        },
+        {
+          title: 'useEffectEvent',
+          color: 'border-teal-500/30 text-teal-300',
+          desc: tx(
+            'Saca la parte de “evento” de un efecto: una función que siempre ve los props y el estado actuales, y que no va en la lista de dependencias.',
+            'Pulls the “event” part out of an effect: a function that always sees the current props and state, and that doesn’t go in the dependency array.'
+          ),
+          when: tx(
+            'Cuando un efecto se re-ejecuta solo porque cambió un valor que únicamente lees, como el tema en una notificación.',
+            'When an effect re-runs only because a value you merely read changed, like the theme in a notification.'
+          ),
+        },
+        {
+          title: 'cacheSignal',
+          color: 'border-blue-500/30 text-blue-300',
+          desc: tx(
+            'Solo para Server Components: te avisa cuando termina la vida de un cache(), para cancelar trabajo que ya no se va a usar.',
+            'Server Components only: tells you when a cache() lifetime is over, so you can cancel work that won’t be used.'
+          ),
+          when: tx(
+            'Para abortar un fetch cuando el render ya terminó o se canceló.',
+            'To abort a fetch once the render has finished or been cancelled.'
+          ),
+        },
+        {
+          title: tx('Partial Pre-rendering', 'Partial Pre-rendering'),
+          color: 'border-purple-500/30 text-purple-300',
+          desc: tx(
+            'prerender devuelve un prelude (la parte estática) y un postponed (lo pendiente). Sirves el prelude desde un CDN y después continúas con resume.',
+            'prerender returns a prelude (the static part) and a postponed state (what’s pending). You serve the prelude from a CDN and later continue with resume.'
+          ),
+          when: tx(
+            'Páginas con un esqueleto estático y partes dinámicas por usuario.',
+            'Pages with a static shell and per-user dynamic parts.'
+          ),
+        },
+      ]}
+    />
+
+    <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 space-y-2">
+      <p className="text-sm font-bold text-slate-200">{tx('Otros cambios a tener en cuenta', 'Other changes to keep in mind')}</p>
+      <ul className="space-y-1.5 text-sm text-slate-300 leading-relaxed list-disc pl-5">
+        <li>{tx('Performance Tracks: Chrome DevTools muestra pistas propias de React (Scheduler y Components) en el perfil de rendimiento.', 'Performance Tracks: Chrome DevTools shows React’s own tracks (Scheduler and Components) in the performance profile.')}</li>
+        <li>{tx('useId cambia su prefijo por defecto a _r_.', 'useId changes its default prefix to _r_.')}</li>
+        <li>{tx('eslint-plugin-react-hooks v6 usa flat config en el preset recomendado; si sigues con la config vieja, usa recommended-legacy.', 'eslint-plugin-react-hooks v6 uses flat config in the recommended preset; if you’re on the old config, use recommended-legacy.')}</li>
+        <li>{tx('En SSR, React agrupa las Suspense boundaries que se resuelven juntas.', 'During SSR, React batches Suspense boundaries that resolve together.')}</li>
+      </ul>
     </div>
 
-    <React19Diagram tx={tx} />
+    <CodeBlock language="javascript" code={`// <Activity>: ocultar sin perder estado
+<Activity mode={tab === 'carrito' ? 'visible' : 'hidden'}>
+  <Carrito />
+</Activity>
+
+// useEffectEvent: leer el valor actual sin re-ejecutar el efecto
+function Chat({ roomId, theme }) {
+  const onConnected = useEffectEvent(() => {
+    showNotification('Conectado', theme); // siempre el theme actual
+  });
+
+  useEffect(() => {
+    const conn = connect(roomId);
+    conn.on('connected', onConnected);
+    return () => conn.disconnect();
+  }, [roomId]); // theme no va en las dependencias
+}
+
+// Partial Pre-rendering: estático primero, dinámico después
+const { prelude, postponed } = await prerender(<App />, { signal });
+// guardar postponed y servir prelude desde el CDN...
+const stream = await resume(<App />, postponed);`} />
+  </div>
+);
+
+const renderReact193 = (tx) => (
+  <div className="space-y-6">
+    <VersionNote>
+      {tx(
+        'React 19.3 salió el 9 de septiembre de 2026 y es la versión actual (el último parche es 19.3.1, del 14 de octubre de 2026). Lo más importante: View Transitions y Fragment Refs, que eran experimentales, ahora son estables. Y no, no existe React 20: no hay ninguna versión mayor anunciada.',
+        'React 19.3 shipped on September 9, 2026 and is the current version (the latest patch is 19.3.1, from October 14, 2026). The headline: View Transitions and Fragment Refs, which were experimental, are now stable. And no, there is no React 20: no major version has been announced.'
+      )}
+    </VersionNote>
+
+    <FeatureGrid
+      items={[
+        {
+          title: tx('<ViewTransition> (estable)', '<ViewTransition> (stable)'),
+          color: 'border-cyan-500/30 text-cyan-300',
+          desc: tx(
+            'Anima la entrada, salida y actualización de elementos, y los compartidos entre pantallas, usando la View Transition API del navegador. Por ahora funciona solo en el DOM.',
+            'Animates elements entering, exiting and updating, and shared elements across screens, using the browser’s View Transition API. For now it only works in the DOM.'
+          ),
+          when: tx(
+            'Transiciones de navegación y listas que cambian, sin librería de animación.',
+            'Navigation transitions and changing lists, without an animation library.'
+          ),
+        },
+        {
+          title: 'addTransitionType',
+          color: 'border-teal-500/30 text-teal-300',
+          desc: tx(
+            'Le pone una etiqueta a la causa de una transición, por ejemplo addTransitionType("next"), para animar distinto según hacia dónde va el usuario.',
+            'Tags the cause of a transition, for example addTransitionType("next"), so you can animate differently depending on where the user is going.'
+          ),
+          when: tx(
+            'Animar “adelante” y “atrás” de forma distinta en un carrusel o un wizard.',
+            'Animating “forward” and “back” differently in a carousel or a wizard.'
+          ),
+        },
+        {
+          title: tx('Fragment Refs (estable)', 'Fragment Refs (stable)'),
+          color: 'border-blue-500/30 text-blue-300',
+          desc: tx(
+            'Ahora puedes pasarle ref a un <Fragment>. Recibes un FragmentInstance con métodos como addEventListener, focus u observeUsing que actúan sobre todos sus hijos.',
+            'You can now pass a ref to a <Fragment>. You get a FragmentInstance with methods like addEventListener, focus or observeUsing that act on all its children.'
+          ),
+          when: tx(
+            'Escuchar eventos u observar visibilidad de un grupo de elementos sin agregar un div extra.',
+            'Listening to events or observing visibility of a group of elements without adding an extra div.'
+          ),
+        },
+        {
+          title: 'browser()',
+          color: 'border-purple-500/30 text-purple-300',
+          desc: tx(
+            'Un componente que llama use(browser()) queda fuera del render en el servidor y se renderiza solo en el cliente.',
+            'A component that calls use(browser()) opts out of server rendering and renders only on the client.'
+          ),
+          when: tx(
+            'Componentes que dependen de window, del almacenamiento local o de APIs que no existen en el servidor.',
+            'Components that depend on window, local storage or APIs that don’t exist on the server.'
+          ),
+        },
+      ]}
+    />
+
+    <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 space-y-2">
+      <p className="text-sm font-bold text-slate-200">{tx('Otros cambios a tener en cuenta', 'Other changes to keep in mind')}</p>
+      <ul className="space-y-1.5 text-sm text-slate-300 leading-relaxed list-disc pl-5">
+        <li>{tx('Server Components pueden renderizar un <Context> importado de un módulo "use client" sin un Provider envolvente.', 'Server Components can render a <Context> imported from a "use client" module without a wrapping Provider.')}</li>
+        <li>{tx('Trusted Types: React ya no convierte los valores a string, así las políticas de Trusted Types funcionan.', 'Trusted Types: React no longer coerces values to strings, so Trusted Types policies work.')}</li>
+        <li>{tx('Las transiciones ahora se renderizan de forma independiente.', 'Transitions now render independently.')}</li>
+        <li>{tx('En Strict Mode, los efectos también se invocan dos veces durante la hidratación.', 'In Strict Mode, effects are also double-invoked during hydration.')}</li>
+        <li>{tx('19.3.1 mejora el protocolo de transporte de Server Components.', '19.3.1 improves the Server Components transport protocol.')}</li>
+      </ul>
+    </div>
+
+    <CodeBlock language="javascript" code={`// <ViewTransition>: animación en una transición de React
+import { ViewTransition, startTransition, addTransitionType } from 'react';
+
+function Galeria({ fotos, indice, setIndice }) {
+  function siguiente() {
+    startTransition(() => {
+      addTransitionType('next'); // la causa decide la animación
+      setIndice(indice + 1);
+    });
+  }
+
+  return (
+    <ViewTransition>
+      <img src={fotos[indice]} alt="" />
+      <button onClick={siguiente}>Siguiente</button>
+    </ViewTransition>
+  );
+}
+
+// Fragment Refs: un ref para todos los hijos, sin div extra
+function Grupo({ children }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const onClick = () => console.log('click dentro del grupo');
+    ref.current.addEventListener('click', onClick);
+    return () => ref.current.removeEventListener('click', onClick);
+  }, []);
+
+  return <Fragment ref={ref}>{children}</Fragment>;
+}
+
+// browser(): solo en el cliente
+import { browser } from 'react-dom';
+
+function Mapa() {
+  use(browser()); // se salta el render en el servidor
+  return <MapaInteractivo />;
+}`} />
+  </div>
+);
+
+const renderReactCompiler = (tx) => (
+  <div className="space-y-6">
+    <VersionNote>
+      {tx(
+        'El React Compiler llegó a su versión estable 1.0 el 7 de octubre de 2025 y el equipo de React lo considera listo para producción. Analiza tus componentes al compilar y agrega la memoización por ti, así que la mayoría de los useMemo, useCallback y React.memo dejan de ser necesarios.',
+        'The React Compiler reached its stable 1.0 on October 7, 2025, and the React team considers it production-ready. It analyzes your components at build time and adds memoization for you, so most useMemo, useCallback and React.memo calls are no longer needed.'
+      )}
+    </VersionNote>
+
+    <FeatureGrid
+      items={[
+        {
+          title: tx('Qué hace', 'What it does'),
+          color: 'border-cyan-500/30 text-cyan-300',
+          desc: tx(
+            'Memoiza automáticamente valores, funciones y componentes según lo que realmente cambia. Sigue siendo React normal: no hay sintaxis nueva.',
+            'Automatically memoizes values, functions and components based on what actually changes. It’s still plain React: no new syntax.'
+          ),
+        },
+        {
+          title: tx('Cómo se instala', 'How to install it'),
+          color: 'border-teal-500/30 text-teal-300',
+          desc: tx(
+            'Es un plugin de Babel: babel-plugin-react-compiler. Funciona desde React 17. La integración con SWC todavía es experimental.',
+            'It’s a Babel plugin: babel-plugin-react-compiler. It works from React 17 up. The SWC integration is still experimental.'
+          ),
+        },
+        {
+          title: tx('Reglas de lint', 'Lint rules'),
+          color: 'border-blue-500/30 text-blue-300',
+          desc: tx(
+            'Las reglas del compilador vienen en el preset recomendado de eslint-plugin-react-hooks y marcan el código que rompe las reglas de React.',
+            'The compiler’s rules ship in eslint-plugin-react-hooks’ recommended preset and flag code that breaks the Rules of React.'
+          ),
+        },
+        {
+          title: tx('Cuidado al adoptarlo', 'Adopt it carefully'),
+          color: 'border-purple-500/30 text-purple-300',
+          desc: tx(
+            'Si no tienes buena cobertura de tests, fija la versión exacta (por ejemplo 1.0.0) para que una actualización no cambie la memoización sin que te des cuenta.',
+            'If you don’t have good test coverage, pin the exact version (for example 1.0.0) so an upgrade doesn’t change memoization without you noticing.'
+          ),
+        },
+      ]}
+    />
+
+    <CodeBlock language="javascript" code={`// npm install -D babel-plugin-react-compiler
+
+// babel.config.js
+module.exports = {
+  plugins: ['babel-plugin-react-compiler'], // debe ir primero
+};
+
+// Antes: memoización a mano
+const total = useMemo(() => calcularTotal(items), [items]);
+const onAgregar = useCallback(id => agregar(id), [agregar]);
+
+// Con el compilador: código normal, él decide qué memoizar
+const total = calcularTotal(items);
+const onAgregar = id => agregar(id);`} />
+  </div>
+);
+
+const renderReact190 = (tx) => (
+  <div className="space-y-6">
+    <VersionNote>
+      {tx(
+        'React 19 (diciembre de 2024) es el cambio grande de esta generación: Server Components, Actions para formularios y el hook use(). Mis proyectos en producción, como el portal de AgentCloud, fueron con React 18, así que esto es lo que conviene tener claro para explicar qué cambió.',
+        'React 19 (December 2024) is the big change of this generation: Server Components, Actions for forms and the use() hook. My production projects, like the AgentCloud portal, were on React 18, so this is what you want clear to explain what changed.'
+      )}
+    </VersionNote>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {[
@@ -1124,6 +1420,35 @@ function App() {
     </ThemeContext>
   );
 }`} />
+  </div>
+);
+
+const renderReact19 = (tx) => (
+  <div className="space-y-6">
+    <div>
+      <h2 className="text-xl lg:text-3xl font-bold text-cyan-400 mb-1">
+        React 19.x
+      </h2>
+      <p className="text-slate-400 text-sm">
+        {tx(
+          'Todo React 19 en un lugar: lo que trajo la 19.0, lo nuevo de la 19.2 y la 19.3 (la versión actual) y el React Compiler 1.0.',
+          'All of React 19 in one place: what 19.0 brought, what’s new in 19.2 and 19.3 (the current version), and React Compiler 1.0.'
+        )}
+      </p>
+    </div>
+
+    <React19Diagram tx={tx} />
+
+    <Tabs
+      label={tx('Versiones de React 19', 'React 19 versions')}
+      tx={tx}
+      items={[
+        { id: 'r190', label: '19.0', content: renderReact190(tx) },
+        { id: 'r192', label: '19.2', content: renderReact192(tx) },
+        { id: 'r193', label: tx('19.3 (actual)', '19.3 (current)'), content: renderReact193(tx) },
+        { id: 'compiler', label: 'Compiler 1.0', content: renderReactCompiler(tx) },
+      ]}
+    />
   </div>
 );
 
@@ -1382,8 +1707,8 @@ function ReactPro() {
     },
     {
       id: 'react19',
-      title: 'React 19',
-      subtitle: tx('Server Components, Actions', 'Server Components, Actions'),
+      title: 'React 19.x',
+      subtitle: tx('19.0 → 19.3 y Compiler 1.0', '19.0 → 19.3 and Compiler 1.0'),
       icon: Star,
     },
     {

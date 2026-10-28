@@ -1,8 +1,9 @@
 import { AlertTriangle, CheckCircle, ChevronRight, Info, Lightbulb, OctagonAlert } from 'lucide-react';
 import CodeBlock from '../CodeBlock';
 import CodeCompare from './CodeCompare';
-import { Flow, Switcher } from './Diagrams';
+import { Switcher } from './Diagrams';
 import { Inline } from './Inline';
+import Tabs from './Tabs';
 import { FOCUS_RING, TONES } from './theme';
 
 const CALLOUT_ICONS = {
@@ -141,19 +142,24 @@ function Table({ block }) {
 
 function SubSteps({ items, tx }) {
   return (
-    <ol className="space-y-5">
-      {items.map((item, i) => (
-        <li key={item.title} className="relative pl-9 space-y-3">
-          <span className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-full border border-violet-500/50 bg-violet-500/10 text-xs font-bold text-violet-300" aria-hidden="true">
-            {i + 1}
-          </span>
-          <h4 className="text-sm font-bold text-slate-100">
-            <span className="sr-only">{tx('Paso', 'Step')} {i + 1}: </span>{item.title}
-          </h4>
-          <Blocks blocks={item.blocks} tx={tx} />
-        </li>
-      ))}
-    </ol>
+    <Tabs
+      variant="secondary"
+      label={tx('Refactorización paso a paso', 'Step-by-step refactoring')}
+      tx={tx}
+      items={items.map((item, i) => ({
+        id: `sub-${i + 1}`,
+        label: <><span className="font-bold text-violet-300">{i + 1}</span>{item.title}</>,
+        navLabel: `${i + 1}. ${item.title}`,
+        content: (
+          <div className="space-y-3">
+            <h4 className="text-sm font-bold text-slate-100">
+              <span className="sr-only">{tx('Paso', 'Step')} </span>{i + 1}/{items.length} — {item.title}
+            </h4>
+            <Blocks blocks={item.blocks} tx={tx} />
+          </div>
+        ),
+      }))}
+    />
   );
 }
 
@@ -233,7 +239,6 @@ function Block({ block, tx }) {
     case 'cards': return <Cards items={block.items} />;
     case 'table': return <Table block={block} />;
     case 'compare': return <CodeCompare before={block.before} after={block.after} rows={block.rows} tx={tx} />;
-    case 'flow': return <Flow block={block} tx={tx} />;
     case 'switcher': return <Switcher block={block} tx={tx} />;
     case 'steps': return <SubSteps items={block.items} tx={tx} />;
     case 'concepts': return <Concepts items={block.items} />;

@@ -1124,10 +1124,35 @@ const renderInterview = (tx) => {
 const renderVersions = (tx) => {
   const versions = [
     {
+      version: 'Angular 22',
+      date: tx('3 de junio de 2026 · última: 22.2', 'June 3, 2026 · latest: 22.2'),
+      badge: tx('Actual', 'Current'),
+      badgeColor: 'bg-red-500',
+      features: [
+        { label: tx('Signal Forms en la API pública', 'Signal Forms in the public API'), desc: tx('Los formularios basados en signals dejan de ser experimentales y pasan a la API pública. También suman reloadValidation para volver a correr una validación asíncrona a mano.', 'Signal-based forms stop being experimental and move to the public API. They also gain reloadValidation to re-run an async validation by hand.') },
+        { label: tx('OnPush por defecto', 'OnPush by default'), desc: tx('Un componente sin changeDetection explícito ahora usa OnPush. Angular solo lo revisa cuando cambian sus inputs, sus signals o sus eventos, en vez de en cada ciclo.', 'A component without an explicit changeDetection now uses OnPush. Angular only checks it when its inputs, signals or events change, instead of on every cycle.') },
+        { label: tx('Herramientas WebMCP', 'WebMCP tools'), desc: tx('provideWebMcpTools expone herramientas de la app a agentes de IA en el navegador. declareWebMcpTool todavía es experimental.', 'provideWebMcpTools exposes app tools to in-browser AI agents. declareWebMcpTool is still experimental.') },
+        { label: tx('ErrorBoundary (22.2)', 'ErrorBoundary (22.2)'), desc: tx('La 22.2 agrega APIs programáticas de ErrorBoundary para atrapar errores de una parte de la UI sin tumbar toda la pantalla.', '22.2 adds programmatic ErrorBoundary APIs to catch errors in one part of the UI without taking down the whole screen.') },
+        { label: tx('Deprecaciones', 'Deprecations'), desc: tx('Desde la 22.1, HttpClient.jsonp y HttpClientJsonpModule están deprecados.', 'Since 22.1, HttpClient.jsonp and HttpClientJsonpModule are deprecated.') },
+      ],
+    },
+    {
+      version: 'Angular 21',
+      date: tx('19 de noviembre de 2025', 'November 19, 2025'),
+      badge: 'LTS',
+      badgeColor: 'bg-emerald-600',
+      features: [
+        { label: tx('Signal Forms (experimental)', 'Signal Forms (experimental)'), desc: tx('Primera versión de formularios construidos sobre signals: el modelo es un signal y las validaciones se declaran en una función. Llega con reglas como debounce().', 'First version of forms built on signals: the model is a signal and validations are declared in a function. It ships with rules like debounce().') },
+        { label: tx('Migración a zoneless por defecto', 'Migration to zoneless by default'), desc: tx('Incluye una migración que lleva los proyectos a funcionar sin Zone.js por defecto.', 'Includes a migration that moves projects to run without Zone.js by default.') },
+        { label: tx('Cambios en la etapa experimental', 'Changes during the experimental phase'), desc: tx('Durante la 21.x, la API de Signal Forms cambió: por ejemplo, la directiva [field] pasó a llamarse [formField]. Si la usaste temprano, revisa el changelog al actualizar.', 'During 21.x the Signal Forms API changed: for example, the [field] directive was renamed to [formField]. If you used it early, check the changelog when upgrading.') },
+        { label: tx('Deprecaciones', 'Deprecations'), desc: tx('El soporte de XHR en @angular/platform-server queda deprecado: usa fetch.', 'XHR support in @angular/platform-server is deprecated: use fetch.') },
+      ],
+    },
+    {
       version: 'Angular 20',
       date: tx('Mayo 2025', 'May 2025'),
-      badge: 'Latest',
-      badgeColor: 'bg-red-500',
+      badge: tx('LTS hasta 28/11/2026', 'LTS until 11/28/2026'),
+      badgeColor: 'bg-blue-600',
       features: [
         { label: tx('Signal APIs Estables', 'Stable Signal APIs'), desc: tx('toSignal(), toObservable(), input(), output() y viewChild() llegan a estabilidad total.', 'toSignal(), toObservable(), input(), output() and viewChild() reach full stability.') },
         { label: tx('Zoneless por Defecto (Opt-in)', 'Zoneless by Default (Opt-in)'), desc: tx('Angular puede funcionar sin Zone.js en proyectos nuevos, reduciendo el bundle ~20KB.', 'Angular can work without Zone.js in new projects, reducing the bundle by ~20KB.') },
@@ -1139,8 +1164,8 @@ const renderVersions = (tx) => {
     {
       version: 'Angular 19',
       date: tx('Noviembre 2024', 'November 2024'),
-      badge: 'Stable',
-      badgeColor: 'bg-emerald-600',
+      badge: tx('Sin soporte', 'Unsupported'),
+      badgeColor: 'bg-slate-600',
       features: [
         { label: 'linkedSignal()', desc: tx('Signal derivado que puede ser modificado. Permite state local que se resetea cuando una dependencia cambia.', 'Modifiable derived signal. Allows local state that resets when a dependency changes.') },
         { label: tx('Hydration Incremental (Preview)', 'Incremental Hydration (Preview)'), desc: tx('Hidratación lazy con @defer: partes del HTML se cargan solo cuando son necesarias.', 'Lazy hydration with @defer: parts of HTML load only when necessary.') },
@@ -1152,8 +1177,8 @@ const renderVersions = (tx) => {
     {
       version: 'Angular 18',
       date: tx('Mayo 2024', 'May 2024'),
-      badge: 'LTS',
-      badgeColor: 'bg-blue-600',
+      badge: tx('Sin soporte', 'Unsupported'),
+      badgeColor: 'bg-slate-600',
       features: [
         { label: tx('Zoneless (Experimental)', 'Zoneless (Experimental)'), desc: tx('Primera versión con soporte experimental para correr Angular completamente sin Zone.js.', 'First version with experimental support to run Angular completely without Zone.js.') },
         { label: tx('Material 3 Estable', 'Stable Material 3'), desc: tx('Angular Material con diseño M3 (Material You) como opción estable.', 'Angular Material with M3 design (Material You) as a stable option.') },
@@ -1165,8 +1190,8 @@ const renderVersions = (tx) => {
     {
       version: 'Angular 17',
       date: tx('Noviembre 2023', 'November 2023'),
-      badge: 'Foundation',
-      badgeColor: 'bg-purple-600',
+      badge: tx('Sin soporte', 'Unsupported'),
+      badgeColor: 'bg-slate-600',
       features: [
         { label: tx('Nueva Sintaxis de Control de Flujo', 'New Control Flow Syntax'), desc: tx('@if, @for, @switch en templates — más performante y sin *ngIf ni *ngFor.', '@if, @for, @switch in templates — more performant and without *ngIf or *ngFor.') },
         { label: tx('Bloque @defer', '@defer Block'), desc: tx('Lazy loading declarativo: @defer (on viewport), @loading, @error, @placeholder integrados.', 'Declarative lazy loading: integrated @defer (on viewport), @loading, @error, @placeholder.') },
@@ -1183,7 +1208,21 @@ const renderVersions = (tx) => {
         <h2 className="text-xl lg:text-3xl font-bold text-red-400 mb-1">
           {tx('Versiones', 'Version History')}
         </h2>
-        <p className="text-slate-400 text-sm">{tx('Angular 17 → 20: Principales mejoras', 'Angular 17 → 20: Key improvements')}</p>
+        <p className="text-slate-400 text-sm">{tx('Angular 17 → 22: lo importante de cada versión', 'Angular 17 → 22: what matters in each version')}</p>
+      </div>
+      <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 space-y-2">
+        <p className="text-sm text-slate-300 leading-relaxed">
+          {tx(
+            'Angular suele sacar una versión mayor cada seis meses, y cada una pasa por soporte activo y después LTS. Hoy la actual es la 22 (activa hasta junio de 2027). La 21 está en LTS hasta junio de 2027 y la 20 deja de tener soporte el 28 de noviembre de 2026. Lo próximo: la 22.3 alrededor de noviembre de 2026 y la 23 alrededor de junio de 2027.',
+            'Angular usually ships a major version every six months, and each one goes through active support and then LTS. Today the current one is 22 (active until June 2027). 21 is in LTS until June 2027 and 20 loses support on November 28, 2026. Coming next: 22.3 around November 2026 and 23 around June 2027.'
+          )}
+        </p>
+        <p className="text-sm text-slate-300 leading-relaxed">
+          {tx(
+            'Mi experiencia en proyectos va de Angular 6 (Equifax) a Angular 15 (Qorta). Por eso, en una entrevista lo que más conviene explicar es el salto de NgModules y Zone.js a standalone, signals y zoneless.',
+            'My project experience runs from Angular 6 (Equifax) to Angular 15 (Qorta). That’s why, in an interview, the most useful thing to explain is the jump from NgModules and Zone.js to standalone, signals and zoneless.'
+          )}
+        </p>
       </div>
       {versions.map((v, idx) => (
         <motion.div
@@ -1215,6 +1254,32 @@ const renderVersions = (tx) => {
           </ul>
         </motion.div>
       ))}
+      <CodeBlock language="typescript" code={`// Signal Forms (API pública desde Angular 22)
+// Los nombres cambiaron durante la etapa experimental de la 21:
+// revisa la versión que uses.
+import { Component, signal } from '@angular/core';
+import { form, required, email, FormField } from '@angular/forms/signals';
+
+@Component({
+  selector: 'app-login',
+  imports: [FormField],
+  // Angular 22: sin changeDetection explícito, el componente ya es OnPush
+  template: \`
+    <input type="email" [formField]="loginForm.email" />
+    <input type="password" [formField]="loginForm.password" />
+  \`,
+})
+export class LoginComponent {
+  // El modelo del formulario es un signal
+  credenciales = signal({ email: '', password: '' });
+
+  // Las validaciones se declaran en una función
+  loginForm = form(this.credenciales, (campo) => {
+    required(campo.email);
+    email(campo.email);
+    required(campo.password);
+  });
+}`} />
     </div>
   );
 };
@@ -1260,7 +1325,7 @@ function AngularPro() {
     {
       id: 'versions',
       title: tx('Versiones', 'Versions'),
-      subtitle: tx('Angular 17 → 20', 'Angular 17 → 20'),
+      subtitle: tx('Angular 17 → 22', 'Angular 17 → 22'),
       icon: SiAngular,
     },
   ];

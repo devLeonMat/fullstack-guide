@@ -6,6 +6,7 @@ import { FOCUS_RING } from './theme';
 // Before/after comparator: two columns on xl screens, tabs below that.
 function CodeCompare({ before, after, rows = [], tx }) {
   const [tab, setTab] = useState('before');
+  const [showCode, setShowCode] = useState(false);
   const baseId = useId();
   const tabRefs = useRef({});
 
@@ -24,6 +25,19 @@ function CodeCompare({ before, after, rows = [], tx }) {
 
   return (
     <div className="space-y-4">
+      {/* Both panes share one toggle so the comparison opens in a single click */}
+      <button
+        type="button"
+        onClick={() => setShowCode(v => !v)}
+        aria-expanded={showCode}
+        className={`inline-flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 transition-colors ${FOCUS_RING}`}
+      >
+        <span className="text-slate-400" aria-hidden="true">{showCode ? '▼' : '▶'}</span>
+        <span>{showCode ? tx('Ocultar código antes/después', 'Hide before/after code') : tx('Ver código antes/después', 'Show before/after code')}</span>
+      </button>
+
+      {showCode && (
+      <>
       <div role="tablist" aria-label={tx('Comparar código', 'Compare code')} className="xl:hidden flex gap-2">
         {panes.map(p => {
           const selected = tab === p.id;
@@ -69,6 +83,8 @@ function CodeCompare({ before, after, rows = [], tx }) {
           </div>
         ))}
       </div>
+      </>
+      )}
 
       {rows.length > 0 && (
         <>

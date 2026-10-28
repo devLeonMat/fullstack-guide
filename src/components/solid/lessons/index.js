@@ -12,7 +12,16 @@ export function buildLessons(tx) {
 
 export function buildIntro(tx) {
   return {
-    blocks: [
+    what: [
+      {
+        type: 'callout',
+        tone: 'success',
+        title: tx('Respuesta de entrevista (30 segundos)', 'Interview answer (30 seconds)'),
+        text: tx(
+          'SOLID son cinco principios de diseño orientado a objetos para que el código sea fácil de cambiar, probar y extender. **S:** cada clase tiene una sola razón para cambiar. **O:** agrego comportamiento nuevo sin editar lo que ya funciona. **L:** cualquier implementación cumple el contrato de su interfaz. **I:** interfaces pequeñas, a la medida de quien las usa. **D:** el negocio depende de abstracciones, no de detalles técnicos como la base de datos.',
+          'SOLID is five object-oriented design principles that keep code easy to change, test and extend. **S:** each class has one reason to change. **O:** I add new behavior without editing what already works. **L:** any implementation honors its interface contract. **I:** small interfaces, tailored to whoever uses them. **D:** business code depends on abstractions, not technical details like the database.'
+        ),
+      },
       {
         type: 'p',
         text: tx(
@@ -53,6 +62,8 @@ export function buildIntro(tx) {
           },
         ],
       },
+    ],
+    analogy: [
       {
         type: 'analogy',
         title: tx('Analogía: construir una casa', 'Analogy: building a house'),
@@ -64,6 +75,8 @@ export function buildIntro(tx) {
           { letter: 'D', text: tx('Los aparatos dependen del enchufe (estándar), no de la central eléctrica (detalle).', 'Appliances depend on the socket (standard), not the power plant (detail).') },
         ],
       },
+    ],
+    notSolid: [
       {
         type: 'callout',
         tone: 'warning',

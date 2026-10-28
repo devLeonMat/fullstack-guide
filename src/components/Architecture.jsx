@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Layout, Boxes, Zap, Hexagon, Globe, Smartphone, Server, Cpu, Database, Mail, Settings, Users, Share2, Info, Layers, CloudCog } from 'lucide-react';
+import { Layout, Boxes, Zap, Hexagon, Globe, Smartphone, Server, Cpu, Database, Mail, Settings, Users, Share2, Layers, CloudCog } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import Tabs from './solid/Tabs';
+import { buildArchitectures } from './architecture/architectures';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
 
@@ -290,476 +292,102 @@ const ServerlessDiagram = () => (
 );
 
 
-function Architecture() {
-    const { language } = useLanguage();
-    const [selectedArch, setSelectedArch] = useState('mvc');
-    const [isCodeExpanded, setIsCodeExpanded] = useState(false);
-
-    const architectures = {
-        mvc: {
-            id: 'mvc',
-            name: 'MVC',
-            fullName: 'Model-View-Controller',
-            icon: Layout,
-            color: 'blue',
-            description: 'Separa la lógica de negocio, la presentación y el control de flujo.',
-            diagram: <MVCDiagram />,
-            keyPoints: [
-                'Ideal para aplicaciones monolíticas simples',
-                'Fácil de testear de forma aislada',
-                'Control total sobre el flujo de datos UI',
-                'Separación clara de responsabilidades'
-            ],
-            whenToUse: 'Cuando construyes aplicaciones web estándar donde la interacción usuario-dato es directa y el flujo es predecible.',
-            code: `// Express.js MVC Example
-
-// Model (User.js)
-class User {
-  constructor(id, name, email) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-  }
-  
-  static async findById(id) {
-    return await db.query('SELECT * FROM users WHERE id = ?', [id]);
-  }
-  
-  static async create(userData) {
-    return await db.query('INSERT INTO users SET ?', userData);
-  }
-}
-
-// Controller (userController.js)
-class UserController {
-  async show(req, res) {
-    const user = await User.findById(req.params.id);
-    res.render('user', { user }); // Renderiza la Vista
-  }
-  
-  async create(req, res) {
-    const user = await User.create(req.body);
-    res.redirect(\`/users/\${user.id}\`);
-  }
-}`,
-            advantages: [
-                'Separación clara de responsabilidades',
-                'Fácil de entender y mantener',
-                'Perfecto para aplicaciones web tradicionales'
-            ],
-            disadvantages: [
-                'Puede volverse complejo en apps grandes',
-                'Acoplamiento entre componentes',
-                'No es ideal para SPAs modernas'
-            ]
-        },
-        microservices: {
-            id: 'microservices',
-            name: 'Microservicios',
-            fullName: 'Microservices Architecture',
-            icon: Boxes,
-            color: 'green',
-            description: 'Arquitectura distribuida donde cada servicio es independiente y auto-contenido.',
-            diagram: <MicroservicesDiagram />,
-            keyPoints: [
-                'Escalabilidad independiente por servicio',
-                'Tolerancia a fallos parciales',
-                'Permite usar diferentes stacks tecnológicos',
-                'Equipos autónomos por servicio'
-            ],
-            whenToUse: 'Para sistemas grandes y complejos que necesitan ser gestionados por múltiples equipos con despliegues independientes.',
-            code: `// Microservices with API Gateway
-
-// User Service (Node.js + Express)
-const express = require('express');
-const app = express();
-
-app.get('/users/:id', async (req, res) => {
-  const user = await UserModel.findById(req.params.id);
-  res.json(user);
-});
-
-app.listen(3001);
-
-// API Gateway (Node.js)
-const axios = require('axios');
-const gateway = express();
-
-gateway.get('/api/user-profile/:id', async (req, res) => {
-  const [user, orders] = await Promise.all([
-    axios.get(\`http://user-service:3001/users/\${req.params.id}\`),
-    axios.get(\`http://order-service:3003/orders/user/\${req.params.id}\`)
-  ]);
-  
-  res.json({ user: user.data, orders: orders.data });
-});`,
-            advantages: [
-                'Escalabilidad independiente por servicio',
-                'Tecnologías heterogéneas',
-                'Despliegue independiente',
-                'Resiliencia mejorada'
-            ],
-            disadvantages: [
-                'Complejidad operacional',
-                'Latencia de red',
-                'Debugging más difícil',
-                'Transacciones distribuidas complejas'
-            ]
-        },
-        eventdriven: {
-            id: 'eventdriven',
-            name: 'Event-Driven',
-            fullName: 'Event-Driven Architecture',
-            icon: Zap,
-            color: 'yellow',
-            description: 'Los componentes se comunican a través de eventos asíncronos.',
-            diagram: <EventDrivenDiagram />,
-            keyPoints: [
-                'Máximo desacoplamiento entre componentes',
-                'Alta capacidad de procesamiento asíncrono',
-                'Excelente para sistemas reactivos y en tiempo real',
-                'Fácil agregar nuevos consumidores'
-            ],
-            whenToUse: 'Cuando el sistema debe reaccionar a cambios externos rápidamente sin bloquear procesos, ideal para sistemas reactivos.',
-            code: `// Event-Driven Architecture
-
-// Event Producer (Order Service)
-const eventBus = new EventEmitter();
-
-class OrderService {
-  async createOrder(orderData) {
-    const order = await Order.create(orderData);
-    
-    // Emit event
-    eventBus.emit('order.created', {
-      orderId: order.id,
-      userId: order.userId,
-      total: order.total,
-      timestamp: new Date()
-    });
-    
-    return order;
-  }
-}
-
-// Event Consumer 1 (Email Service)
-eventBus.on('order.created', async (event) => {
-  const user = await User.findById(event.userId);
-  await sendEmail(user.email, {
-    subject: 'Order Confirmation',
-    body: \`Your order #\${event.orderId} has been placed.\`
-  });
-});
-
-// Event Consumer 2 (Inventory Service)
-eventBus.on('order.created', async (event) => {
-  const order = await Order.findById(event.orderId);
-  for (const item of order.items) {
-    await Inventory.reduce(item.productId, item.quantity);
-  }
-});`,
-            advantages: [
-                'Desacoplamiento total',
-                'Alta escalabilidad',
-                'Procesamiento asíncrono',
-                'Fácil agregar nuevos consumidores'
-            ],
-            disadvantages: [
-                'Debugging complejo',
-                'Eventual consistency',
-                'Gestión de eventos puede ser difícil',
-                'Requiere infraestructura adicional'
-            ]
-        },
-        hexagonal: {
-            id: 'hexagonal',
-            name: 'Hexagonal',
-            fullName: 'Hexagonal Architecture (Ports & Adapters)',
-            icon: Hexagon,
-            color: 'purple',
-            description: 'Aísla la lógica de negocio de dependencias externas mediante puertos y adaptadores.',
-            diagram: <HexagonalDiagram />,
-            keyPoints: [
-                'Protege la lógica de negocio de cambios externos',
-                'Facilita la migración de bases de datos o APIs',
-                'Enfoque en DDD (Domain Driven Design)',
-                'Testeable al 100%'
-            ],
-            whenToUse: 'En proyectos de larga duración donde la lógica de negocio es el activo más valioso y debe estar protegida de cambios tecnológicos.',
-            code: `// Hexagonal Architecture
-
-// Domain (Core Business Logic)
-class Order {
-  constructor(id, items, status) {
-    this.id = id;
-    this.items = items;
-    this.status = status;
-  }
-  
-  validate() {
-    if (this.items.length === 0) {
-      throw new Error('Order must have items');
-    }
-    return true;
-  }
-  
-  calculateTotal() {
-    return this.items.reduce((sum, item) => sum + item.price, 0);
-  }
-}
-
-// Port (Interface)
-interface OrderRepository {
-  save(order: Order): Promise<Order>;
-  findById(id: string): Promise<Order>;
-}
-
-// Adapter (Infrastructure)
-class MongoOrderRepository implements OrderRepository {
-  async save(order: Order) {
-    return await mongoose.model('Order').create(order);
-  }
-  
-  async findById(id: string) {
-    return await mongoose.model('Order').findById(id);
-  }
-}`,
-            advantages: [
-                'Lógica de negocio totalmente aislada',
-                'Fácil testing',
-                'Flexibilidad para cambiar tecnologías',
-                'Domain-driven design friendly'
-            ],
-            disadvantages: [
-                'Curva de aprendizaje alta',
-                'Más código inicial (boilerplate)',
-                'Puede ser over-engineering para apps simples'
-            ]
-        },
-        layered: {
-            id: 'layered',
-            name: 'Layered / N-Tier',
-            fullName: 'Layered Architecture (N-Tier)',
-            icon: Layers,
-            color: 'blue',
-            description: 'Organiza la aplicación en capas horizontales con responsabilidades específicas.',
-            diagram: <LayeredDiagram />,
-            keyPoints: [
-                'Separación clara por responsabilidades',
-                'Cada capa solo se comunica con la adyacente',
-                'Fácil de entender para equipos nuevos',
-                'Ideal para aplicaciones tradicionales'
-            ],
-            whenToUse: 'Para aplicaciones empresariales tradicionales donde la separación de responsabilidades es clara y el equipo es grande.',
-            code: `// Layered Architecture Example
-
-// Presentation Layer
-class UserController {
-  constructor(userService) {
-    this.userService = userService;
-  }
-  
-  async getUser(req, res) {
-    const user = await this.userService.getUserById(req.params.id);
-    res.json(user);
-  }
-}
-
-// Business Logic Layer
-class UserService {
-  constructor(userRepository) {
-    this.userRepository = userRepository;
-  }
-  
-  async getUserById(id) {
-    const user = await this.userRepository.findById(id);
-    if (!user) throw new Error('User not found');
-    
-    // Business logic
-    user.fullName = \`\${user.firstName} \${user.lastName}\`;
-    return user;
-  }
-}
-
-// Data Access Layer
-class UserRepository {
-  async findById(id) {
-    return await db.query('SELECT * FROM users WHERE id = ?', [id]);
-  }
-  
-  async save(user) {
-    return await db.query('INSERT INTO users SET ?', user);
-  }
-}`,
-            advantages: [
-                'Estructura clara y predecible',
-                'Fácil de testear por capas',
-                'Escalabilidad horizontal',
-                'Buena para equipos grandes'
-            ],
-            disadvantages: [
-                'Puede ser rígida',
-                'Performance overhead por capas',
-                'Acoplamiento entre capas adyacentes'
-            ]
-        },
-        clean: {
-            id: 'clean',
-            name: 'Clean Architecture',
-            fullName: 'Clean Architecture (Uncle Bob)',
-            icon: Database,
-            color: 'purple',
-            description: 'Arquitectura en capas concéntricas donde las dependencias apuntan hacia adentro.',
-            diagram: <CleanArchDiagram />,
-            keyPoints: [
-                'Independencia de frameworks',
-                'Testeable sin UI, DB o servicios externos',
-                'Independencia de la UI',
-                'Regla de dependencia: solo hacia adentro'
-            ],
-            whenToUse: 'Proyectos de larga vida donde la lógica de negocio es compleja y debe estar protegida de cambios externos.',
-            code: `// Clean Architecture Layers
-
-// Entities (innermost)
-class User {
-  constructor(id, name, email) {
-    this.id = id;
-    this.name = name;
-    this.email = email;
-  }
-  
-  isValid() {
-    return this.email.includes('@');
-  }
-}
-
-// Use Cases
-class CreateUserUseCase {
-  constructor(userRepository) {
-    this.userRepository = userRepository;
-  }
-  
-  async execute(userData) {
-    const user = new User(null, userData.name, userData.email);
-    
-    if (!user.isValid()) {
-      throw new Error('Invalid user');
-    }
-    
-    return await this.userRepository.save(user);
-  }
-}
-
-// Interface Adapters
-class UserController {
-  constructor(createUserUseCase) {
-    this.createUserUseCase = createUserUseCase;
-  }
-  
-  async createUser(req, res) {
-    const user = await this.createUserUseCase.execute(req.body);
-    res.json(user);
-  }
-}
-
-// Frameworks & Drivers (outermost)
-const repository = new MongoUserRepository();
-const useCase = new CreateUserUseCase(repository);
-const controller = new UserController(useCase);`,
-            advantages: [
-                'Máxima testabilidad',
-                'Independencia total de frameworks',
-                'Lógica de negocio protegida',
-                'Fácil cambiar tecnologías'
-            ],
-            disadvantages: [
-                'Curva de aprendizaje muy alta',
-                'Mucho boilerplate inicial',
-                'Puede ser overkill para apps simples'
-            ]
-        },
-        serverless: {
-            id: 'serverless',
-            name: 'Serverless',
-            fullName: 'Serverless Architecture (FaaS)',
-            icon: CloudCog,
-            color: 'yellow',
-            description: 'Arquitectura basada en funciones que se ejecutan bajo demanda sin gestionar servidores.',
-            diagram: <ServerlessDiagram />,
-            keyPoints: [
-                'Pago solo por uso (pay-per-execution)',
-                'Auto-escalado automático',
-                'Sin gestión de infraestructura',
-                'Event-driven por naturaleza'
-            ],
-            whenToUse: 'Para aplicaciones con tráfico variable, microservicios ligeros, o cuando quieres reducir costos operacionales.',
-            code: `// AWS Lambda Function Example
-
-// handler.js
-exports.handler = async (event) => {
-  // Trigger: API Gateway
-  const userId = event.pathParameters.id;
-  
-  try {
-    // Acceso a DynamoDB (serverless DB)
-    const user = await dynamoDB.get({
-      TableName: 'Users',
-      Key: { id: userId }
-    }).promise();
-    
-    // SNS para notificaciones
-    await sns.publish({
-      TopicArn: 'arn:aws:sns:...',
-      Message: \`User \${userId} accessed\`
-    }).promise();
-    
-    return {
-      statusCode: 200,
-      body: JSON.stringify(user.Item)
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
-  }
+const VISUALS = {
+    mvc: { icon: Layout, diagram: MVCDiagram },
+    layered: { icon: Layers, diagram: LayeredDiagram },
+    microservices: { icon: Boxes, diagram: MicroservicesDiagram },
+    eventdriven: { icon: Zap, diagram: EventDrivenDiagram },
+    hexagonal: { icon: Hexagon, diagram: HexagonalDiagram },
+    clean: { icon: Database, diagram: CleanArchDiagram },
+    serverless: { icon: CloudCog, diagram: ServerlessDiagram },
 };
 
-// serverless.yml (Serverless Framework)
-service: user-service
+// Full class names (not interpolated) so Tailwind can detect them.
+const COLORS = {
+    blue: { box: 'text-blue-400 bg-blue-500/10 border-blue-500/30', title: 'text-blue-400' },
+    green: { box: 'text-green-400 bg-green-500/10 border-green-500/30', title: 'text-green-400' },
+    yellow: { box: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30', title: 'text-yellow-400' },
+    purple: { box: 'text-purple-400 bg-purple-500/10 border-purple-500/30', title: 'text-purple-400' },
+};
 
-functions:
-  getUser:
-    handler: handler.handler
-    events:
-      - http:
-          path: users/{id}
-          method: get`,
-            advantages: [
-                'Costo reducido (pay-per-use)',
-                'Escalado automático infinito',
-                'Zero server management',
-                'Deploy rápido'
-            ],
-            disadvantages: [
-                'Cold start latency',
-                'Vendor lock-in',
-                'Debugging complicado',
-                'Límites de ejecución (tiempo/memoria)'
-            ]
-        }
-    };
+const Section = ({ title, children }) => (
+    <div>
+        <h5 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-1">{title}</h5>
+        <p className="text-slate-300 text-sm leading-relaxed">{children}</p>
+    </div>
+);
 
-    const archList = Object.values(architectures);
-    const current = architectures[selectedArch];
-    const Icon = current.icon;
+function Architecture() {
+    const { language } = useLanguage();
+    const tx = (es, en) => language === 'en' ? en : es;
+    const [selectedArch, setSelectedArch] = useState('mvc');
 
-    const colorClasses = {
-        blue: 'text-blue-400 bg-blue-500/10 border-blue-500/30',
-        green: 'text-green-400 bg-green-500/10 border-green-500/30',
-        yellow: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-        purple: 'text-purple-400 bg-purple-500/10 border-purple-500/30'
-    };
+    const archList = buildArchitectures(tx);
+    const current = archList.find(a => a.id === selectedArch);
+    const Icon = VISUALS[current.id].icon;
+    const Diagram = VISUALS[current.id].diagram;
+    const colors = COLORS[current.color];
+    const { story } = current;
+
+    const tabs = [
+        {
+            id: 'idea',
+            label: tx('La idea', 'The idea'),
+            content: (
+                <div className="space-y-4">
+                    <p className="text-slate-300 leading-relaxed">{current.summary}</p>
+                    <Diagram />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                            <h4 className="text-green-400 font-bold text-sm mb-1">{tx('Úsala cuando', 'Use it when')}</h4>
+                            <p className="text-slate-300 text-sm leading-relaxed">{current.useWhen}</p>
+                        </div>
+                        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                            <h4 className="text-red-400 font-bold text-sm mb-1">{tx('Mejor no, si...', 'Skip it if...')}</h4>
+                            <p className="text-slate-300 text-sm leading-relaxed">{current.avoidWhen}</p>
+                        </div>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            id: 'story',
+            label: tx('En mi trabajo', 'On the job'),
+            content: (
+                <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4 lg:p-6 space-y-4">
+                    <div>
+                        <p className="text-cyan-300 font-bold">{story.client}</p>
+                        <p className="text-slate-400 text-xs">{story.project} · {story.years}</p>
+                    </div>
+                    <Section title={tx('Contexto', 'Context')}>{story.context}</Section>
+                    <Section title={tx('El problema', 'The problem')}>{story.problem}</Section>
+                    <Section title={tx('Lo que hice', 'What I did')}>{story.solution}</Section>
+                    <Section title={tx('Lo que ganamos', 'What we got')}>{story.payoff}</Section>
+                </div>
+            ),
+        },
+        {
+            id: 'code',
+            label: tx('Código', 'Code'),
+            content: <CodeBlock code={current.code} language={current.lang} />,
+        },
+        {
+            id: 'interview',
+            label: tx('En entrevista', 'In the interview'),
+            content: (
+                <div className="space-y-3">
+                    <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-4">
+                        <h4 className="text-cyan-400 font-bold text-sm mb-1">{tx('Cómo lo contaría', 'How I’d say it')}</h4>
+                        <p className="text-slate-300 text-sm leading-relaxed">“{current.pitch}”</p>
+                    </div>
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                        <h4 className="text-amber-300 font-bold text-sm mb-1">{tx('Ojo con esto', 'Watch out')}</h4>
+                        <p className="text-slate-300 text-sm leading-relaxed">{current.gotcha}</p>
+                    </div>
+                </div>
+            ),
+        },
+    ];
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
@@ -770,7 +398,7 @@ functions:
                 </h3>
                 <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
                 {archList.map((arch) => {
-                    const ArchIcon = arch.icon;
+                    const ArchIcon = VISUALS[arch.id].icon;
                     return (
                         <button
                             key={arch.id}
@@ -803,111 +431,17 @@ functions:
                         className="space-y-6"
                     >
                         {/* Header */}
-                        <div className="flex items-start gap-4">
-                            <div className={`p-4 ${colorClasses[current.color]} rounded-xl`}>
+                        <div className="flex items-center gap-4">
+                            <div className={`p-4 border ${colors.box} rounded-xl`}>
                                 <Icon className="w-10 h-10" />
                             </div>
                             <div className="flex-1">
-                                <h3 className={`text-xl lg:text-3xl font-bold ${current.color === 'blue' ? 'text-blue-400' : current.color === 'green' ? 'text-green-400' : current.color === 'yellow' ? 'text-yellow-400' : 'text-purple-400'}`}>
-                                    {current.name}
-                                </h3>
-                                <p className="text-slate-400">{current.fullName}</p>
-                                <p className="text-slate-300 mt-2">{current.description}</p>
+                                <h3 className={`text-xl lg:text-3xl font-bold ${colors.title}`}>{current.name}</h3>
+                                <p className="text-slate-400 text-sm">{current.fullName} · {story.client}</p>
                             </div>
                         </div>
 
-                        {/* Animated Diagram */}
-                        <div className="bg-slate-950/30 rounded-xl p-6 border border-slate-800">
-                            <h4 className="text-center text-slate-400 mb-6 font-semibold">
-                                FLUJO DE DATOS / DATA FLOW
-                            </h4>
-                            {current.diagram}
-                        </div>
-
-                        {/* Reorganized: Advantages, Disadvantages, When to Use */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                            {/* Advantages (merged with key points) */}
-                            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6">
-                                <h4 className="text-green-400 font-bold mb-4 flex items-center gap-2">
-                                    <span>✅</span>
-                                    <span>VENTAJAS</span>
-                                </h4>
-                                <ul className="space-y-2">
-                                    {current.advantages.map((adv, idx) => (
-                                        <li key={idx} className="text-slate-300 text-sm flex items-start gap-2">
-                                            <span className="text-green-400 mt-1">•</span>
-                                            <span>{adv}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            {/* Disadvantages */}
-                            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6">
-                                <h4 className="text-red-400 font-bold mb-4 flex items-center gap-2">
-                                    <span>⚠️</span>
-                                    <span>DESVENTAJAS</span>
-                                </h4>
-                                <ul className="space-y-2">
-                                    {current.disadvantages.map((dis, idx) => (
-                                        <li key={idx} className="text-slate-300 text-sm flex items-start gap-2">
-                                            <span className="text-red-400 mt-1">•</span>
-                                            <span>{dis}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-
-                            {/* When to Use */}
-                            <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-6">
-                                <h4 className="text-cyan-400 font-bold mb-4 flex items-center gap-2">
-                                    <span>🎯</span>
-                                    <span>CUÁNDO USARLA</span>
-                                </h4>
-                                <p className="text-slate-300 text-sm leading-relaxed">
-                                    {current.whenToUse}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Collapsible Code Example at the end */}
-                        <div className="bg-slate-800/30 border border-slate-700 rounded-xl overflow-hidden">
-                            <button
-                                onClick={() => setIsCodeExpanded(!isCodeExpanded)}
-                                className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <span className="text-2xl">💻</span>
-                                    <h4 className="text-lg font-semibold text-slate-300">
-                                        CÓDIGO DE EJEMPLO / IMPLEMENTATION
-                                    </h4>
-                                </div>
-                                <motion.div
-                                    animate={{ rotate: isCodeExpanded ? 180 : 0 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </motion.div>
-                            </button>
-
-                            <AnimatePresence>
-                                {isCodeExpanded && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="p-4 pt-0">
-                                            <CodeBlock code={current.code} language="javascript" />
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                        <Tabs items={tabs} label={current.name} tx={tx} />
                     </motion.div>
                 </AnimatePresence>
             </div>

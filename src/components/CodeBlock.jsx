@@ -90,7 +90,8 @@ function CodeBlock({
 }) {
     const { language: currentLanguage } = useLanguage();
     const { studyMode } = useStudyMode();
-    const [isOpen, setIsOpen] = useState(!collapsible || !studyMode);
+    // Examples start collapsed; the reader opens the ones they need
+    const [isOpen, setIsOpen] = useState(!collapsible);
     const [prevStudyMode, setPrevStudyMode] = useState(studyMode);
     const common = t('common', currentLanguage);
 

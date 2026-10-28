@@ -26,6 +26,38 @@ export default function ocp(tx) {
       solution: tx('Una interfaz para la variación y una clase por variante.', 'An interface for the variation and one class per variant.'),
       example: 'ProcesadorPagos + MetodoPago (Tarjeta, Yape, Plin…)',
     },
+    visual: {
+      takeaway: tx('El núcleo no se toca: las variantes nuevas se enchufan como clases nuevas.', 'The core stays untouched: new variants plug in as new classes.'),
+      before: {
+        caption: tx('cada método nuevo = editar el if', 'each new method = edit the if'),
+        description: tx('ProcesadorPagos contiene una cadena de if/else por cada método de pago.', 'ProcesadorPagos contains an if/else chain for every payment method.'),
+        rows: [[
+          {
+            title: 'ProcesadorPagos',
+            status: 'bad',
+            chips: ['if TARJETA', 'else if TRANSFERENCIA', 'else if YAPE', { text: 'else if PLIN ✏️', status: 'bad' }],
+          },
+        ]],
+      },
+      after: {
+        caption: tx('cada método nuevo = una clase nueva', 'each new method = one new class'),
+        description: tx('ProcesadorPagos usa la interfaz MetodoPago; cada método de pago la implementa y Plin se agrega como clase nueva.', 'ProcesadorPagos uses the MetodoPago interface; each payment method implements it and Plin is added as a new class.'),
+        rows: [[
+          { title: 'ProcesadorPagos', note: tx('no cambia', 'never changes') },
+          { arrow: 'forward', label: tx('usa', 'uses') },
+          { title: 'MetodoPago', kind: 'interface' },
+          { arrow: 'backward', label: tx('implementan', 'implement') },
+          {
+            group: tx('se agregan', 'added'),
+            items: [
+              { title: 'PagoConTarjeta' },
+              { title: 'PagoConYape' },
+              { title: 'PagoConPlin', status: 'new', note: tx('nuevo', 'new') },
+            ],
+          },
+        ]],
+      },
+    },
     steps: {
       simple: [
         {
@@ -397,29 +429,6 @@ public BigDecimal procesar(String metodo, BigDecimal monto) {
             [tx('Reglas de cada proveedor', 'Each provider\'s rules'), tx('Mezcladas en una clase', 'Mixed in one class'), tx('Cada una en su clase', 'Each in its own class')],
             [tx('Tests', 'Tests'), tx('Un test gigante con todas las ramas', 'One giant test with every branch'), tx('Un test pequeño por método', 'One small test per method')],
             [tx('Error de configuración', 'Configuration error'), tx('Rama olvidada → falla en producción', 'Forgotten branch → fails in production'), tx('Código duplicado → falla al arrancar', 'Duplicate code → fails at startup')],
-          ],
-        },
-        {
-          type: 'flow',
-          title: tx('Diseño resultante', 'Resulting design'),
-          description: tx(
-            'ProcesadorPagos usa la interfaz MetodoPago. PagoConTarjeta, PagoConTransferencia, PagoConYape y la nueva PagoConPlin implementan MetodoPago.',
-            'ProcesadorPagos uses the MetodoPago interface. PagoConTarjeta, PagoConTransferencia, PagoConYape and the new PagoConPlin implement MetodoPago.'
-          ),
-          nodes: [
-            { title: 'ProcesadorPagos', note: tx('cerrado: no cambia', 'closed: never changes') },
-            { arrow: 'forward', label: tx('usa', 'uses') },
-            { title: 'MetodoPago', kind: 'interface' },
-            { arrow: 'backward', label: tx('implementan', 'implement') },
-            {
-              group: tx('Abierto: se agregan clases', 'Open: classes are added'),
-              items: [
-                { title: 'PagoConTarjeta' },
-                { title: 'PagoConTransferencia' },
-                { title: 'PagoConYape' },
-                { title: 'PagoConPlin', status: 'new', note: tx('nuevo', 'new') },
-              ],
-            },
           ],
         },
       ],

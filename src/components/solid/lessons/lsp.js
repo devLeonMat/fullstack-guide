@@ -23,6 +23,43 @@ export default function lsp(tx) {
       solution: tx('Documentar el contrato y corregir la implementación; tests de contrato.', 'Document the contract and fix the implementation; contract tests.'),
       example: 'CuentaRepository: SqlServer ✅ vs Oracle ❌',
     },
+    visual: {
+      takeaway: tx('Toda pieza que encaja en la interfaz debe cumplir el mismo contrato.', 'Every piece that fits the interface must honor the same contract.'),
+      before: {
+        caption: tx('una implementación rompe la promesa', 'one implementation breaks the promise'),
+        description: tx('ConsultaSaldoService usa CuentaRepository. SQL Server devuelve Optional.empty(), Oracle devuelve null y el consumidor falla.', 'ConsultaSaldoService uses CuentaRepository. SQL Server returns Optional.empty(), Oracle returns null and the consumer fails.'),
+        rows: [[
+          { title: 'ConsultaSaldoService', note: tx('💥 falla con Oracle', '💥 fails with Oracle') },
+          { arrow: 'forward', label: tx('usa', 'uses') },
+          { title: 'CuentaRepository', kind: 'interface', note: tx('promete: nunca null', 'promises: never null') },
+          { arrow: 'backward', label: tx('implementan', 'implement') },
+          {
+            group: tx('implementaciones', 'implementations'),
+            items: [
+              { title: 'SqlServerCuentaRepository', status: 'ok', note: 'Optional.empty()' },
+              { title: 'OracleCuentaRepository', status: 'bad', note: 'null' },
+            ],
+          },
+        ]],
+      },
+      after: {
+        caption: tx('todas cumplen: se pueden intercambiar', 'all comply: they are interchangeable'),
+        description: tx('Ambas implementaciones devuelven Optional.empty() y el consumidor funciona con cualquiera.', 'Both implementations return Optional.empty() and the consumer works with either.'),
+        rows: [[
+          { title: 'ConsultaSaldoService', note: tx('funciona con cualquiera', 'works with either') },
+          { arrow: 'forward', label: tx('usa', 'uses') },
+          { title: 'CuentaRepository', kind: 'interface', note: tx('promete: nunca null', 'promises: never null') },
+          { arrow: 'backward', label: tx('implementan', 'implement') },
+          {
+            group: tx('implementaciones', 'implementations'),
+            items: [
+              { title: 'SqlServerCuentaRepository', status: 'ok', note: 'Optional.empty()' },
+              { title: 'OracleCuentaRepository', status: 'ok', note: 'Optional.empty()' },
+            ],
+          },
+        ]],
+      },
+    },
     steps: {
       simple: [
         {
@@ -179,27 +216,6 @@ public class SqlServerCuentaRepository implements CuentaRepository {
 !                .findFirst(); // lista vacía → Optional.empty() ✅
     }
 }`, { title: 'SqlServerCuentaRepository.java', tone: 'good', unit: 'lsp-good' }),
-        {
-          type: 'flow',
-          title: tx('Quién depende de quién', 'Who depends on whom'),
-          description: tx(
-            'ConsultaSaldoService usa la interfaz CuentaRepository, cuyo contrato dice que nunca devuelve null. SqlServerCuentaRepository la implementa y cumple; OracleCuentaRepository la implementa pero devuelve null.',
-            'ConsultaSaldoService uses the CuentaRepository interface, whose contract says it never returns null. SqlServerCuentaRepository implements it and complies; OracleCuentaRepository implements it but returns null.'
-          ),
-          nodes: [
-            { title: 'ConsultaSaldoService', note: tx('confía en el contrato', 'trusts the contract') },
-            { arrow: 'forward', label: tx('usa', 'uses') },
-            { title: 'CuentaRepository', kind: 'interface', note: tx('contrato: nunca null', 'contract: never null') },
-            { arrow: 'backward', label: tx('implementan', 'implement') },
-            {
-              group: tx('Implementaciones', 'Implementations'),
-              items: [
-                { title: 'SqlServerCuentaRepository', status: 'ok', note: tx('devuelve Optional.empty()', 'returns Optional.empty()') },
-                { title: 'OracleCuentaRepository', status: 'bad', note: tx('devuelve null', 'returns null') },
-              ],
-            },
-          ],
-        },
       ],
       bad: [
         {

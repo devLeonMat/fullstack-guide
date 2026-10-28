@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SiJavascript, SiTypescript } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
+import InterviewQA from './languages/InterviewQA';
+import WorkNote from './languages/WorkNote';
+import { buildJsTsInterview } from './languages/jsts';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // ─── Scope Diagram ───────────────────────────────────────────────────────────────
@@ -334,8 +337,8 @@ const renderClosures = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Hoisting, cadena de scope y closures: los conceptos más preguntados en entrevistas.',
-          'Hoisting, scope chain and closures: the most asked interview topics.'
+          'El scope decide dónde vive cada variable, y un closure es una función que se lleva ese scope consigo. Es de lo primero que preguntan en una entrevista de JavaScript, y explica bugs reales del día a día.',
+          'Scope decides where each variable lives, and a closure is a function that carries that scope with it. It’s one of the first things asked in a JavaScript interview, and it explains real everyday bugs.'
         )}
       </p>
     </div>
@@ -348,30 +351,30 @@ const renderClosures = (tx) => (
           title: 'var',
           color: 'border-red-500/30 text-red-300',
           points: [
-            tx('Function-scoped', 'Function-scoped'),
-            tx('Hoisting: declaración al tope (undefined)', 'Hoisted: declaration to top (undefined)'),
-            tx('Re-declarable y re-asignable', 'Re-declarable & re-assignable'),
-            tx('Evitar en código moderno', 'Avoid in modern code'),
+            tx('Vive en toda la función, no solo en el bloque', 'Lives in the whole function, not just the block'),
+            tx('Se “sube” al inicio y vale undefined hasta su línea', 'Gets “hoisted” and is undefined until its line'),
+            tx('Se puede volver a declarar sin error', 'Can be declared again without an error'),
+            tx('En código moderno ya no se usa', 'Modern code no longer uses it'),
           ],
         },
         {
           title: 'let',
           color: 'border-yellow-500/30 text-yellow-300',
           points: [
-            tx('Block-scoped', 'Block-scoped'),
-            tx('Hoisting: TDZ (Temporal Dead Zone)', 'Hoisted: TDZ (Temporal Dead Zone)'),
-            tx('No re-declarable, sí re-asignable', 'Not re-declarable, re-assignable'),
-            tx('Para variables mutables', 'For mutable variables'),
+            tx('Vive solo dentro de su bloque { }', 'Lives only inside its { } block'),
+            tx('Existe desde el inicio, pero usarla antes de su línea da error (TDZ)', 'Exists from the start, but using it before its line throws (TDZ)'),
+            tx('Se puede reasignar, pero no redeclarar', 'Can be reassigned, not redeclared'),
+            tx('Para valores que cambian, como un contador', 'For values that change, like a counter'),
           ],
         },
         {
           title: 'const',
           color: 'border-green-500/30 text-green-300',
           points: [
-            tx('Block-scoped', 'Block-scoped'),
-            tx('Hoisting: TDZ igual que let', 'Hoisted: TDZ same as let'),
-            tx('No re-asignable (binding)', 'Not re-assignable (binding)'),
-            tx('Objetos/arrays son mutables por dentro', 'Objects/arrays still mutable inside'),
+            tx('Vive dentro del bloque, igual que let', 'Lives inside the block, like let'),
+            tx('Tiene la misma TDZ que let', 'Has the same TDZ as let'),
+            tx('No se puede reasignar: es mi opción por defecto', 'Can’t be reassigned: it’s my default choice'),
+            tx('Ojo: si es un objeto o array, su contenido sí puede cambiar', 'Careful: if it’s an object or array, its contents can still change'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -469,6 +472,13 @@ const myModule = (() => {
   };
 })();`} />
     </div>
+
+    <WorkNote tx={tx} accent="yellow">
+      {tx(
+        'En React, la mayoría de los bugs raros con hooks son closures: un callback o un useEffect que “ve” el estado de un render anterior. Se arregla con las dependencias correctas o con la forma funcional setX(prev => ...).',
+        'In React, most weird hook bugs are closures: a callback or useEffect that “sees” state from an earlier render. You fix it with the right dependencies or the functional form setX(prev => ...).'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -482,8 +492,8 @@ const renderEventLoop = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Call Stack, Web APIs, microtask queue y macrotask queue: cómo JavaScript es single-threaded y no-bloqueante.',
-          'Call Stack, Web APIs, microtask queue and macrotask queue: how JavaScript is single-threaded yet non-blocking.'
+          'JavaScript corre en un solo hilo y aun así no se bloquea: lo lento (timers, red, disco) se resuelve afuera y vuelve por colas. Entender el orden de esas colas es lo que te permite predecir qué se imprime primero.',
+          'JavaScript runs on a single thread and still doesn’t block: slow work (timers, network, disk) happens outside and comes back through queues. Knowing the order of those queues is what lets you predict what prints first.'
         )}
       </p>
     </div>
@@ -500,7 +510,7 @@ const renderEventLoop = (tx) => (
             'Promise.then / .catch / .finally',
             'queueMicrotask()',
             'MutationObserver callbacks',
-            tx('Se vacía ANTES de la siguiente macrotask', 'Drained BEFORE next macrotask'),
+            tx('Se vacía completa antes de pasar a la siguiente macrotask', 'It’s fully drained before the next macrotask'),
           ],
         },
         {
@@ -510,8 +520,8 @@ const renderEventLoop = (tx) => (
           points: [
             'setTimeout / setInterval',
             'setImmediate (Node.js)',
-            'I/O callbacks, UI rendering',
-            tx('Una tarea por ciclo del event loop', 'One task per event loop cycle'),
+            tx('Callbacks de I/O y render de la UI', 'I/O callbacks and UI rendering'),
+            tx('Se toma una por vuelta del event loop', 'One is taken per event loop turn'),
           ],
         },
       ].map(({ title, color, badge, points }) => (
@@ -583,6 +593,13 @@ demo();
 // → timeout 1 → promise inside timeout
 // → timeout inside promise`} />
     </div>
+
+    <WorkNote tx={tx} accent="yellow">
+      {tx(
+        'En los servicios Node/NestJS que hice para Intercorp y Lynk, la consecuencia práctica es simple: un cálculo pesado en el hilo principal frena a todos los requests. Ese trabajo va a un worker o a otro servicio.',
+        'In the Node/NestJS services I built for Intercorp and Lynk, the practical consequence is simple: a heavy computation on the main thread slows every request. That work goes to a worker or another service.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -596,8 +613,8 @@ const renderAsync = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'De callbacks a Promises a async/await — patrones de manejo de errores y ejecución paralela.',
-          'From callbacks to Promises to async/await — error handling and parallel execution patterns.'
+          'Callbacks, promesas y async/await resuelven lo mismo con distinta comodidad. Lo que de verdad importa es manejar bien los errores y saber cuándo lanzar llamadas en paralelo en vez de una tras otra.',
+          'Callbacks, promises and async/await solve the same problem with different levels of comfort. What really matters is handling errors well and knowing when to fire calls in parallel instead of one after another.'
         )}
       </p>
     </div>
@@ -706,6 +723,13 @@ for await (const page of paginate('/api/items')) {
   processBatch(page);
 }`} />
     </div>
+
+    <WorkNote tx={tx} accent="yellow">
+      {tx(
+        'Lo que más miro en code review: awaits en serie que podrían ir juntos con Promise.all, y promesas que nadie captura. La primera es la mejora de rendimiento más barata que existe.',
+        'What I look for most in code review: sequential awaits that could run together with Promise.all, and promises nobody catches. The first one is the cheapest performance win there is.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -719,8 +743,8 @@ const renderTypeScript = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Tipos, interfaces, genéricos y type guards. Cómo TS mejora la mantenibilidad del código.',
-          'Types, interfaces, generics and type guards. How TS improves code maintainability.'
+          'TypeScript es JavaScript con tipos que se revisan al compilar y desaparecen al ejecutar. Su valor aparece cuando el proyecto crece: cambias algo y el compilador te muestra todo lo que rompiste.',
+          'TypeScript is JavaScript with types that are checked at compile time and vanish at runtime. Its value shows up as the project grows: you change something and the compiler shows you everything you broke.'
         )}
       </p>
     </div>
@@ -733,22 +757,22 @@ const renderTypeScript = (tx) => (
           title: tx('type vs interface', 'type vs interface'),
           color: 'border-yellow-500/30 text-yellow-300',
           points: [
-            tx('interface: preferida para objetos/clases (extensible con declaration merging)', 'interface: preferred for objects/classes (extensible via declaration merging)'),
-            tx('type: para unions, intersections, mapped types y primitivos', 'type: for unions, intersections, mapped types and primitives'),
-            tx('interface puede extends múltiple; type usa &', 'interface can extends multiple; type uses &'),
-            tx('Ambas pueden ser usadas por implements en clases', 'Both can be used by implements in classes'),
+            tx('interface para la forma de objetos y clases; se puede extender y “fusionar”', 'interface for the shape of objects and classes; it can be extended and “merged”'),
+            tx('type para todo lo demás: uniones, intersecciones y tipos calculados', 'type for everything else: unions, intersections and computed types'),
+            tx('interface combina con extends; type combina con &', 'interface combines with extends; type combines with &'),
+            tx('Una clase puede implementar cualquiera de las dos', 'A class can implement either one'),
           ],
         },
         {
           title: tx('Utility Types clave', 'Key Utility Types'),
           color: 'border-amber-500/30 text-amber-300',
           points: [
-            'Partial<T> — todos los campos opcionales',
-            'Required<T> — todos los campos obligatorios',
-            'Pick<T, K> — selecciona subconjunto de keys',
-            'Omit<T, K> — excluye keys específicas',
-            'Record<K, V> — mapa tipado clave → valor',
-            'Readonly<T> — inmutable en tiempo de compilación',
+            tx('Partial<T>: todo opcional, ideal para un PATCH', 'Partial<T>: everything optional, great for a PATCH'),
+            tx('Required<T>: todo obligatorio', 'Required<T>: everything required'),
+            tx('Pick<T, K>: solo los campos que eliges', 'Pick<T, K>: only the fields you choose'),
+            tx('Omit<T, K>: todo menos esos campos (por ejemplo, sin password)', 'Omit<T, K>: everything except those fields (say, no password)'),
+            tx('Record<K, V>: un diccionario con claves y valores tipados', 'Record<K, V>: a dictionary with typed keys and values'),
+            tx('Readonly<T>: no se puede modificar (solo al compilar)', 'Readonly<T>: can’t be modified (compile time only)'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -854,6 +878,13 @@ function merge<T extends object, U extends object>(a: T, b: U): T & U {
 const merged = merge({ name: 'Alice' }, { age: 30 });
 // Type: { name: string } & { age: number }`} />
     </div>
+
+    <WorkNote tx={tx} accent="yellow">
+      {tx(
+        'Con Angular (de Equifax a Qorta) y NestJS, TypeScript fue mi día a día. Lo que más uso: interfaces para los DTOs que llegan del backend y Partial, Pick u Omit para no duplicarlos.',
+        'With Angular (from Equifax to Qorta) and NestJS, TypeScript was my everyday tool. What I use most: interfaces for the DTOs coming from the backend, and Partial, Pick or Omit so I don’t duplicate them.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -867,8 +898,8 @@ const renderAdvanced = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Tipos condicionales, mapped types, template literals, infer y decoradores.',
-          'Conditional types, mapped types, template literal types, infer and decorators.'
+          'Esto ya es TypeScript para escribir tipos reutilizables: tipos que se calculan a partir de otros. No se usa todos los días, pero aparece en entrevistas senior y te ayuda a leer los tipos de librerías como React o NestJS.',
+          'This is TypeScript for writing reusable types: types computed from other types. You don’t use it every day, but it shows up in senior interviews and helps you read the types of libraries like React or NestJS.'
         )}
       </p>
     </div>
@@ -880,8 +911,8 @@ const renderAdvanced = (tx) => (
           color: 'border-yellow-500/30 text-yellow-300',
           points: [
             'T extends U ? X : Y',
-            tx('Se evalúan en tiempo de compilación', 'Evaluated at compile time'),
-            'infer: extrae tipos dentro de extends',
+            tx('Un if a nivel de tipos, resuelto al compilar', 'An if at the type level, resolved at compile time'),
+            tx('infer saca un tipo de adentro de otro', 'infer pulls a type out of another'),
             'ReturnType<T>, Parameters<T>, Awaited<T>',
           ],
         },
@@ -889,30 +920,30 @@ const renderAdvanced = (tx) => (
           title: tx('Mapped Types', 'Mapped Types'),
           color: 'border-amber-500/30 text-amber-300',
           points: [
-            '{ [K in keyof T]: ... } — itera sobre keys',
-            '+/- para añadir o quitar readonly/?',
-            tx('Base de Partial, Required, Readonly', 'Base for Partial, Required, Readonly'),
-            'as cláusula para renombrar keys',
+            tx('{ [K in keyof T]: ... } recorre las claves de un tipo', '{ [K in keyof T]: ... } walks the keys of a type'),
+            tx('Con + y - agregas o quitas readonly y ?', 'With + and - you add or remove readonly and ?'),
+            tx('Así están hechos Partial, Required y Readonly', 'That’s how Partial, Required and Readonly are built'),
+            tx('Con as puedes renombrar las claves', 'With as you can rename the keys'),
           ],
         },
         {
           title: tx('Template Literal Types', 'Template Literal Types'),
           color: 'border-yellow-600/30 text-yellow-200',
           points: [
-            '`${string}Handler` — tipos de string tipados',
-            tx('Compone unions de strings automáticamente', 'Composes string unions automatically'),
+            tx('`${string}Handler`: strings con un formato tipado', '`${string}Handler`: strings with a typed format'),
+            tx('Combina uniones de strings por ti', 'Combines string unions for you'),
             'Capitalize, Uppercase, Lowercase, Uncapitalize',
-            tx('Útil para event names, CSS classes, API paths', 'Useful for event names, CSS, API paths'),
+            tx('Útil para nombres de eventos, clases CSS o rutas de API', 'Handy for event names, CSS classes or API paths'),
           ],
         },
         {
           title: tx('Decoradores', 'Decorators'),
           color: 'border-yellow-400/30 text-yellow-100',
           points: [
-            tx('Stage 3 proposal, ya estable en TS 5.0+', 'Stage 3 proposal, stable in TS 5.0+'),
-            '@Injectable, @Component, @Entity (NestJS/Angular)',
-            tx('Class, method, property, parameter decorators', 'Class, method, property, parameter decorators'),
-            tx('Metadata reflection con reflect-metadata', 'Metadata reflection with reflect-metadata'),
+            tx('TS 5.0 soporta los decoradores estándar (Stage 3)', 'TS 5.0 supports standard (Stage 3) decorators'),
+            tx('Angular y NestJS siguen usando los “experimentales” (@Component, @Injectable)', 'Angular and NestJS still use the “experimental” ones (@Component, @Injectable)'),
+            tx('Se aplican a clases, métodos, propiedades y parámetros', 'They apply to classes, methods, properties and parameters'),
+            tx('La inyección de dependencias de esos frameworks se apoya en reflect-metadata', 'Those frameworks’ dependency injection relies on reflect-metadata'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -1014,388 +1045,31 @@ function reducer(state: number, action: Action): number {
   }
 }`} />
     </div>
+
+    <WorkNote tx={tx} accent="yellow">
+      {tx(
+        'Los decoradores los uso todo el tiempo sin escribirlos: @Component en Angular, @Controller e @Injectable en NestJS. Escribir uno propio es raro; entender cómo funcionan ayuda a depurar la inyección de dependencias.',
+        'I use decorators all the time without writing them: @Component in Angular, @Controller and @Injectable in NestJS. Writing your own is rare; understanding how they work helps debug dependency injection.'
+      )}
+    </WorkNote>
   </div>
 );
 
 // ─── Section: Interview Q&A ──────────────────────────────────────────────────────
 
-const InterviewSection = ({ tx }) => {
-  const [openItem, setOpenItem] = useState(null);
-
-  const groups = [
-    {
-      level: 'Junior',
-      color: 'border-green-500/30 text-green-300',
-      badgeColor: 'bg-green-500/20 border-green-500/40 text-green-300',
-      items: [
-        {
-          q: tx('¿Qué es un closure?', 'What is a closure?'),
-          a: tx(
-            'Una función que "recuerda" las variables de su scope léxico exterior aunque se ejecute fuera de él — el scope no se destruye mientras algo lo referencie. Se forma cada vez que una función anida a otra, no solo cuando se retorna explícitamente. Casos típicos: contadores privados, memoización, curry y manejo de estado en callbacks (ej. handlers de event listeners que "recuerdan" el elemento del loop).',
-            'A function that "remembers" variables from its enclosing lexical scope even when executed outside it — the scope isn\'t destroyed while something still references it. It forms every time a function nests another, not only when explicitly returned. Typical uses: private counters, memoization, currying and state in callbacks (e.g. event listeners that "remember" a loop element).'
-          ),
-        },
-        {
-          q: tx('var vs let vs const — ¿cuál es la diferencia?', 'var vs let vs const — what is the difference?'),
-          a: tx(
-            'Trampa clásica de entrevista: var en un for-loop comparte una sola variable entre callbacks async (setTimeout loggea 3,3,3); let crea un binding nuevo por iteración (loggea 0,1,2).',
-            'Classic interview trap: var in a for-loop shares one variable across async callbacks (setTimeout logs 3,3,3); let creates a fresh binding per iteration (logs 0,1,2).'
-          ),
-          table: {
-            headers: ['', 'var', 'let', 'const'],
-            rows: [
-              [tx('Scope', 'Scope'), tx('Función', 'Function'), tx('Bloque', 'Block'), tx('Bloque', 'Block')],
-              [tx('Hoisting', 'Hoisting'), tx('sí, init. undefined', 'yes, init. undefined'), tx('sí, en TDZ', 'yes, in TDZ'), tx('sí, en TDZ', 'yes, in TDZ')],
-              [tx('Re-declarable', 'Re-declarable'), tx('Sí', 'Yes'), tx('No', 'No'), tx('No', 'No')],
-              [tx('Re-asignable', 'Re-assignable'), tx('Sí', 'Yes'), tx('Sí', 'Yes'), tx('No', 'No')],
-              [tx('Uso recomendado', 'Recommended use'), tx('Evitar', 'Avoid'), tx('Variable mutable', 'Mutable variable'), tx('Default', 'Default')],
-            ],
-          },
-        },
-        {
-          q: tx('¿Qué es hoisting?', 'What is hoisting?'),
-          a: tx(
-            'Durante la fase de compilación, el motor JS registra las declaraciones (var, let, const, function, class) en el scope antes de ejecutar ninguna línea. Las function declarations se hoistean completas (se pueden llamar antes de su definición). var se hoistea inicializada en undefined. let/const/class se hoistean pero quedan en la TDZ — existen pero son inaccesibles hasta su línea. Las function expressions y arrow functions asignadas a var/let NO se hoistean con su valor, solo el nombre de la variable.',
-            'During the compilation phase, the JS engine registers declarations (var, let, const, function, class) in scope before executing any line. Function declarations hoist fully (callable before their definition). var hoists initialized to undefined. let/const/class hoist but sit in the TDZ — they exist but are inaccessible until their line. Function expressions and arrow functions assigned to var/let do NOT hoist with their value, only the variable name does.'
-          ),
-        },
-        {
-          q: '== vs ===',
-          a: tx(
-            'Convención: usar siempre === salvo el caso idiomático x == null (cubre null y undefined a la vez). Caso especial: NaN === NaN es false; usar Number.isNaN() u Object.is().',
-            'Convention: always use === except the idiomatic x == null (covers both null and undefined). Edge case: NaN === NaN is false; use Number.isNaN() or Object.is() instead.'
-          ),
-          table: {
-            headers: [tx('operandos', 'operands'), '==', '==='],
-            rows: [
-              [tx('Coerción de tipo', 'Type coercion'), tx('Sí', 'Yes'), tx('No', 'No')],
-              ['1, "1"', 'true', 'false'],
-              ['null, undefined', 'true', 'false'],
-              ['0, false', 'true', 'false'],
-              ['NaN, NaN', 'false', 'false'],
-            ],
-          },
-        },
-        {
-          q: tx('typeof vs instanceof', 'typeof vs instanceof'),
-          a: tx(
-            'Para arrays preferir Array.isArray() en vez de instanceof — más confiable entre realms/iframes.',
-            'For arrays prefer Array.isArray() over instanceof — more reliable across realms/iframes.'
-          ),
-          table: {
-            headers: ['', 'typeof', 'instanceof'],
-            rows: [
-              [tx('Qué verifica', 'What it checks'), tx('Tipo primitivo', 'Primitive type'), tx('Cadena de prototipos', 'Prototype chain')],
-              [tx('Retorna', 'Returns'), tx('string', 'string'), 'boolean'],
-              ['typeof null', '"object" ⚠', '—'],
-              ['typeof []', '"object"', '—'],
-              ['[] instanceof Array', '—', 'true'],
-            ],
-          },
-        },
-        {
-          q: 'null vs undefined',
-          a: tx(
-            'Buena práctica: usar null explícito para "vacío a propósito" y dejar undefined para "nunca se asignó".',
-            'Good practice: use explicit null for "intentionally empty", leave undefined for "never assigned".'
-          ),
-          table: {
-            headers: ['', 'null', 'undefined'],
-            rows: [
-              [tx('Significado', 'Meaning'), tx('Ausencia intencional', 'Intentional absence'), tx('Nunca asignado', 'Never assigned')],
-              ['typeof', '"object"', '"undefined"'],
-              [tx('Asignado por', 'Assigned by'), tx('El programador', 'The developer'), tx('El motor JS', 'The JS engine')],
-              ['null == undefined', 'true', 'true'],
-              ['null === undefined', 'false', 'false'],
-            ],
-          },
-        },
-        {
-          q: tx('Arrow function vs función tradicional', 'Arrow function vs regular function'),
-          a: tx(
-            'Arrow functions heredan this léxicamente del scope donde se definen — ideales dentro de callbacks y class fields (evita el patrón const self = this).',
-            'Arrow functions inherit this lexically from the defining scope — ideal inside callbacks and class fields (avoids the const self = this pattern).'
-          ),
-          table: {
-            headers: ['', tx('Arrow', 'Arrow'), tx('Tradicional', 'Regular')],
-            rows: [
-              ['this', tx('Léxico (heredado)', 'Lexical (inherited)'), tx('Dinámico (call-site)', 'Dynamic (call-site)')],
-              ['arguments', tx('No tiene', 'None'), tx('Sí', 'Yes')],
-              [tx('Constructor (new)', 'Constructor (new)'), tx('No (TypeError)', 'No (TypeError)'), tx('Sí', 'Yes')],
-              ['prototype', tx('No', 'No'), tx('Sí', 'Yes')],
-              [tx('Uso ideal', 'Ideal use'), tx('Callbacks, class fields', 'Callbacks, class fields'), tx('Métodos, constructores', 'Methods, constructors')],
-            ],
-          },
-        },
-        {
-          q: tx('Destructuring y spread/rest — ¿para qué sirven?', 'Destructuring and spread/rest — what are they for?'),
-          a: tx(
-            'Destructuring extrae valores de arrays/objetos en variables individuales, con valores por defecto y renombrado: const { name: n = "?" } = user. Spread (...) expande un iterable/objeto en elementos individuales — clonado superficial, merge de objetos, pasar args: [...arr1, ...arr2], { ...defaults, ...overrides }. Rest (mismo símbolo, contexto distinto) agrupa lo restante: function f(a, ...rest) o const { id, ...others } = obj. Ambos hacen copias shallow, no deep clone.',
-            'Destructuring pulls values out of arrays/objects into individual variables, with defaults and renaming: const { name: n = "?" } = user. Spread (...) expands an iterable/object into individual elements — shallow clone, object merge, passing args: [...arr1, ...arr2], { ...defaults, ...overrides }. Rest (same symbol, different context) collects what\'s left: function f(a, ...rest) or const { id, ...others } = obj. Both produce shallow copies, not deep clones.'
-          ),
-        },
-      ],
-    },
-    {
-      level: 'Mid',
-      color: 'border-yellow-500/30 text-yellow-300',
-      badgeColor: 'bg-yellow-500/20 border-yellow-500/40 text-yellow-300',
-      items: [
-        {
-          q: tx('Explica el event loop', 'Explain the event loop'),
-          a: tx(
-            'JS es single-threaded. El call stack ejecuta código síncrono (LIFO). Las Web APIs / APIs del runtime (timers, I/O, fetch) manejan las tareas async fuera del stack. Al completarse, sus callbacks van a la microtask queue (Promises, queueMicrotask) o macrotask queue (setTimeout, I/O). El event loop mueve tareas al stack solo cuando este está vacío, y SIEMPRE vacía toda la microtask queue antes de tomar la siguiente macrotask — por eso Promises "corren antes" que setTimeout aunque ambos tengan delay 0.',
-            'JS is single-threaded. The call stack executes synchronous code (LIFO). Web APIs / runtime APIs (timers, I/O, fetch) handle async work outside the stack. On completion their callbacks land in the microtask queue (Promises, queueMicrotask) or macrotask queue (setTimeout, I/O). The event loop moves tasks to the stack only when it\'s empty, and ALWAYS fully drains the microtask queue before taking the next macrotask — which is why Promises "run before" setTimeout even with a 0ms delay.'
-          ),
-        },
-        {
-          q: tx('¿Promise vs async/await?', 'Promise vs async/await?'),
-          a: tx(
-            'async/await es syntactic sugar sobre Promises — toda función async retorna una Promise implícitamente, y await pausa la ejecución hasta que esa Promise se resuelve o rechaza. Comparten el mismo motor de microtasks bajo el capó.',
-            'async/await is syntactic sugar over Promises — every async function implicitly returns a Promise, and await pauses execution until that Promise settles. They share the same microtask engine under the hood.'
-          ),
-          table: {
-            headers: ['', 'Promise (.then)', 'async/await'],
-            rows: [
-              [tx('Sintaxis', 'Syntax'), '.then().catch()', 'try/catch'],
-              [tx('Legibilidad', 'Readability'), tx('Encadenado', 'Chained'), tx('Estilo síncrono', 'Synchronous-looking')],
-              [tx('Ejecución paralela', 'Parallel execution'), 'Promise.all/.race/...', tx('Igual, vía Promise.all + await', 'Same, via Promise.all + await')],
-              [tx('Top-level', 'Top-level'), 'N/A', tx('Soportado en ES modules', 'Supported in ES modules')],
-            ],
-          },
-        },
-        {
-          q: tx('¿Qué son los generadores?', 'What are generators?'),
-          a: tx(
-            'Funciones (function*) que pueden pausar su ejecución en cada yield y reanudarla donde quedaron, manteniendo su estado interno entre pausas. Retornan un objeto iterador con .next()/.return()/.throw(). Casos de uso: secuencias infinitas y lazy evaluation, implementar iterables custom (Symbol.iterator), y históricamente fueron la base de librerías como co/redux-saga para manejar async antes de que async/await existiera — de hecho async/await se puede pensar como generadores + Promises + un runner automático.',
-            'Functions (function*) that can pause execution at each yield and resume where they left off, keeping internal state across pauses. They return an iterator object with .next()/.return()/.throw(). Use cases: infinite sequences and lazy evaluation, implementing custom iterables (Symbol.iterator), and historically they underpinned libraries like co/redux-saga for handling async before async/await existed — in fact async/await can be thought of as generators + Promises + an automatic runner.'
-          ),
-        },
-        {
-          q: tx('WeakMap vs Map', 'WeakMap vs Map'),
-          a: tx(
-            'WeakMap es ideal para asociar datos privados a un objeto (ej. estado interno de una clase) sin impedir su garbage collection.',
-            'WeakMap is ideal for attaching private data to an object (e.g. a class\'s internal state) without blocking its garbage collection.'
-          ),
-          table: {
-            headers: ['', 'WeakMap', 'Map'],
-            rows: [
-              [tx('Keys', 'Keys'), tx('Solo objetos', 'Objects only'), tx('Cualquier tipo', 'Any type')],
-              [tx('Referencias', 'References'), tx('Débiles (permite GC)', 'Weak (allows GC)'), tx('Fuertes', 'Strong')],
-              [tx('Iterable', 'Iterable'), tx('No', 'No'), tx('Sí', 'Yes')],
-              ['.size', tx('No', 'No'), tx('Sí', 'Yes')],
-              [tx('Uso ideal', 'Ideal use'), tx('Metadata privada', 'Private metadata'), tx('Colecciones clave-valor', 'General key-value collections')],
-            ],
-          },
-        },
-        {
-          q: tx('¿Cómo funciona this y cómo se controla con call/apply/bind?', 'How does this work and how do you control it with call/apply/bind?'),
-          a: tx(
-            'this se determina en tiempo de EJECUCIÓN según cómo se llama la función, no dónde se define (excepto en arrow functions). Reglas en orden de prioridad: new Foo() → this es la instancia nueva; fn.call(ctx)/fn.apply(ctx) → this es ctx explícito; obj.method() → this es obj (implicit binding); llamada suelta fn() → this es undefined en strict mode o globalThis en sloppy mode. call/apply invocan la función inmediatamente con un this dado (call recibe args uno a uno, apply como array); bind retorna una nueva función con this fijado permanentemente, útil para pasar métodos como callbacks sin perder contexto.',
-            'this is resolved at CALL TIME based on how the function is invoked, not where it\'s defined (except in arrow functions). Priority order: new Foo() → this is the new instance; fn.call(ctx)/fn.apply(ctx) → this is the explicit ctx; obj.method() → this is obj (implicit binding); a bare fn() call → this is undefined in strict mode or globalThis in sloppy mode. call/apply invoke the function immediately with a given this (call takes args one by one, apply as an array); bind returns a new function with this permanently fixed — useful for passing methods as callbacks without losing context.'
-          ),
-        },
-        {
-          q: tx('Cadena de prototipos: ¿cómo funciona la herencia en JS?', 'Prototype chain: how does inheritance work in JS?'),
-          a: tx(
-            'JS usa herencia prototípica, no clases reales (las class de ES6 son sugar sobre prototypes). Cada objeto tiene un link interno [[Prototype]] (accesible vía Object.getPrototypeOf u obj.__proto__) a otro objeto. Al leer una propiedad, el motor busca en el objeto y, si no está, sube por la cadena hasta encontrarla o llegar a null. Object.create(proto) crea un objeto con ese prototype explícito. class Foo extends Bar establece Foo.prototype.__proto__ = Bar.prototype automáticamente.',
-            'JS uses prototypal inheritance, not real classes (ES6 class is sugar over prototypes). Every object has an internal [[Prototype]] link (accessible via Object.getPrototypeOf or obj.__proto__) to another object. When reading a property, the engine looks on the object itself, then walks up the chain until it finds it or hits null. Object.create(proto) creates an object with that explicit prototype. class Foo extends Bar sets Foo.prototype.__proto__ = Bar.prototype automatically.'
-          ),
-        },
-        {
-          q: 'Debounce vs throttle',
-          a: tx(
-            'Ambos limitan cuántas veces se ejecuta una función ante eventos frecuentes (scroll, resize, input), pero con estrategias distintas.',
-            'Both limit how often a function runs in response to frequent events (scroll, resize, input), but with different strategies.'
-          ),
-          table: {
-            headers: ['', tx('Debounce', 'Debounce'), tx('Throttle', 'Throttle')],
-            rows: [
-              [tx('Estrategia', 'Strategy'), tx('Espera silencio de X ms', 'Waits for X ms of silence'), tx('Máx. 1 ejecución cada X ms', 'Max 1 execution per X ms')],
-              [tx('Ejecuta', 'Executes'), tx('Solo tras la última llamada', 'Only after the last call'), tx('Periódicamente mientras dispara', 'Periodically while firing')],
-              [tx('Caso de uso', 'Use case'), tx('Search-as-you-type, validación', 'Search-as-you-type, validation'), tx('Scroll handlers, drag', 'Scroll handlers, drag')],
-            ],
-          },
-        },
-        {
-          q: 'Optional chaining (?.) y nullish coalescing (??)',
-          a: tx(
-            'Optional chaining (?.) corta cortocircuito y retorna undefined si cualquier eslabón de la cadena es null/undefined, evitando el clásico Cannot read property of undefined: user?.address?.street, arr?.[0], fn?.(). Nullish coalescing (??) devuelve el operando derecho solo si el izquierdo es null o undefined — a diferencia de ||, NO trata 0, "" o false como "vacíos": count ?? 10 respeta count = 0, mientras count || 10 lo pisaría con 10.',
-            'Optional chaining (?.) short-circuits and returns undefined if any link in the chain is null/undefined, avoiding the classic Cannot read property of undefined: user?.address?.street, arr?.[0], fn?.(). Nullish coalescing (??) returns the right-hand operand only when the left is null or undefined — unlike ||, it does NOT treat 0, "" or false as "empty": count ?? 10 respects count = 0, while count || 10 would overwrite it with 10.'
-          ),
-        },
-      ],
-    },
-    {
-      level: 'Senior',
-      color: 'border-red-400/30 text-red-300',
-      badgeColor: 'bg-red-500/20 border-red-500/40 text-red-300',
-      items: [
-        {
-          q: tx('¿Cómo funcionan los conditional types de TS?', 'Explain TypeScript conditional types'),
-          a: tx(
-            'T extends U ? X : Y — evaluados en tiempo de compilación, permiten ramificar un tipo según si T es asignable a U. Con infer se pueden extraer tipos internos dentro de la rama true (ej. Unwrap<Promise<T>>). Son distributivos automáticamente sobre union types: si T es A | B, el conditional se aplica a cada miembro por separado y luego se unen los resultados (a menos que envuelvas T en [T] para desactivar la distribución). Forman la base de ReturnType, Parameters, Awaited, Exclude y Extract.',
-            'T extends U ? X : Y — evaluated at compile time, they branch a type based on whether T is assignable to U. With infer you can extract inner types within the true branch (e.g. Unwrap<Promise<T>>). They automatically distribute over union types: if T is A | B, the conditional applies to each member separately and the results are unioned back (unless you wrap T in [T] to opt out of distribution). They form the basis of ReturnType, Parameters, Awaited, Exclude and Extract.'
-          ),
-        },
-        {
-          q: tx('¿Cómo optimiza V8 el JavaScript?', 'How does V8 optimize JavaScript?'),
-          a: tx(
-            'V8 usa JIT compilation: primero interpreta bytecode con Ignition, luego perfila el código en ejecución y compila con Turbofan las funciones "hot" a máquina optimizada. Usa hidden classes: objetos creados con la misma forma (mismas properties, mismo orden de asignación) comparten shape, lo que permite acceso a properties en tiempo O(1) vía inline caches en vez de lookup dinámico. Si una función recibe tipos distintos en llamadas sucesivas (polimorfismo), V8 deoptimiza y vuelve a interpretar — por eso mantener shapes consistentes y evitar cambiar el tipo de una variable importa para performance.',
-            'V8 uses JIT compilation: it first interprets bytecode with Ignition, then profiles running code and compiles "hot" functions to optimized machine code with Turbofan. It uses hidden classes: objects created with the same shape (same properties, same assignment order) share a class, enabling O(1) property access via inline caches instead of dynamic lookup. If a function receives different types across successive calls (polymorphism), V8 deoptimizes and falls back to interpreting — which is why keeping shapes consistent and avoiding type-changing variables matters for performance.'
-          ),
-        },
-        {
-          q: tx('Microtask vs macrotask queue en detalle', 'Microtask vs macrotask queue in detail'),
-          a: tx(
-            'Tras cada macrotask, el motor vacía COMPLETAMENTE la microtask queue (incluyendo las microtasks encoladas durante el propio vaciado), antes de renderizar o tomar la siguiente macrotask. Esto puede starvar macrotasks e incluso bloquear el render si se encolan microtasks infinitamente. Node.js añade dos colas extra con prioridades propias: process.nextTick (mayor prioridad que Promise microtasks, se vacía primero) y setImmediate (macrotask de la check phase, corre después de I/O callbacks en cada vuelta del loop).',
-            'After each macrotask, the engine fully drains the microtask queue (including microtasks enqueued during the draining itself), before rendering or taking the next macrotask. This can starve macrotasks and even block rendering if microtasks are enqueued infinitely. Node.js adds two extra queues with their own priorities: process.nextTick (higher priority than Promise microtasks, drained first) and setImmediate (a check-phase macrotask, runs after I/O callbacks on each loop turn).'
-          ),
-        },
-        {
-          q: tx('Tree shaking: ¿qué es y cómo habilitarlo?', 'Tree shaking: what is it and how to enable it?'),
-          a: tx(
-            'Eliminación de código no utilizado (dead code) en tiempo de build, basada en el análisis estático del grafo de dependencias de ES modules. Requiere: import/export estático (no require ni import dinámico condicional), un bundler que lo soporte (Rollup/Webpack/Vite/esbuild), declarar "sideEffects": false en package.json para que el bundler sepa que puede eliminar módulos sin usar con seguridad, y evitar re-exportar todo desde barrel files (index.js con export * suele arrastrar código innecesario porque rompe el análisis estático).',
-            'Dead code elimination at build time, based on static analysis of the ES modules dependency graph. Requires: static import/export (no require or conditional dynamic import), a bundler that supports it (Rollup/Webpack/Vite/esbuild), declaring "sideEffects": false in package.json so the bundler knows it can safely drop unused modules, and avoiding re-exporting everything from barrel files (an index.js with export * usually drags in unnecessary code because it breaks static analysis).'
-          ),
-        },
-        {
-          q: tx('¿Qué son Proxy y Reflect?', 'What are Proxy and Reflect?'),
-          a: tx(
-            'Proxy envuelve un objeto y permite interceptar operaciones fundamentales (get, set, has, deleteProperty, apply...) mediante "traps", habilitando reactividad (así funciona Vue 3), validación automática, objetos observables o APIs con acceso dinámico tipo ORM. Reflect es el complemento: expone las mismas operaciones fundamentales como métodos estáticos (Reflect.get, Reflect.set) con comportamiento por defecto consistente — dentro de un trap de Proxy se usa Reflect.metodo(...args) para delegar al comportamiento original sin reimplementarlo a mano.',
-            'Proxy wraps an object and lets you intercept fundamental operations (get, set, has, deleteProperty, apply...) via "traps", enabling reactivity (this is how Vue 3 works), automatic validation, observable objects, or ORM-style dynamic access APIs. Reflect is the counterpart: it exposes those same fundamental operations as static methods (Reflect.get, Reflect.set) with consistent default behavior — inside a Proxy trap you call Reflect.method(...args) to delegate to the original behavior instead of reimplementing it by hand.'
-          ),
-        },
-        {
-          q: tx('¿Cómo funciona el garbage collector en V8?', 'How does the garbage collector work in V8?'),
-          a: tx(
-            'V8 usa un GC generacional: el heap se divide en young generation (objetos nuevos, se recolecta frecuentemente con el algoritmo Scavenge, rápido y barato) y old generation (objetos que sobreviven varias rondas, se recolecta con Mark-Sweep-Compact, más lento pero menos frecuente). El algoritmo base es mark-and-sweep: desde raíces alcanzables (globals, stack) marca todo objeto vivo, y lo no marcado se libera. Memory leaks comunes en JS: listeners no removidos, closures que retienen referencias grandes innecesariamente, timers no limpiados, y variables globales accidentales.',
-            'V8 uses a generational GC: the heap splits into young generation (new objects, collected frequently via the Scavenge algorithm, fast and cheap) and old generation (objects that survive several rounds, collected via Mark-Sweep-Compact, slower but less frequent). The underlying algorithm is mark-and-sweep: starting from reachable roots (globals, stack) it marks every live object, and anything unmarked gets freed. Common JS memory leaks: listeners never removed, closures unnecessarily retaining large references, uncleared timers, and accidental global variables.'
-          ),
-        },
-        {
-          q: tx('Structural typing en TS: ¿cómo se compara con nominal typing?', 'Structural typing in TS: how does it compare to nominal typing?'),
-          a: tx(
-            'TS usa structural typing (duck typing): dos tipos son compatibles si tienen la misma forma (shape), sin importar su nombre o jerarquía declarada — si camina como pato y grazna como pato, es un pato. Esto contrasta con nominal typing (Java, C#), donde la compatibilidad depende del nombre/herencia explícita de la clase. Consecuencia práctica: un objeto literal que cumple una interface es asignable aunque nunca la haya implementado explícitamente. Para simular nominal typing en TS se usa "branding" con una property privada única (tipo { __brand: "UserId" }).',
-            'TS uses structural typing (duck typing): two types are compatible if they have the same shape, regardless of their declared name or hierarchy — if it walks like a duck and quacks like a duck, it\'s a duck. This contrasts with nominal typing (Java, C#), where compatibility depends on the class\'s explicit name/inheritance. Practical consequence: an object literal satisfying an interface is assignable even if it never explicitly implemented it. To simulate nominal typing in TS, developers use "branding" with a unique private property (like { __brand: "UserId" }).'
-          ),
-        },
-        {
-          q: tx('Varianza en TS: covarianza y contravarianza en genéricos', 'Variance in TS: covariance and contravariance in generics'),
-          a: tx(
-            'Covarianza: si Dog extends Animal, entonces Dog[] se puede usar donde se espera Animal[] — TS permite esto por posiciones de "salida" (return types, propiedades de lectura). Contravarianza: para posiciones de "entrada" (parámetros de función), lo seguro es lo inverso — un handler que acepta Animal es asignable donde se espera uno que acepte Dog, porque puede manejar cualquier Dog. TS relaja esto por defecto con "bivariant method checking" para parámetros de métodos (no de function types standalone) por compatibilidad práctica, lo cual es técnicamente unsound pero evita falsos positivos comunes en APIs orientadas a objetos.',
-            'Covariance: if Dog extends Animal, then Dog[] can be used wherever Animal[] is expected — TS allows this for "output" positions (return types, readable properties). Contravariance: for "input" positions (function parameters), the safe direction is the reverse — a handler accepting Animal is assignable where one accepting Dog is expected, because it can handle any Dog. TS relaxes this by default via "bivariant method checking" for method parameters (not standalone function types) for practical compatibility, which is technically unsound but avoids common false positives in object-oriented APIs.'
-          ),
-        },
-      ],
-    },
-  ];
-
-  return (
-    <div className="space-y-6">
+const InterviewSection = ({ tx }) => (
+  <div className="space-y-6">
       <div>
         <h2 className="text-xl lg:text-3xl font-bold text-white mb-1">
           {tx('Preguntas de Entrevista', 'Interview Q&A')}
         </h2>
         <p className="text-slate-400 text-sm">
-          {tx(
-            'Las preguntas más comunes en entrevistas de JavaScript y TypeScript, agrupadas por nivel.',
-            'The most common JavaScript and TypeScript interview questions, grouped by level.'
-          )}
+          {tx('Respuestas cortas, como las diría en una entrevista, agrupadas por nivel.', 'Short answers, the way I would say them in an interview, grouped by level.')}
         </p>
       </div>
-
-      {groups.map((group) => (
-        <div key={group.level} className={`bg-slate-900/40 border ${group.color.split(' ')[0]} rounded-xl overflow-hidden`}>
-          <div className={`px-4 py-3 border-b border-slate-800/60 flex items-center gap-2`}>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${group.badgeColor}`}>
-              {group.level}
-            </span>
-            <span className="text-xs text-slate-500">{group.items.length} {tx('preguntas', 'questions')}</span>
-          </div>
-          <div className="divide-y divide-slate-800/60">
-            {group.items.map((item, i) => {
-              const key = `${group.level}-${i}`;
-              const isOpen = openItem === key;
-              return (
-                <div key={i}>
-                  <button
-                    onClick={() => setOpenItem(isOpen ? null : key)}
-                    className="w-full text-left px-4 py-3 flex items-start justify-between gap-3 hover:bg-slate-800/30 transition-colors"
-                  >
-                    <span className="text-sm text-slate-200 font-medium">{item.q}</span>
-                    <motion.span
-                      animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="text-yellow-400 flex-shrink-0 mt-0.5"
-                    >
-                      ▾
-                    </motion.span>
-                  </button>
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-4 pt-1 space-y-3">
-                          {item.a && (
-                            <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/40 border border-yellow-500/10 rounded-lg p-3">
-                              {item.a}
-                            </p>
-                          )}
-                          {item.table && (
-                            <div className="overflow-x-auto rounded-lg border border-yellow-500/10">
-                              <table className="w-full text-xs border-collapse min-w-[420px]">
-                                <thead>
-                                  <tr className="bg-slate-900/70">
-                                    {item.table.headers.map((h, hi) => (
-                                      <th
-                                        key={hi}
-                                        className={`text-left px-3 py-2 border-b border-slate-700/50 whitespace-nowrap ${
-                                          hi === 0 ? 'text-slate-500 font-medium' : 'text-yellow-300 font-bold font-mono'
-                                        }`}
-                                      >
-                                        {h}
-                                      </th>
-                                    ))}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {item.table.rows.map((row, ri) => (
-                                    <tr key={ri} className={ri % 2 === 0 ? 'bg-slate-950/50' : 'bg-slate-900/25'}>
-                                      {row.map((cell, ci) => (
-                                        <td
-                                          key={ci}
-                                          className={`px-3 py-2 border-b border-slate-800/40 align-top ${
-                                            ci === 0 ? 'text-slate-400 font-medium whitespace-nowrap' : 'text-slate-200 font-mono'
-                                          }`}
-                                        >
-                                          {cell}
-                                        </td>
-                                      ))}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+    <InterviewQA groups={buildJsTsInterview(tx)} tx={tx} accent="yellow" />
+  </div>
+);
 
 // ─── Main Component ──────────────────────────────────────────────────────────────
 

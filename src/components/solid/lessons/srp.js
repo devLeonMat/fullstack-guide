@@ -23,6 +23,37 @@ export default function srp(tx) {
       solution: tx('Extraer cada responsabilidad y dejar una clase que coordine.', 'Extract each responsibility and keep one class that coordinates.'),
       example: 'TransferenciaService → Validator, Repository, Notificacion, Reporte',
     },
+    visual: {
+      takeaway: tx('Una clase gorda se parte en piezas pequeñas y una de ellas coordina.', 'One fat class splits into small pieces, and one of them coordinates.'),
+      before: {
+        caption: tx('una clase hace 4 trabajos', 'one class does 4 jobs'),
+        description: tx('TransferenciaService contiene reglas, SQL, correo y PDF.', 'TransferenciaService contains rules, SQL, email and PDF.'),
+        rows: [[
+          {
+            title: 'TransferenciaService',
+            status: 'bad',
+            chips: [tx('reglas', 'rules'), 'SQL', tx('correo', 'email'), 'PDF'],
+          },
+        ]],
+      },
+      after: {
+        caption: tx('una clase por trabajo + un coordinador', 'one class per job + a coordinator'),
+        description: tx('TransferenciaService usa a TransferenciaValidator, TransferenciaRepository, NotificacionService y ReporteService.', 'TransferenciaService uses TransferenciaValidator, TransferenciaRepository, NotificacionService and ReporteService.'),
+        rows: [[
+          { title: 'TransferenciaService', note: tx('coordina', 'coordinates') },
+          { arrow: 'forward', label: tx('usa', 'uses') },
+          {
+            group: tx('1 responsabilidad cada una', '1 responsibility each'),
+            items: [
+              { title: 'TransferenciaValidator', note: tx('reglas', 'rules') },
+              { title: 'TransferenciaRepository', note: 'SQL' },
+              { title: 'NotificacionService', note: tx('correo', 'email') },
+              { title: 'ReporteService', note: 'PDF' },
+            ],
+          },
+        ]],
+      },
+    },
     steps: {
       simple: [
         {
@@ -500,27 +531,6 @@ public class TransferenciaService {
             [tx('Probar el límite diario', 'Testing the daily limit'), tx('Requiere simular BD y correo', 'Needs a fake DB and mail server'), tx('Test unitario de `TransferenciaValidator`', 'Unit test of `TransferenciaValidator`')],
             [tx('Si falla el correo', 'If email fails'), tx('Mezclado con la lógica de dinero', 'Tangled with money logic'), tx('Aislado en `NotificacionService`', 'Isolated in `NotificacionService`')],
             [tx('Trabajo en equipo', 'Teamwork'), tx('Todos editan el mismo archivo', 'Everyone edits the same file'), tx('Cada cambio toca su propia clase', 'Each change touches its own class')],
-          ],
-        },
-        {
-          type: 'flow',
-          title: tx('Diseño resultante', 'Resulting design'),
-          description: tx(
-            'TransferenciaService usa a TransferenciaValidator, TransferenciaRepository, NotificacionService y ReporteService. Cada una tiene una única responsabilidad.',
-            'TransferenciaService uses TransferenciaValidator, TransferenciaRepository, NotificacionService and ReporteService. Each one has a single responsibility.'
-          ),
-          nodes: [
-            { title: 'TransferenciaService', note: tx('coordina el caso de uso', 'coordinates the use case') },
-            { arrow: 'forward', label: tx('usa', 'uses') },
-            {
-              group: tx('Una responsabilidad cada una', 'One responsibility each'),
-              items: [
-                { title: 'TransferenciaValidator', note: tx('reglas de negocio', 'business rules') },
-                { title: 'TransferenciaRepository', note: tx('persistencia', 'persistence') },
-                { title: 'NotificacionService', note: tx('correo', 'email') },
-                { title: 'ReporteService', note: 'PDF' },
-              ],
-            },
           ],
         },
       ],

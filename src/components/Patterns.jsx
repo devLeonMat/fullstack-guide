@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, Factory, Bell, Shuffle, Plug, Command, Shield, Layers, Box, Boxes } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import Tabs from './solid/Tabs';
+import { buildPatterns } from './patterns/patterns';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../translations';
 
@@ -288,571 +290,98 @@ const BuilderDiagram = () => {
   );
 };
 
+
+const VISUALS = {
+  singleton: { icon: Eye, diagram: SingletonDiagram },
+  factory: { icon: Factory, diagram: FactoryDiagram },
+  builder: { icon: Boxes, diagram: BuilderDiagram },
+  adapter: { icon: Plug, diagram: AdapterDiagram },
+  facade: { icon: Box, diagram: FacadeDiagram },
+  proxy: { icon: Shield, diagram: ProxyDiagram },
+  decorator: { icon: Layers, diagram: DecoratorDiagram },
+  strategy: { icon: Shuffle, diagram: StrategyDiagram },
+  observer: { icon: Bell, diagram: ObserverDiagram },
+  command: { icon: Command, diagram: CommandDiagram },
+};
+
+const Section = ({ title, children }) => (
+  <div>
+    <h5 className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-1">{title}</h5>
+    <p className="text-slate-300 text-sm leading-relaxed">{children}</p>
+  </div>
+);
+
 function Patterns() {
   const { language } = useLanguage();
+  const tx = (es, en) => language === 'en' ? en : es;
   const [selectedPattern, setSelectedPattern] = useState('singleton');
-  const [isCodeExpanded, setIsCodeExpanded] = useState(false);
 
-  const patterns = {
-    singleton: {
-      id: 'singleton',
-      name: 'Singleton',
-      icon: Eye,
-      category: 'Creational',
-      diagram: <SingletonDiagram />,
-      description: 'Asegura que una clase tenga una única instancia y proporciona un punto de acceso global a ella.',
-      code: `// Singleton Pattern
-class Database {
-  constructor() {
-    if (Database.instance) {
-      return Database.instance;
-    }
-    this.connection = this.connect();
-    Database.instance = this;
-  }
+  const categories = t('patterns', language).categories;
+  const patternList = buildPatterns(tx);
+  const currentPattern = patternList.find(p => p.id === selectedPattern);
+  const Icon = VISUALS[currentPattern.id].icon;
+  const Diagram = VISUALS[currentPattern.id].diagram;
+  const { story } = currentPattern;
 
-  connect() {
-    return { connected: true, timestamp: Date.now() };
-  }
-
-  query(sql) {
-    return \`Executing: \${sql}\`;
-  }
-}
-
-// Uso
-const db1 = new Database();
-const db2 = new Database();
-console.log(db1 === db2); // true - misma instancia`,
-      advantages: [
-        'Control total sobre la instancia',
-        'Acceso global al objeto',
-        'Lazy initialization posible',
-        'Reduce uso de memoria'
-      ],
-      disadvantages: [
-        'Dificulta el testing (estado global)',
-        'Viola Single Responsibility Principle',
-        'Puede crear acoplamiento fuerte',
-        'Problemas en ambientes multi-thread'
-      ],
-      whenToUse: 'Cuando necesitas garantizar una sola instancia de una clase en toda la aplicación, como conexiones a base de datos, loggers, o gestores de configuración.'
+  const tabs = [
+    {
+      id: 'idea',
+      label: tx('La idea', 'The idea'),
+      content: (
+        <div className="space-y-4">
+          <p className="text-slate-300 leading-relaxed">{currentPattern.summary}</p>
+          <Diagram />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+              <h4 className="text-green-400 font-bold text-sm mb-1">{tx('Úsalo cuando', 'Use it when')}</h4>
+              <p className="text-slate-300 text-sm leading-relaxed">{currentPattern.useWhen}</p>
+            </div>
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+              <h4 className="text-red-400 font-bold text-sm mb-1">{tx('Mejor no, si...', 'Skip it if...')}</h4>
+              <p className="text-slate-300 text-sm leading-relaxed">{currentPattern.avoidWhen}</p>
+            </div>
+          </div>
+        </div>
+      ),
     },
-    factory: {
-      id: 'factory',
-      name: 'Factory',
-      icon: Factory,
-      category: 'Creational',
-      diagram: <FactoryDiagram />,
-      description: 'Define una interfaz para crear objetos, pero deja que las subclases decidan qué clase instanciar.',
-      code: `// Factory Pattern
-class VehicleFactory {
-  createVehicle(type) {
-    switch(type) {
-      case 'car':
-        return new Car();
-      case 'truck':
-        return new Truck();
-      case 'motorcycle':
-        return new Motorcycle();
-      default:
-        throw new Error('Unknown vehicle type');
-    }
-  }
-}
-
-class Car {
-  constructor() {
-    this.type = 'Car';
-    this.wheels = 4;
-  }
-  drive() {
-    return 'Driving a car';
-  }
-}
-
-class Truck {
-  constructor() {
-    this.type = 'Truck';
-    this.wheels = 6;
-  }
-  drive() {
-    return 'Driving a truck';
-  }
-}
-
-// Uso
-const factory = new VehicleFactory();
-const myCar = factory.createVehicle('car');
-const myTruck = factory.createVehicle('truck');`,
-      advantages: [
-        'Desacopla creación de objetos',
-        'Facilita agregar nuevos tipos',
-        'Centraliza lógica de creación',
-        'Código más mantenible'
-      ],
-      disadvantages: [
-        'Puede volverse complejo',
-        'Más código por escribir',
-        'Puede sobre-complicar cosas simples'
-      ],
-      whenToUse: 'Cuando no sabes de antemano qué tipo exacto de objetos necesitarás, o cuando quieres centralizar la lógica de creación de objetos complejos.'
+    {
+      id: 'story',
+      label: tx('En mi trabajo', 'On the job'),
+      content: (
+        <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-4 lg:p-6 space-y-4">
+          <div>
+            <p className="text-purple-300 font-bold">{story.client}</p>
+            <p className="text-slate-400 text-xs">{story.project} · {story.years}</p>
+          </div>
+          <Section title={tx('Contexto', 'Context')}>{story.context}</Section>
+          <Section title={tx('El problema', 'The problem')}>{story.problem}</Section>
+          <Section title={tx('Lo que hice', 'What I did')}>{story.solution}</Section>
+          <Section title={tx('Lo que ganamos', 'What we got')}>{story.payoff}</Section>
+        </div>
+      ),
     },
-    observer: {
-      id: 'observer',
-      name: 'Observer',
-      icon: Bell,
-      category: 'Behavioral',
-      diagram: <ObserverDiagram />,
-      description: 'Define una dependencia uno-a-muchos de modo que cuando un objeto cambia de estado, todos sus dependientes son notificados.',
-      code: `// Observer Pattern
-class Subject {
-  constructor() {
-    this.observers = [];
-  }
-
-  subscribe(observer) {
-    this.observers.push(observer);
-  }
-
-  unsubscribe(observer) {
-    this.observers = this.observers.filter(obs => obs !== observer);
-  }
-
-  notify(data) {
-    this.observers.forEach(observer => observer.update(data));
-  }
-}
-
-class Observer {
-  constructor(name) {
-    this.name = name;
-  }
-
-  update(data) {
-    console.log(\`\${this.name} received: \${data}\`);
-  }
-}
-
-// Uso
-const subject = new Subject();
-const observer1 = new Observer('Observer 1');
-const observer2 = new Observer('Observer 2');
-
-subject.subscribe(observer1);
-subject.subscribe(observer2);
-subject.notify('Hello Observers!');`,
-      advantages: [
-        'Desacoplamiento total',
-        'Fácil agregar/remover observers',
-        'Notificaciones automáticas',
-        'Patrón Pub/Sub efectivo'
-      ],
-      disadvantages: [
-        'Memory leaks si no se desuscriben',
-        'Orden de notificación impredecible',
-        'Debugging más complejo',
-        'Overhead de notificaciones'
-      ],
-      whenToUse: 'Para sistemas de eventos, notificaciones en tiempo real, o cuando múltiples objetos necesitan reaccionar a cambios de estado de otro objeto.'
+    {
+      id: 'code',
+      label: tx('Código', 'Code'),
+      content: <CodeBlock code={currentPattern.code} language="java" />,
     },
-    strategy: {
-      id: 'strategy',
-      name: 'Strategy',
-      icon: Shuffle,
-      category: 'Behavioral',
-      diagram: <StrategyDiagram />,
-      description: 'Define una familia de algoritmos, encapsula cada uno y los hace intercambiables en tiempo de ejecución.',
-      code: `// Strategy Pattern
-class PaymentContext {
-  constructor(strategy) {
-    this.strategy = strategy;
-  }
-
-  setStrategy(strategy) {
-    this.strategy = strategy;
-  }
-
-  executePayment(amount) {
-    return this.strategy.pay(amount);
-  }
-}
-
-class CreditCardStrategy {
-  pay(amount) {
-    return \`Paid \${amount} with Credit Card\`;
-  }
-}
-
-class PayPalStrategy {
-  pay(amount) {
-    return \`Paid \${amount} with PayPal\`;
-  }
-}
-
-class BitcoinStrategy {
-  pay(amount) {
-    return \`Paid \${amount} with Bitcoin\`;
-  }
-}
-
-// Uso
-const payment = new PaymentContext(new CreditCardStrategy());
-console.log(payment.executePayment(100));
-
-payment.setStrategy(new PayPalStrategy());
-console.log(payment.executePayment(200));`,
-      advantages: [
-        'Intercambio de algoritmos en runtime',
-        'Elimina condicionales complejos',
-        'Open/Closed Principle',
-        'Fácil testear estrategias'
-      ],
-      disadvantages: [
-        'Más clases que crear',
-        'Cliente debe conocer estrategias',
-        'Overhead para casos simples'
-      ],
-      whenToUse: 'Cuando tienes múltiples formas de hacer algo y quieres cambiar el comportamiento dinámicamente, como métodos de pago, algoritmos de ordenamiento, o compresión.'
+    {
+      id: 'interview',
+      label: tx('En entrevista', 'In the interview'),
+      content: (
+        <div className="space-y-3">
+          <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+            <h4 className="text-purple-400 font-bold text-sm mb-1">{tx('Cómo lo contaría', 'How I’d say it')}</h4>
+            <p className="text-slate-300 text-sm leading-relaxed">“{currentPattern.pitch}”</p>
+          </div>
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+            <h4 className="text-amber-300 font-bold text-sm mb-1">{tx('Ojo con esto', 'Watch out')}</h4>
+            <p className="text-slate-300 text-sm leading-relaxed">{currentPattern.gotcha}</p>
+          </div>
+        </div>
+      ),
     },
-    adapter: {
-      id: 'adapter',
-      name: 'Adapter',
-      icon: Plug,
-      category: 'Structural',
-      diagram: <AdapterDiagram />,
-      description: 'Convierte la interfaz de una clase en otra interfaz que el cliente espera, permitiendo trabajar juntas a clases incompatibles.',
-      code: `// Adapter Pattern
-class OldAPI {
-  request() {
-    return 'Data from old API';
-  }
-}
-
-class NewAPIAdapter {
-  constructor(oldAPI) {
-    this.oldAPI = oldAPI;
-  }
-
-  fetch() {
-    const data = this.oldAPI.request();
-    return { result: data, status: 'success' };
-  }
-}
-
-// Uso
-const oldAPI = new OldAPI();
-const adapter = new NewAPIAdapter(oldAPI);
-console.log(adapter.fetch());`,
-      advantages: [
-        'Reutiliza código existente',
-        'Integra APIs incompatibles',
-        'Single Responsibility',
-        'Transparente para el cliente'
-      ],
-      disadvantages: [
-        'Aumenta complejidad',
-        'Overhead de adaptación',
-        'Debugging más difícil'
-      ],
-      whenToUse: 'Para integrar librerías de terceros, APIs legacy, o cuando necesitas hacer compatible código existente con nuevas interfaces.'
-    },
-    command: {
-      id: 'command',
-      name: 'Command',
-      icon: Command,
-      category: 'Behavioral',
-      diagram: <CommandDiagram />,
-      description: 'Encapsula una solicitud como un objeto, permitiendo parametrizar clientes con diferentes solicitudes, encolar y deshacer operaciones.',
-      code: `// Command Pattern
-class Light {
-  on() { console.log('Light is ON'); }
-  off() { console.log('Light is OFF'); }
-}
-
-class LightOnCommand {
-  constructor(light) {
-    this.light = light;
-  }
-  execute() {
-    this.light.on();
-  }
-  undo() {
-    this.light.off();
-  }
-}
-
-class LightOffCommand {
-  constructor(light) {
-    this.light = light;
-  }
-  execute() {
-    this.light.off();
-  }
-  undo() {
-    this.light.on();
-  }
-}
-
-class RemoteControl {
-  execute(command) {
-    command.execute();
-    this.lastCommand = command;
-  }
-  undo() {
-    this.lastCommand?.undo();
-  }
-}
-
-// Uso
-const light = new Light();
-const lightOn = new LightOnCommand(light);
-const remote = new RemoteControl();
-remote.execute(lightOn);
-remote.undo();`,
-      advantages: [
-        'Desacopla invocador de ejecutor',
-        'Fácil implementar undo/redo',
-        'Queue de comandos',
-        'Logging y auditoría'
-      ],
-      disadvantages: [
-        'Muchas clases pequeñas',
-        'Complejidad incrementada',
-        'Overhead para operaciones simples'
-      ],
-      whenToUse: 'Para implementar undo/redo, macro comandos, transacciones, o cuando necesitas parametrizar objetos con operaciones.'
-    },
-    proxy: {
-      id: 'proxy',
-      name: 'Proxy',
-      icon: Shield,
-      category: 'Structural',
-      diagram: <ProxyDiagram />,
-      description: 'Proporciona un sustituto o marcador de posición para otro objeto, controlando el acceso a él.',
-      code: `// Proxy Pattern
-class RealImage {
-  constructor(filename) {
-    this.filename = filename;
-    this.loadFromDisk();
-  }
-
-  loadFromDisk() {
-    console.log(\`Loading: \${this.filename}\`);
-  }
-
-  display() {
-    console.log(\`Displaying: \${this.filename}\`);
-  }
-}
-
-class ProxyImage {
-  constructor(filename) {
-    this.filename = filename;
-    this.realImage = null;
-  }
-
-  display() {
-    if (!this.realImage) {
-      this.realImage = new RealImage(this.filename);
-    }
-    this.realImage.display();
-  }
-}
-
-// Uso
-const image = new ProxyImage('photo.jpg');
-image.display(); // Carga y muestra
-image.display(); // Solo muestra (ya cargada)`,
-      advantages: [
-        'Control de acceso',
-        'Lazy initialization',
-        'Logging y caching',
-        'Protección del objeto real'
-      ],
-      disadvantages: [
-        'Mayor latencia inicial',
-        'Complejidad adicional',
-        'Posibles memory leaks'
-      ],
-      whenToUse: 'Para lazy loading, control de acceso, caching, logging, o cuando necesitas un intermediario que controle el acceso a un objeto costoso.'
-    },
-    decorator: {
-      id: 'decorator',
-      name: 'Decorator',
-      icon: Layers,
-      category: 'Structural',
-      diagram: <DecoratorDiagram />,
-      description: 'Añade responsabilidades adicionales a un objeto dinámicamente, proporcionando una alternativa flexible a la herencia.',
-      code: `// Decorator Pattern
-class Coffee {
-  cost() { return 5; }
-  description() { return 'Coffee'; }
-}
-
-class MilkDecorator {
-  constructor(coffee) {
-    this.coffee = coffee;
-  }
-  cost() {
-    return this.coffee.cost() + 2;
-  }
-  description() {
-    return this.coffee.description() + ', Milk';
-  }
-}
-
-class SugarDecorator {
-  constructor(coffee) {
-    this.coffee = coffee;
-  }
-  cost() {
-    return this.coffee.cost() + 1;
-  }
-  description() {
-    return this.coffee.description() + ', Sugar';
-  }
-}
-
-// Uso
-let myCoffee = new Coffee();
-myCoffee = new MilkDecorator(myCoffee);
-myCoffee = new SugarDecorator(myCoffee);
-console.log(myCoffee.description()); // Coffee, Milk, Sugar
-console.log(myCoffee.cost()); // 8`,
-      advantages: [
-        'Añade funcionalidad dinámicamente',
-        'Composición sobre herencia',
-        'Flexible y reutilizable',
-        'Single Responsibility Principle'
-      ],
-      disadvantages: [
-        'Muchos objetos pequeños',
-        'Dificulta debugging',
-        'Orden de decoradores importa'
-      ],
-      whenToUse: 'Cuando necesitas añadir funcionalidad a objetos de forma dinámica sin afectar otros objetos, como middleware, plugins, o características opcionales.'
-    },
-    facade: {
-      id: 'facade',
-      name: 'Facade',
-      icon: Box,
-      category: 'Structural',
-      diagram: <FacadeDiagram />,
-      description: 'Proporciona una interfaz unificada y simplificada a un conjunto de interfaces en un subsistema, facilitando su uso.',
-      code: `// Facade Pattern
-class CPU {
-  freeze() { console.log('CPU frozen'); }
-  jump(position) { console.log(\`Jump to \${position}\`); }
-  execute() { console.log('CPU executing'); }
-}
-
-class Memory {
-  load(position, data) {
-    console.log(\`Loading \${data} at \${position}\`);
-  }
-}
-
-class HardDrive {
-  read(lba, size) {
-    return 'Boot data';
-  }
-}
-
-class ComputerFacade {
-  constructor() {
-    this.cpu = new CPU();
-    this.memory = new Memory();
-    this.hardDrive = new HardDrive();
-  }
-
-  start() {
-    this.cpu.freeze();
-    this.memory.load(0, this.hardDrive.read(0, 1024));
-    this.cpu.jump(0);
-    this.cpu.execute();
-  }
-}
-
-// Uso simple
-const computer = new ComputerFacade();
-computer.start(); // Un solo método en vez de muchos`,
-      advantages: [
-        'Simplifica interfaces complejas',
-        'Reduce dependencias',
-        'API más limpia',
-        'Facilita testing'
-      ],
-      disadvantages: [
-        'Puede convertirse en God Object',
-        'Oculta funcionalidad',
-        'Menos flexibilidad'
-      ],
-      whenToUse: 'Para simplificar APIs complejas, proporcionar punto de entrada único a librerías, o cuando tienes un sistema con muchas clases interdependientes.'
-    },
-    builder: {
-      id: 'builder',
-      name: 'Builder',
-      icon: Boxes,
-      category: 'Creational',
-      diagram: <BuilderDiagram />,
-      description: 'Separa la construcción de un objeto complejo de su representación, permitiendo crear diferentes representaciones.',
-      code: `// Builder Pattern
-class UserBuilder {
-  constructor() {
-    this.user = {};
-  }
-
-  setName(name) {
-    this.user.name = name;
-    return this;
-  }
-
-  setAge(age) {
-    this.user.age = age;
-    return this;
-  }
-
-  setEmail(email) {
-    this.user.email = email;
-    return this;
-  }
-
-  setAddress(address) {
-    this.user.address = address;
-    return this;
-  }
-
-  build() {
-    return this.user;
-  }
-}
-
-// Uso fluido
-const user = new UserBuilder()
-  .setName('Juan')
-  .setAge(30)
-  .setEmail('juan@example.com')
-  .setAddress('123 Main St')
-  .build();`,
-      advantages: [
-        'Construcción paso a paso',
-        'Código más legible',
-        'Parámetros opcionales fáciles',
-        'Inmutabilidad posible'
-      ],
-      disadvantages: [
-        'Más código por escribir',
-        'Complejidad para objetos simples',
-        'Puede ser verbose'
-      ],
-      whenToUse: 'Para construir objetos complejos con muchos parámetros opcionales, o cuando quieres un API fluido para construcción de objetos.'
-    }
-  };
-
-  const patternList = Object.values(patterns);
-  const currentPattern = patterns[selectedPattern];
-  const Icon = currentPattern.icon;
+  ];
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6 lg:h-[calc(100vh-200px)]">
@@ -863,14 +392,11 @@ const user = new UserBuilder()
         </h3>
         <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-x-hidden lg:pb-0 lg:space-y-2">
         {patternList.map((pattern) => {
-          const PatternIcon = pattern.icon;
+          const PatternIcon = VISUALS[pattern.id].icon;
           return (
             <button
               key={pattern.id}
-              onClick={() => {
-                setSelectedPattern(pattern.id);
-                setIsCodeExpanded(false);
-              }}
+              onClick={() => setSelectedPattern(pattern.id)}
               className={`flex-shrink-0 lg:w-full text-left px-3 py-2 lg:px-4 lg:py-3 rounded-lg transition-all flex items-center gap-2 lg:gap-3 ${selectedPattern === pattern.id
                 ? 'bg-purple-500/20 border border-purple-500/50 text-purple-300'
                 : 'bg-slate-800/50 border border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
@@ -879,7 +405,7 @@ const user = new UserBuilder()
               <PatternIcon className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-semibold text-sm lg:text-base whitespace-nowrap lg:whitespace-normal">{pattern.name}</div>
-                <div className="hidden lg:block text-xs opacity-70 line-clamp-1">{pattern.category}</div>
+                <div className="hidden lg:block text-xs opacity-70 line-clamp-1">{categories[pattern.category]}</div>
               </div>
             </button>
           );
@@ -899,109 +425,17 @@ const user = new UserBuilder()
             className="space-y-6"
           >
             {/* Header */}
-            <div className="flex items-start gap-4">
+            <div className="flex items-center gap-4">
               <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
                 <Icon className="w-10 h-10 text-purple-400" />
               </div>
               <div className="flex-1">
                 <h3 className="text-xl lg:text-3xl font-bold text-purple-400">{currentPattern.name}</h3>
-                <p className="text-slate-400 text-sm">{currentPattern.category} Pattern</p>
-                <p className="text-slate-300 mt-2">{currentPattern.description}</p>
+                <p className="text-slate-400 text-sm">{categories[currentPattern.category]} · {story.client}</p>
               </div>
             </div>
 
-            {/* Visual Diagram */}
-            <div>
-              <h4 className="text-center text-slate-400 mb-4 font-semibold">
-                DIAGRAMA VISUAL / VISUAL DIAGRAM
-              </h4>
-              {currentPattern.diagram}
-            </div>
-
-            {/* Advantages, Disadvantages, When to Use */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              {/* Advantages */}
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-6">
-                <h4 className="text-green-400 font-bold mb-4 flex items-center gap-2">
-                  <span>✅</span>
-                  <span>VENTAJAS</span>
-                </h4>
-                <ul className="space-y-2">
-                  {currentPattern.advantages.map((adv, idx) => (
-                    <li key={idx} className="text-slate-300 text-sm flex items-start gap-2">
-                      <span className="text-green-400 mt-1">•</span>
-                      <span>{adv}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Disadvantages */}
-              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6">
-                <h4 className="text-red-400 font-bold mb-4 flex items-center gap-2">
-                  <span>⚠️</span>
-                  <span>DESVENTAJAS</span>
-                </h4>
-                <ul className="space-y-2">
-                  {currentPattern.disadvantages.map((dis, idx) => (
-                    <li key={idx} className="text-slate-300 text-sm flex items-start gap-2">
-                      <span className="text-red-400 mt-1">•</span>
-                      <span>{dis}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* When to Use */}
-              <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-6">
-                <h4 className="text-purple-400 font-bold mb-4 flex items-center gap-2">
-                  <span>🎯</span>
-                  <span>CUÁNDO USARLO</span>
-                </h4>
-                <p className="text-slate-300 text-sm leading-relaxed">
-                  {currentPattern.whenToUse}
-                </p>
-              </div>
-            </div>
-
-            {/* Collapsible Code Example */}
-            <div className="bg-slate-800/30 border border-slate-700 rounded-xl overflow-hidden">
-              <button
-                onClick={() => setIsCodeExpanded(!isCodeExpanded)}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-800/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">💻</span>
-                  <h4 className="text-lg font-semibold text-slate-300">
-                    CÓDIGO DE EJEMPLO / IMPLEMENTATION
-                  </h4>
-                </div>
-                <motion.div
-                  animate={{ rotate: isCodeExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </motion.div>
-              </button>
-
-              <AnimatePresence>
-                {isCodeExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="p-4 pt-0">
-                      <CodeBlock code={currentPattern.code} language="javascript" />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <Tabs items={tabs} label={currentPattern.name} tx={tx} />
           </motion.div>
         </AnimatePresence>
       </div>

@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Code2, GitBranch, Zap, Globe, Database, HelpCircle, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { Code2, GitBranch, Zap, Globe, Database, ArrowRight } from 'lucide-react';
 import { SiPython } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
+import InterviewQA from './languages/InterviewQA';
+import WorkNote from './languages/WorkNote';
+import { buildPythonInterview } from './languages/python';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // ─── Python Data Structures Diagram ─────────────────────────────────────────
@@ -417,8 +420,8 @@ const renderFundamentals = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Duck typing, comprehensions, generadores, decoradores y gestores de contexto.',
-          'Duck typing, comprehensions, generators, decorators and context managers.'
+          'Lo que hace que un código se sienta “pythonic”: comprehensions en vez de bucles largos, generadores para no cargar todo en memoria, decoradores para sumar comportamiento y with para no olvidar cerrar recursos.',
+          'What makes code feel “pythonic”: comprehensions instead of long loops, generators so you don’t load everything into memory, decorators to add behavior, and with so you never forget to close resources.'
         )}
       </p>
     </div>
@@ -432,9 +435,9 @@ const renderFundamentals = (tx) => (
           color: 'border-blue-500/30 text-blue-300',
           points: [
             tx('"Si camina como pato y grazna como pato, es un pato"', '"If it walks like a duck and quacks like a duck, it\'s a duck"'),
-            tx('No importa el tipo, sino los métodos/atributos disponibles', 'Type doesn\'t matter, only available methods/attributes'),
-            tx('Usa isinstance() solo cuando sea necesario', 'Use isinstance() only when truly necessary'),
-            tx('Prefiere protocolos (Protocol) sobre herencia', 'Prefer protocols (Protocol) over inheritance'),
+            tx('No importa de qué clase es un objeto, sino qué sabe hacer', 'It doesn’t matter what class an object is, only what it can do'),
+            tx('isinstance() solo cuando de verdad haga falta', 'isinstance() only when you really need it'),
+            tx('Para tipar ese contrato, Protocol en vez de herencia', 'To type that contract, use Protocol instead of inheritance'),
           ],
         },
         {
@@ -451,40 +454,40 @@ const renderFundamentals = (tx) => (
           title: tx('Generadores (yield)', 'Generators (yield)'),
           color: 'border-sky-500/30 text-sky-300',
           points: [
-            tx('Produce valores de uno en uno — lazy evaluation', 'Produces values one at a time — lazy evaluation'),
-            tx('Usa O(1) memoria independiente del tamaño del dataset', 'Uses O(1) memory regardless of dataset size'),
-            tx('yield from para delegar en sub-generador', 'yield from to delegate to sub-generator'),
-            tx('Perfecto para streams, ficheros grandes, pipelines', 'Perfect for streams, large files, pipelines'),
+            tx('Entrega valores de a uno, solo cuando se los pides', 'Hands out values one at a time, only when asked'),
+            tx('La memoria no crece con el tamaño de los datos', 'Memory doesn’t grow with the size of the data'),
+            tx('yield from delega en otro generador', 'yield from delegates to another generator'),
+            tx('Ideal para archivos grandes y procesos por etapas', 'Ideal for large files and step-by-step pipelines'),
           ],
         },
         {
           title: tx('Decoradores', 'Decorators'),
           color: 'border-blue-600/30 text-blue-400',
           points: [
-            tx('Función que envuelve otra función — patrón wrapper', 'Function wrapping another function — wrapper pattern'),
-            tx('@functools.wraps preserva __name__, __doc__', '@functools.wraps preserves __name__, __doc__'),
-            tx('Apilables: @cache @validate @log en orden inverso', 'Stackable: @cache @validate @log in reverse order'),
-            tx('@decorator es azúcar sintáctica para func = decorator(func)', '@decorator is syntactic sugar for func = decorator(func)'),
+            tx('Una función que envuelve a otra para sumarle algo: logs, caché, reintentos', 'A function that wraps another to add something: logging, caching, retries'),
+            tx('@functools.wraps conserva el nombre y la documentación de la original', '@functools.wraps keeps the original’s name and docs'),
+            tx('Se pueden apilar; el de más abajo se aplica primero', 'They stack; the bottom one is applied first'),
+            tx('@decorador es lo mismo que func = decorador(func)', '@decorator is the same as func = decorator(func)'),
           ],
         },
         {
           title: tx('Context Managers', 'Context Managers'),
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            tx('with open("f") as f garantiza cierre del recurso', 'with open("f") as f guarantees resource close'),
-            tx('@contextmanager de contextlib para creación sencilla', '@contextmanager from contextlib for easy creation'),
-            tx('__enter__ retorna el recurso, __exit__ lo libera', '__enter__ returns resource, __exit__ releases it'),
-            tx('Ideal para conexiones DB, locks, tempdir', 'Ideal for DB connections, locks, tempdir'),
+            tx('with garantiza que el recurso se cierre, aunque haya una excepción', 'with guarantees the resource gets closed, even on an exception'),
+            tx('@contextmanager te deja escribir uno con un simple yield', '@contextmanager lets you write one with a plain yield'),
+            tx('Por dentro: __enter__ abre, __exit__ libera', 'Under the hood: __enter__ opens, __exit__ releases'),
+            tx('Úsalo con conexiones, locks y archivos temporales', 'Use it for connections, locks and temp files'),
           ],
         },
         {
-          title: 'f-strings & más',
+          title: tx('f-strings y más', 'f-strings & more'),
           color: 'border-sky-400/30 text-sky-200',
           points: [
             tx('f"{name!r}" — repr, f"{pi:.2f}" — formato', 'f"{name!r}" — repr, f"{pi:.2f}" — format'),
-            tx('f"{value = }" — debug automático (Python 3.8+)', 'f"{value = }" — automatic debug (Python 3.8+)'),
-            tx('*args = posicionales, **kwargs = nominales', '*args = positional, **kwargs = keyword'),
-            tx('walrus := asigna y evalúa en la misma expresión', 'walrus := assigns and evaluates in same expression'),
+            tx('f"{valor = }" imprime nombre y valor, ideal para depurar', 'f"{value = }" prints name and value, great for debugging'),
+            tx('*args junta posicionales y **kwargs, nombrados', '*args gathers positional and **kwargs, keyword arguments'),
+            tx('El walrus := asigna dentro de una expresión, útil en while e if', 'The walrus := assigns inside an expression, handy in while and if'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -603,6 +606,13 @@ with ManagedDB("postgresql://localhost/mydb") as conn:
 
 with temp_directory() as tmp:
     process_files(tmp)`} />
+
+    <WorkNote tx={tx} accent="blue">
+      {tx(
+        'Los generadores y los context managers son lo que más uso en scripts de Python: leer archivos grandes por partes y asegurar que todo se cierre, aunque algo falle a mitad de camino.',
+        'Generators and context managers are what I use most in Python scripts: reading large files in chunks and making sure everything gets closed, even if something fails halfway.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -614,8 +624,8 @@ const renderOOP = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Clases, herencia, dataclasses, ABC y Protocol para interfaces estructurales.',
-          'Classes, inheritance, dataclasses, ABC and Protocol for structural interfaces.'
+          'Python tiene clases como Java, pero con otra filosofía: menos ceremonia, dataclasses en vez de getters y setters, y contratos por forma (Protocol) más que por herencia.',
+          'Python has classes like Java, but a different philosophy: less ceremony, dataclasses instead of getters and setters, and contracts by shape (Protocol) more than by inheritance.'
         )}
       </p>
     </div>
@@ -628,61 +638,61 @@ const renderOOP = (tx) => (
           title: '__dunder__ methods',
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            '__repr__ — representación no ambigua para depurar',
-            '__str__ — representación legible para usuarios',
-            '__eq__ / __hash__ — comparación e igualdad',
-            '__len__ / __iter__ / __getitem__ — protocolo de secuencia',
-            '__enter__ / __exit__ — context manager protocol',
+            tx('__repr__: lo que ves al depurar; que no sea ambiguo', '__repr__: what you see when debugging; keep it unambiguous'),
+            tx('__str__: la versión legible para personas', '__str__: the human-readable version'),
+            tx('__eq__ y __hash__: siempre juntos, como equals y hashCode en Java', '__eq__ and __hash__: always together, like equals and hashCode in Java'),
+            tx('__len__, __iter__, __getitem__: tu objeto se comporta como una lista', '__len__, __iter__, __getitem__: your object behaves like a list'),
+            tx('__enter__ y __exit__: tu objeto funciona con with', '__enter__ and __exit__: your object works with with'),
           ],
         },
         {
           title: '@property / @classmethod / @staticmethod',
           color: 'border-blue-400/30 text-blue-200',
           points: [
-            tx('@property — getter lazy, sin () al acceder', '@property — lazy getter, no () needed'),
-            tx('@property.setter — validación al asignar', '@property.setter — validation on assignment'),
-            tx('@classmethod — recibe cls, factory patterns', '@classmethod — receives cls, factory patterns'),
-            tx('@staticmethod — sin self/cls, función de utilidad', '@staticmethod — no self/cls, utility function'),
+            tx('@property: un método que se lee como atributo, sin ()', '@property: a method you read like an attribute, no ()'),
+            tx('Su setter es el lugar para validar al asignar', 'Its setter is where you validate on assignment'),
+            tx('@classmethod recibe la clase: perfecto para constructores alternativos', '@classmethod receives the class: perfect for alternate constructors'),
+            tx('@staticmethod no recibe nada: una utilidad que vive en la clase', '@staticmethod receives nothing: a utility living in the class'),
           ],
         },
         {
           title: '@dataclass',
           color: 'border-sky-500/30 text-sky-300',
           points: [
-            tx('Genera __init__, __repr__, __eq__ automáticamente', 'Auto-generates __init__, __repr__, __eq__'),
-            tx('frozen=True hace la clase inmutable (hashable)', 'frozen=True makes class immutable (hashable)'),
-            tx('field(default_factory=list) para mutables', 'field(default_factory=list) for mutables'),
-            tx('Python 3.10+: slots=True reduce uso de memoria', 'Python 3.10+: slots=True reduces memory'),
+            tx('Te genera __init__, __repr__ y __eq__: el record de Python', 'Generates __init__, __repr__ and __eq__: Python’s record'),
+            tx('frozen=True la vuelve inmutable y usable como clave', 'frozen=True makes it immutable and usable as a key'),
+            tx('Para listas o dicts por defecto: field(default_factory=list)', 'For default lists or dicts: field(default_factory=list)'),
+            tx('Desde 3.10, slots=True ahorra memoria', 'Since 3.10, slots=True saves memory'),
           ],
         },
         {
           title: 'ABC / Protocol',
           color: 'border-blue-600/30 text-blue-400',
           points: [
-            tx('ABC: herencia + @abstractmethod — fuerza implementación', 'ABC: inheritance + @abstractmethod — forces implementation'),
-            tx('Protocol: duck typing estructural — sin herencia', 'Protocol: structural duck typing — no inheritance'),
-            tx('runtime_checkable permite isinstance() con Protocol', 'runtime_checkable enables isinstance() with Protocol'),
-            tx('Prefer Protocol para código más desacoplado', 'Prefer Protocol for more decoupled code'),
+            tx('ABC con @abstractmethod obliga a las subclases a implementar', 'ABC with @abstractmethod forces subclasses to implement'),
+            tx('Protocol describe un contrato sin herencia, como las interfaces de TypeScript', 'Protocol describes a contract without inheritance, like TypeScript interfaces'),
+            tx('Con @runtime_checkable también funciona isinstance()', 'With @runtime_checkable, isinstance() works too'),
+            tx('Prefiero Protocol: acopla menos', 'I prefer Protocol: it couples less'),
           ],
         },
         {
           title: tx('Herencia múltiple & MRO', 'Multiple Inheritance & MRO'),
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            tx('Python usa C3 Linearization para resolver el MRO', 'Python uses C3 Linearization to resolve MRO'),
-            tx('super() respeta el MRO — siempre úsalo en __init__', 'super() respects MRO — always use in __init__'),
-            tx('Mixin: clase sin estado que añade comportamiento', 'Mixin: stateless class that adds behavior'),
-            tx('ClassName.__mro__ para ver el orden de resolución', 'ClassName.__mro__ to see resolution order'),
+            tx('Python calcula el orden de búsqueda de métodos con el algoritmo C3', 'Python computes the method lookup order with the C3 algorithm'),
+            tx('super() sigue ese orden: úsalo siempre en vez de nombrar al padre', 'super() follows that order: always use it instead of naming the parent'),
+            tx('Un mixin es una clase chica, sin estado, que suma comportamiento', 'A mixin is a small stateless class that adds behavior'),
+            tx('Clase.__mro__ te muestra el orden', 'Class.__mro__ shows you the order'),
           ],
         },
         {
           title: '__slots__',
           color: 'border-sky-400/30 text-sky-200',
           points: [
-            tx('Declara atributos fijos — elimina __dict__ por instancia', 'Declares fixed attributes — removes per-instance __dict__'),
-            tx('Reduce uso de memoria ~30-50% en muchas instancias', 'Reduces memory ~30-50% with many instances'),
-            tx('Mejora velocidad de acceso a atributos', 'Improves attribute access speed'),
-            tx('No compatible con herencia múltiple sin cuidado', 'Not compatible with multiple inheritance carelessly'),
+            tx('Declara los atributos de antemano y quita el __dict__ de cada instancia', 'Declares attributes up front and drops each instance’s __dict__'),
+            tx('Se nota cuando tienes cientos de miles de objetos', 'It pays off when you have hundreds of thousands of objects'),
+            tx('El acceso a atributos también es algo más rápido', 'Attribute access gets a bit faster too'),
+            tx('A cambio, no puedes agregar atributos al vuelo', 'In exchange, you can’t add attributes on the fly'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -810,6 +820,13 @@ class S3Storage(Storage):
 
     def load(self, key: str) -> bytes:
         ...`} />
+
+    <WorkNote tx={tx} accent="blue">
+      {tx(
+        'Viniendo de Java, la mayor diferencia es soltar la ceremonia: una @dataclass reemplaza a un DTO con getters y setters, y Protocol cumple el papel de una interfaz sin obligar a heredar.',
+        'Coming from Java, the biggest shift is dropping the ceremony: a @dataclass replaces a DTO with getters and setters, and Protocol plays the role of an interface without forcing inheritance.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -821,8 +838,8 @@ const renderAsync = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'asyncio, async/await, threading vs multiprocessing — cuándo usar cada uno.',
-          'asyncio, async/await, threading vs multiprocessing — when to use each.'
+          'Hay tres formas de hacer varias cosas a la vez y la elección depende de una sola pregunta: ¿tu programa espera (I/O) o calcula (CPU)? Para esperar, asyncio o hilos; para calcular, procesos.',
+          'There are three ways to do several things at once, and the choice comes down to one question: does your program wait (I/O) or compute (CPU)? For waiting, asyncio or threads; for computing, processes.'
         )}
       </p>
     </div>
@@ -835,60 +852,60 @@ const renderAsync = (tx) => (
           title: 'async def / await',
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            tx('async def define una corrutina — no bloquea el hilo', 'async def defines a coroutine — doesn\'t block the thread'),
-            tx('await cede el control al event loop mientras espera I/O', 'await yields control to event loop while waiting for I/O'),
-            tx('Solo funciona dentro de funciones async', 'Only works inside async functions'),
-            tx('asyncio.run() arranca el event loop desde código síncrono', 'asyncio.run() starts the event loop from sync code'),
+            tx('async def define una corrutina: una función que se puede pausar', 'async def defines a coroutine: a function that can pause'),
+            tx('En cada await, el event loop atiende otra cosa mientras llega la respuesta', 'At each await, the event loop serves something else while the response arrives'),
+            tx('await solo vale dentro de una función async', 'await only works inside an async function'),
+            tx('asyncio.run() es la puerta de entrada desde código normal', 'asyncio.run() is the entry point from regular code'),
           ],
         },
         {
           title: 'gather vs create_task',
           color: 'border-blue-400/30 text-blue-200',
           points: [
-            tx('asyncio.gather() ejecuta awaitables en paralelo', 'asyncio.gather() runs awaitables in parallel'),
-            tx('return_exceptions=True: no cancela todo si uno falla', 'return_exceptions=True: doesn\'t cancel all if one fails'),
-            tx('create_task() programa la tarea inmediatamente', 'create_task() schedules the task immediately'),
-            tx('TaskGroup (Python 3.11+) cancela automáticamente en error', 'TaskGroup (Python 3.11+) auto-cancels on error'),
+            tx('gather() corre varias corrutinas a la vez (concurrencia, no paralelismo)', 'gather() runs several coroutines at once (concurrency, not parallelism)'),
+            tx('Con return_exceptions=True devuelve los errores como resultados en vez de lanzar el primero', 'With return_exceptions=True it returns errors as results instead of raising the first one'),
+            tx('create_task() la deja corriendo en segundo plano y sigues', 'create_task() leaves it running in the background while you continue'),
+            tx('Desde 3.11, TaskGroup: si una falla, cancela las demás. Es lo que uso hoy', 'Since 3.11, TaskGroup: if one fails, it cancels the rest. It’s what I use today'),
           ],
         },
         {
           title: 'aiohttp',
           color: 'border-sky-500/30 text-sky-300',
           points: [
-            tx('Cliente HTTP async — no bloquea el event loop', 'Async HTTP client — doesn\'t block event loop'),
-            tx('ClientSession reutiliza conexiones TCP (pool)', 'ClientSession reuses TCP connections (pool)'),
+            tx('Cliente HTTP que no bloquea el event loop (requests sí lo bloquea)', 'HTTP client that doesn’t block the event loop (requests does)'),
+            tx('Crea una ClientSession y reúsala: mantiene un pool de conexiones', 'Create one ClientSession and reuse it: it keeps a connection pool'),
             tx('timeout=aiohttp.ClientTimeout(total=10)', 'timeout=aiohttp.ClientTimeout(total=10)'),
-            tx('Soporta WebSockets y SSE nativamente', 'Native WebSocket and SSE support'),
+            tx('También maneja WebSockets', 'It handles WebSockets too'),
           ],
         },
         {
           title: tx('Threading — GIL', 'Threading — GIL'),
           color: 'border-blue-600/30 text-blue-400',
           points: [
-            tx('GIL: solo un hilo ejecuta bytecode Python a la vez', 'GIL: only one thread executes Python bytecode at a time'),
-            tx('Bueno para I/O-bound: esperas de red, disco, DB', 'Good for I/O-bound: network, disk, DB waits'),
+            tx('Por el GIL, solo un hilo ejecuta Python a la vez', 'Because of the GIL, only one thread runs Python at a time'),
+            tx('Aun así sirve para I/O: mientras un hilo espera, el GIL se libera', 'Still useful for I/O: while a thread waits, the GIL is released'),
             tx('threading.Thread, ThreadPoolExecutor', 'threading.Thread, ThreadPoolExecutor'),
-            tx('Lock / Event / Queue para sincronización entre hilos', 'Lock / Event / Queue for inter-thread sync'),
+            tx('Lock, Event y Queue para coordinar hilos', 'Lock, Event and Queue to coordinate threads'),
           ],
         },
         {
           title: tx('Multiprocessing — CPU-bound', 'Multiprocessing — CPU-bound'),
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            tx('Procesos separados — cada uno tiene su propio GIL', 'Separate processes — each has its own GIL'),
-            tx('Bueno para CPU-bound: ML training, compresión, parsing', 'Good for CPU-bound: ML training, compression, parsing'),
+            tx('Procesos separados, cada uno con su GIL: paralelismo real', 'Separate processes, each with its own GIL: real parallelism'),
+            tx('Para trabajo de CPU: cálculos, compresión, parseo pesado', 'For CPU work: calculations, compression, heavy parsing'),
             tx('ProcessPoolExecutor con concurrent.futures', 'ProcessPoolExecutor with concurrent.futures'),
-            tx('Serialización con pickle — evita objetos no serializables', 'Pickle serialization — avoid non-serializable objects'),
+            tx('Los datos viajan entre procesos con pickle: pasa solo lo necesario', 'Data travels between processes via pickle: send only what’s needed'),
           ],
         },
         {
           title: 'concurrent.futures',
           color: 'border-sky-400/30 text-sky-200',
           points: [
-            tx('API unificada para threads y procesos', 'Unified API for threads and processes'),
-            tx('executor.map() reemplaza un for loop en paralelo', 'executor.map() replaces a parallel for loop'),
-            tx('as_completed() procesa resultados según llegan', 'as_completed() processes results as they arrive'),
-            tx('submit() retorna un Future — .result() bloquea', 'submit() returns a Future — .result() blocks'),
+            tx('La misma API para hilos y procesos: cambias el executor y listo', 'The same API for threads and processes: swap the executor and you’re done'),
+            tx('executor.map() es un for que corre en paralelo', 'executor.map() is a for loop that runs in parallel'),
+            tx('as_completed() te da cada resultado apenas termina', 'as_completed() hands you each result as soon as it’s done'),
+            tx('submit() devuelve un Future; .result() espera', 'submit() returns a Future; .result() waits'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -989,6 +1006,13 @@ for t in threads: t.join()
 
 # Rule: threading for I/O-bound, multiprocessing for CPU-bound,
 #        asyncio for high-concurrency I/O (1000s connections)`} />
+
+    <WorkNote tx={tx} accent="blue">
+      {tx(
+        'En las Lambdas de AgentCloud casi todo era I/O (S3, SQS), así que la regla era la de siempre: no bloquear mientras esperas. Es el mismo principio que aplico con WebFlux en Java.',
+        'In AgentCloud’s Lambdas almost everything was I/O (S3, SQS), so the rule was the usual one: don’t block while you wait. It’s the same principle I apply with WebFlux in Java.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -1000,8 +1024,8 @@ const renderWeb = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'FastAPI, Django, Flask — cuándo usar cada uno y sus patrones clave.',
-          'FastAPI, Django, Flask — when to use each and their key patterns.'
+          'Los tres frameworks más usados para servir HTTP en Python. La pregunta típica de entrevista no es cómo se usan, sino cuál elegirías y por qué.',
+          'The three most used frameworks for serving HTTP in Python. The typical interview question isn’t how to use them, but which you’d pick and why.'
         )}
       </p>
     </div>
@@ -1015,11 +1039,11 @@ const renderWeb = (tx) => (
           color: 'border-blue-500/30 text-blue-300',
           bg: 'bg-blue-500/5',
           points: [
-            tx('async/await nativo — alto rendimiento', 'Native async/await — high performance'),
-            tx('Type hints → validación automática con Pydantic', 'Type hints → auto-validation with Pydantic'),
-            tx('Swagger UI y ReDoc autogenerados en /docs', 'Auto-generated Swagger UI and ReDoc at /docs'),
-            tx('Dependencias con Depends() — inyección limpia', 'Dependencies with Depends() — clean injection'),
-            tx('Ideal: APIs nuevas, microservicios, ML backends', 'Ideal: new APIs, microservices, ML backends'),
+            tx('Async nativo y muy rápido', 'Native async and very fast'),
+            tx('Los type hints validan el request solos, vía Pydantic', 'Type hints validate the request on their own, via Pydantic'),
+            tx('Swagger se genera solo en /docs', 'Swagger is generated for you at /docs'),
+            tx('Depends() da inyección de dependencias, parecido a Spring', 'Depends() gives dependency injection, similar to Spring'),
+            tx('Mi elección para una API o microservicio nuevo', 'My pick for a new API or microservice'),
           ],
         },
         {
@@ -1027,11 +1051,11 @@ const renderWeb = (tx) => (
           color: 'border-sky-500/30 text-sky-300',
           bg: 'bg-sky-500/5',
           points: [
-            tx('"Batteries-included" — ORM, admin, auth incluidos', '"Batteries-included" — ORM, admin, auth included'),
-            tx('Django REST Framework para APIs REST completas', 'Django REST Framework for full REST APIs'),
-            tx('Migraciones de BD automáticas con makemigrations', 'Auto DB migrations with makemigrations'),
-            tx('Panel admin generado desde los modelos', 'Auto admin panel from models'),
-            tx('Ideal: apps grandes, monolitos, equipos grandes', 'Ideal: large apps, monoliths, large teams'),
+            tx('Trae de todo: ORM, admin, autenticación', 'Comes with everything: ORM, admin, auth'),
+            tx('Con Django REST Framework haces APIs completas', 'With Django REST Framework you build full APIs'),
+            tx('Genera las migraciones a partir de los modelos', 'Generates migrations from your models'),
+            tx('Y un panel de administración gratis', 'And a free admin panel'),
+            tx('Para aplicaciones completas donde todo eso te ahorra semanas', 'For full applications where all that saves you weeks'),
           ],
         },
         {
@@ -1039,11 +1063,11 @@ const renderWeb = (tx) => (
           color: 'border-blue-400/30 text-blue-200',
           bg: 'bg-blue-400/5',
           points: [
-            tx('Micro-framework — sin ORM ni admin incluidos', 'Micro-framework — no ORM or admin included'),
-            tx('Total flexibilidad para estructurar el proyecto', 'Total flexibility to structure the project'),
-            tx('Blueprints para modularizar rutas', 'Blueprints to modularize routes'),
-            tx('Flask-SQLAlchemy, Flask-Login como extensiones', 'Flask-SQLAlchemy, Flask-Login as extensions'),
-            tx('Ideal: prototipos, scripts web, proyectos pequeños', 'Ideal: prototypes, web scripts, small projects'),
+            tx('Mínimo: rutas y poco más, el resto lo eliges tú', 'Minimal: routes and little else, you pick the rest'),
+            tx('Libertad total, y también toda la responsabilidad', 'Total freedom, and all the responsibility too'),
+            tx('Blueprints para separar rutas por módulo', 'Blueprints to split routes by module'),
+            tx('Base de datos y login llegan como extensiones', 'Database and login come as extensions'),
+            tx('Bueno para prototipos y servicios chicos', 'Good for prototypes and small services'),
           ],
         },
       ].map(({ title, color, bg, points }) => (
@@ -1206,6 +1230,13 @@ class ArticleViewSet(viewsets.ModelViewSet):
         article.published = True
         article.save()
         return Response({"status": "published"})`} />
+
+    <WorkNote tx={tx} accent="blue">
+      {tx(
+        'Mi Python en producción fue serverless y herramientas internas, no APIs web grandes. Si hoy tuviera que hacer una API en Python, elegiría FastAPI: tipos, validación e inyección de dependencias se sienten muy cercanos a Spring.',
+        'My production Python was serverless and internal tools, not large web APIs. If I had to build a Python API today, I’d pick FastAPI: types, validation and dependency injection feel very close to Spring.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -1217,8 +1248,8 @@ const renderData = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'NumPy, Pandas, automatización con pathlib, subprocess y entornos virtuales.',
-          'NumPy, Pandas, automation with pathlib, subprocess and virtual environments.'
+          'Donde Python brilla: procesar datos y automatizar tareas con muy poco código. NumPy y Pandas para datos; pathlib, subprocess y re para scripts del día a día.',
+          'Where Python shines: processing data and automating tasks with very little code. NumPy and Pandas for data; pathlib, subprocess and re for everyday scripts.'
         )}
       </p>
     </div>
@@ -1231,20 +1262,20 @@ const renderData = (tx) => (
           title: 'NumPy',
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            tx('ndarray: operaciones vectorizadas sin for loops', 'ndarray: vectorized operations without for loops'),
-            tx('Broadcasting: operaciones entre arrays de distintas formas', 'Broadcasting: operations between differently shaped arrays'),
+            tx('Operas sobre arreglos enteros sin escribir un for', 'You operate on whole arrays without writing a for'),
+            tx('Broadcasting combina arreglos de distinta forma', 'Broadcasting combines arrays of different shapes'),
             tx('np.where, np.argmax, np.sort, np.unique', 'np.where, np.argmax, np.sort, np.unique'),
-            tx('dtype=np.float32 para reducir memoria a la mitad', 'dtype=np.float32 to halve memory usage'),
+            tx('float32 en vez de float64 usa la mitad de memoria', 'float32 instead of float64 uses half the memory'),
           ],
         },
         {
           title: 'Pandas',
           color: 'border-blue-400/30 text-blue-200',
           points: [
-            tx('DataFrame: tabla 2D con índice y tipos por columna', 'DataFrame: 2D table with index and per-column types'),
-            tx('groupby().agg() para aggregations en pocas líneas', 'groupby().agg() for aggregations in few lines'),
-            tx('merge() como SQL JOIN entre DataFrames', 'merge() like SQL JOIN between DataFrames'),
-            tx('query() y loc/iloc para filtros expresivos', 'query() and loc/iloc for expressive filters'),
+            tx('Un DataFrame es una tabla con tipo por columna', 'A DataFrame is a table with a type per column'),
+            tx('groupby().agg() es un GROUP BY de SQL en una línea', 'groupby().agg() is a SQL GROUP BY in one line'),
+            tx('merge() es un JOIN entre tablas', 'merge() is a JOIN between tables'),
+            tx('query(), loc e iloc para filtrar', 'query(), loc and iloc to filter'),
           ],
         },
         {
@@ -1252,29 +1283,29 @@ const renderData = (tx) => (
           color: 'border-sky-500/30 text-sky-300',
           points: [
             tx('chain, islice, groupby, product, combinations', 'chain, islice, groupby, product, combinations'),
-            tx('functools.lru_cache — memoización con una línea', 'functools.lru_cache — memoization in one line'),
-            tx('functools.partial — funciones con args prefijados', 'functools.partial — functions with preset args'),
-            tx('operator.attrgetter/itemgetter para sorted() eficiente', 'operator.attrgetter/itemgetter for efficient sorted()'),
+            tx('lru_cache: memoización en una línea', 'lru_cache: memoization in one line'),
+            tx('partial: una función con algunos argumentos ya puestos', 'partial: a function with some arguments pre-filled'),
+            tx('attrgetter e itemgetter como clave de sorted()', 'attrgetter and itemgetter as sorted() keys'),
           ],
         },
         {
           title: 'pathlib / subprocess',
           color: 'border-blue-600/30 text-blue-400',
           points: [
-            tx('Path("dir") / "file.txt" — rutas OS-agnósticas', 'Path("dir") / "file.txt" — OS-agnostic paths'),
-            tx('path.glob("**/*.py") — búsqueda recursiva', 'path.glob("**/*.py") — recursive search'),
+            tx('Path("dir") / "archivo.txt" arma rutas que funcionan en cualquier sistema', 'Path("dir") / "file.txt" builds paths that work on any OS'),
+            tx('glob("**/*.py") busca en todas las subcarpetas', 'glob("**/*.py") searches every subfolder'),
             tx('subprocess.run(cmd, capture_output=True, text=True)', 'subprocess.run(cmd, capture_output=True, text=True)'),
-            tx('check=True lanza CalledProcessError en fallo', 'check=True raises CalledProcessError on failure'),
+            tx('Con check=True, si el comando falla, lanza una excepción en vez de seguir callado', 'With check=True, a failing command raises instead of failing silently'),
           ],
         },
         {
           title: 're — Regex',
           color: 'border-blue-500/30 text-blue-300',
           points: [
-            tx('re.compile(pattern) para reutilizar el regex', 're.compile(pattern) to reuse the regex'),
+            tx('Compila el patrón una vez si lo vas a reutilizar', 'Compile the pattern once if you’ll reuse it'),
             tx('re.findall, re.search, re.sub, re.split', 're.findall, re.search, re.sub, re.split'),
-            tx('(?P<name>...) para grupos nombrados', '(?P<name>...) for named groups'),
-            tx('r"..." raw strings evitan doble escape', 'r"..." raw strings avoid double escaping'),
+            tx('(?P<nombre>...) le pone nombre a un grupo', '(?P<name>...) names a group'),
+            tx('r"..." evita escapar cada barra invertida', 'r"..." saves you from escaping every backslash'),
           ],
         },
         {
@@ -1282,9 +1313,9 @@ const renderData = (tx) => (
           color: 'border-sky-400/30 text-sky-200',
           points: [
             'python -m venv .venv && source .venv/bin/activate',
-            tx('poetry add pandas — gestión de deps + lockfile', 'poetry add pandas — dep management + lockfile'),
-            tx('pyproject.toml es el estándar moderno (PEP 517/518)', 'pyproject.toml is the modern standard (PEP 517/518)'),
-            tx('pip-tools: pip-compile genera requirements.txt determinista', 'pip-tools: pip-compile generates deterministic requirements.txt'),
+            tx('poetry o uv manejan dependencias con lockfile', 'poetry or uv manage dependencies with a lockfile'),
+            tx('pyproject.toml es el estándar actual para configurar el proyecto', 'pyproject.toml is today’s standard for project config'),
+            tx('Si usas pip, fija versiones con pip-compile', 'If you use pip, pin versions with pip-compile'),
           ],
         },
       ].map(({ title, color, points }) => (
@@ -1404,180 +1435,31 @@ async def process_logs(directory: Path) -> list[dict]:
 if __name__ == "__main__":
     errors = asyncio.run(process_logs(Path("logs")))
     print(f"Found {len(errors)} errors")`} />
+
+    <WorkNote tx={tx} accent="blue">
+      {tx(
+        'Para automatizar tareas de operación, como procesar archivos o llamar herramientas de línea de comandos, pathlib y subprocess con check=True son lo primero que uso: rutas que funcionan en cualquier sistema y errores que no pasan en silencio.',
+        'To automate operational tasks, like processing files or calling command-line tools, pathlib and subprocess with check=True are the first things I reach for: paths that work on any OS and errors that don’t pass silently.'
+      )}
+    </WorkNote>
   </div>
 );
 
 // ─── Interview Accordion ─────────────────────────────────────────────────────
 
-const InterviewAccordion = ({ tx }) => {
-  const [openItems, setOpenItems] = useState({});
-
-  const toggle = (key) => {
-    setOpenItems(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const categories = [
-    {
-      level: 'Junior',
-      color: 'border-blue-600/40 text-blue-400 bg-blue-600/10',
-      qs: [
-        {
-          q: tx('¿Qué es el GIL?', 'What is the GIL?'),
-          a: tx(
-            'El Global Interpreter Lock es un mutex en CPython que permite que solo un hilo ejecute bytecode Python a la vez. Protege las estructuras internas del intérprete. No afecta operaciones I/O (que liberan el GIL) ni extensiones C. Para CPU-bound paralelo real se usa multiprocessing.',
-            'The Global Interpreter Lock is a mutex in CPython that allows only one thread to execute Python bytecode at a time. It protects the interpreter\'s internal data structures. It doesn\'t affect I/O operations (which release the GIL) or C extensions. Use multiprocessing for real CPU-bound parallelism.'
-          ),
-        },
-        {
-          q: tx('¿List vs tuple?', 'List vs tuple?'),
-          a: tx(
-            'List es mutable ([1,2,3]) — se puede modificar. Tuple es inmutable ((1,2,3)) — no cambia tras crearse. Tuple es hashable (puede ser clave de dict), ocupa menos memoria y es ligeramente más rápido de iterar. Usa tuple para datos fijos (coordenadas, registros inmutables).',
-            'List is mutable ([1,2,3]) — can be modified. Tuple is immutable ((1,2,3)) — cannot change after creation. Tuple is hashable (can be dict key), uses less memory and iterates slightly faster. Use tuple for fixed data (coordinates, immutable records).'
-          ),
-        },
-        {
-          q: tx('¿is vs ==?', 'is vs ==?'),
-          a: tx(
-            '== compara valor (llama a __eq__). is compara identidad de objeto (mismo id() en memoria). Nunca uses is para comparar valores — solo para None, True, False. Ejemplo: a = [1,2]; b = [1,2]; a == b → True, a is b → False.',
-            '== compares value (calls __eq__). is compares object identity (same id() in memory). Never use is to compare values — only for None, True, False. Example: a = [1,2]; b = [1,2]; a == b → True, a is b → False.'
-          ),
-        },
-        {
-          q: tx('¿Qué son *args y **kwargs?', 'What are *args and **kwargs?'),
-          a: tx(
-            '*args captura argumentos posicionales extra como tuple. **kwargs captura argumentos nominales extra como dict. Permiten funciones de aridad variable. Orden en signatura: params normales → *args → keyword-only → **kwargs.',
-            '*args captures extra positional arguments as a tuple. **kwargs captures extra keyword arguments as a dict. They allow variadic functions. Signature order: normal params → *args → keyword-only → **kwargs.'
-          ),
-        },
-      ],
-    },
-    {
-      level: 'Mid',
-      color: 'border-blue-500/40 text-blue-300 bg-blue-500/10',
-      qs: [
-        {
-          q: tx('¿Generadores vs iteradores?', 'Generators vs iterators?'),
-          a: tx(
-            'Un iterador implementa __iter__ y __next__. Un generador es una función con yield que crea un iterador automáticamente — es lazy (produce valores bajo demanda) y usa O(1) memoria. Todo generador es un iterador, pero no viceversa. yield from delega en un sub-generador.',
-            'An iterator implements __iter__ and __next__. A generator is a function with yield that creates an iterator automatically — it\'s lazy (produces values on demand) and uses O(1) memory. Every generator is an iterator, but not vice versa. yield from delegates to a sub-generator.'
-          ),
-        },
-        {
-          q: tx('¿Cómo funcionan los decoradores?', 'How do decorators work?'),
-          a: tx(
-            '@decorator es azúcar sintáctica para func = decorator(func). Un decorador recibe una función, define un wrapper que la envuelve con lógica adicional, y retorna el wrapper. @functools.wraps preserva __name__ y __doc__. Se apilan en orden de abajo a arriba.',
-            '@decorator is syntactic sugar for func = decorator(func). A decorator receives a function, defines a wrapper that wraps it with extra logic, and returns the wrapper. @functools.wraps preserves __name__ and __doc__. They stack bottom to top.'
-          ),
-        },
-        {
-          q: tx('¿Qué es el MRO?', 'What is the MRO?'),
-          a: tx(
-            'Method Resolution Order: el orden en que Python busca métodos en la jerarquía de herencia. CPython usa C3 Linearization. Para Dog(Animal): Dog → Animal → object. Inspeccionar con Dog.__mro__. super() respeta este orden — úsalo siempre en __init__ con herencia múltiple.',
-            'Method Resolution Order: the order Python searches for methods in the inheritance hierarchy. CPython uses C3 Linearization. For Dog(Animal): Dog → Animal → object. Inspect with Dog.__mro__. super() respects this order — always use it in __init__ with multiple inheritance.'
-          ),
-        },
-        {
-          q: '__slots__?',
-          a: tx(
-            '__slots__ = ("x", "y") elimina el __dict__ por instancia y reserva espacio fijo para los atributos declarados. Reduce uso de memoria ~30-50% con muchas instancias. También mejora la velocidad de acceso. Limitación: no permite atributos no declarados ni herencia múltiple sin cuidado.',
-            '__slots__ = ("x", "y") removes the per-instance __dict__ and reserves fixed space for declared attributes. Reduces memory ~30-50% with many instances. Also improves attribute access speed. Limitation: no undeclared attributes; use care with multiple inheritance.'
-          ),
-        },
-      ],
-    },
-    {
-      level: 'Senior',
-      color: 'border-sky-500/40 text-sky-300 bg-sky-500/10',
-      qs: [
-        {
-          q: tx('¿Cómo optimizarías un script Python lento?', 'How would you optimize a slow Python script?'),
-          a: tx(
-            'Primero profila con cProfile / line_profiler para encontrar el cuello de botella real. Luego: (1) vectoriza con NumPy en lugar de loops, (2) usa generadores para datos grandes, (3) @functools.lru_cache en funciones puras costosas, (4) considera Cython/Numba para loops críticos, (5) multiprocessing si CPU-bound, asyncio si I/O-bound.',
-            'First profile with cProfile / line_profiler to find the real bottleneck. Then: (1) vectorize with NumPy instead of loops, (2) use generators for large data, (3) @functools.lru_cache on expensive pure functions, (4) consider Cython/Numba for critical loops, (5) multiprocessing if CPU-bound, asyncio if I/O-bound.'
-          ),
-        },
-        {
-          q: tx('Explica el event loop de asyncio', 'Explain asyncio\'s event loop'),
-          a: tx(
-            'El event loop mantiene una cola de corrutinas listas. Cuando un await libera el control (I/O pendiente), el loop selecciona la siguiente tarea lista. Un selector (epoll/kqueue) notifica cuando el I/O completa y la tarea vuelve a la cola. Un solo hilo maneja miles de conexiones. El GIL no importa aquí porque solo un hilo está activo.',
-            'The event loop maintains a queue of ready coroutines. When an await yields control (pending I/O), the loop selects the next ready task. A selector (epoll/kqueue) notifies when I/O completes and the task returns to the ready queue. A single thread handles thousands of connections. The GIL doesn\'t matter here since only one thread is active.'
-          ),
-        },
-        {
-          q: tx('¿Multiprocessing vs threading?', 'Multiprocessing vs threading?'),
-          a: tx(
-            'Threading: hilos comparten memoria, bueno para I/O-bound, el GIL limita el paralelismo CPU real. Multiprocessing: procesos separados con su propio GIL, true parallelism para CPU-bound, overhead de pickling. asyncio supera a threading para I/O altamente concurrente (miles de conexiones) con mucho menos overhead.',
-            'Threading: threads share memory, good for I/O-bound, GIL limits real CPU parallelism. Multiprocessing: separate processes with own GIL, true parallelism for CPU-bound, pickling overhead. asyncio beats threading for highly concurrent I/O (thousands of connections) with much less overhead.'
-          ),
-        },
-        {
-          q: tx('¿Cómo funciona el garbage collector de CPython?', 'How does CPython\'s garbage collector work?'),
-          a: tx(
-            'CPython usa reference counting como mecanismo primario: cuando el contador llega a 0, el objeto se libera inmediatamente. El módulo gc maneja ciclos de referencias (A → B → A) con un collector generacional de 3 generaciones. La mayoría de objetos mueren jóvenes (generación 0). gc.disable() puede mejorar rendimiento si no hay ciclos referenciales.',
-            'CPython uses reference counting as the primary mechanism: when the count reaches 0, the object is freed immediately. The gc module handles reference cycles (A → B → A) with a generational collector with 3 generations. Most objects die young (generation 0). gc.disable() can improve performance when there are no reference cycles.'
-          ),
-        },
-      ],
-    },
-  ];
-
-  return (
-    <div className="space-y-6">
+const InterviewAccordion = ({ tx }) => (
+  <div className="space-y-6">
       <div>
         <h2 className="text-xl lg:text-3xl font-bold text-white mb-1">
           {tx('Preguntas de Entrevista', 'Interview Q&A')}
         </h2>
         <p className="text-slate-400 text-sm">
-          {tx('Preguntas frecuentes de Junior a Senior con respuestas detalladas.', 'Frequent questions from Junior to Senior with detailed answers.')}
+          {tx('Respuestas cortas, como las diría en una entrevista, agrupadas por nivel.', 'Short answers, the way I would say them in an interview, grouped by level.')}
         </p>
       </div>
-
-      {categories.map(cat => (
-        <div key={cat.level} className="space-y-2">
-          <div className={`inline-flex items-center gap-2 px-3 py-1 border rounded-lg text-xs font-bold ${cat.color}`}>
-            <HelpCircle className="w-3.5 h-3.5" />
-            {cat.level}
-          </div>
-          <div className="space-y-2">
-            {cat.qs.map((item, qi) => {
-              const key = `${cat.level}-${qi}`;
-              const isOpen = openItems[key];
-              return (
-                <div key={qi} className="border border-slate-700/50 bg-slate-900/40 rounded-xl overflow-hidden">
-                  <button
-                    onClick={() => toggle(key)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-800/30 transition-colors"
-                  >
-                    <span className="text-sm font-semibold text-slate-200">{item.q}</span>
-                    {isOpen
-                      ? <ChevronUp className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                      : <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />
-                    }
-                  </button>
-                  <AnimatePresence>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-4 pt-0 border-t border-slate-800">
-                          <p className="text-xs text-slate-300 leading-relaxed mt-3">{item.a}</p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
+    <InterviewQA groups={buildPythonInterview(tx)} tx={tx} accent="blue" />
+  </div>
+);
 
 // ─── Main Component ──────────────────────────────────────────────────────────
 

@@ -23,6 +23,42 @@ export default function isp(tx) {
       solution: tx('Dividir en interfaces según las necesidades de los consumidores.', 'Split into interfaces based on consumers\' needs.'),
       example: 'NotificationService → EmailNotifier, SmsNotifier, PushNotifier',
     },
+    visual: {
+      takeaway: tx('Una interfaz gorda se parte en interfaces pequeñas: cada uno usa solo lo suyo.', 'One fat interface splits into small ones: everyone uses only what they need.'),
+      before: {
+        caption: tx('todos dependen de todo', 'everyone depends on everything'),
+        description: tx('CodigoSeguridadService usa NotificationService, que tiene tres métodos. EmailNotificationService la implementa pero lanza excepciones en SMS y push.', 'CodigoSeguridadService uses NotificationService, which has three methods. EmailNotificationService implements it but throws on SMS and push.'),
+        rows: [[
+          { title: 'CodigoSeguridadService', note: tx('solo necesita SMS', 'only needs SMS') },
+          { arrow: 'forward', label: tx('usa', 'uses') },
+          { title: 'NotificationService', kind: 'interface', chips: ['enviarEmail', 'enviarSMS', 'enviarPush'] },
+          { arrow: 'backward', label: tx('implementa', 'implements') },
+          {
+            title: 'EmailNotificationService',
+            status: 'bad',
+            chips: ['enviarEmail ✅', { text: 'enviarSMS 💥', status: 'bad' }, { text: 'enviarPush 💥', status: 'bad' }],
+          },
+        ]],
+      },
+      after: {
+        caption: tx('interfaces pequeñas por capacidad', 'small interfaces per capability'),
+        description: tx('CodigoSeguridadService usa solo SmsNotifier. SnsNotifier implementa SmsNotifier y PushNotifier. EmailNotificationService implementa solo EmailNotifier.', 'CodigoSeguridadService uses only SmsNotifier. SnsNotifier implements SmsNotifier and PushNotifier. EmailNotificationService implements only EmailNotifier.'),
+        rows: [
+          [
+            { title: 'CodigoSeguridadService' },
+            { arrow: 'forward', label: tx('usa', 'uses') },
+            { title: 'SmsNotifier', kind: 'interface' },
+            { arrow: 'backward', label: tx('implementa', 'implements') },
+            { title: 'SnsNotifier', status: 'ok', note: tx('también PushNotifier', 'also PushNotifier') },
+          ],
+          [
+            { title: 'EmailNotificationService', status: 'ok' },
+            { arrow: 'forward', label: tx('implementa', 'implements') },
+            { title: 'EmailNotifier', kind: 'interface', note: tx('solo email', 'email only') },
+          ],
+        ],
+      },
+    },
     steps: {
       simple: [
         {

@@ -26,6 +26,35 @@ export default function dip(tx) {
       solution: tx('Interfaz en el dominio + implementación en infraestructura + inyección por constructor.', 'Interface in the domain + implementation in infrastructure + constructor injection.'),
       example: 'TransferenciaService → TransferenciaRepository ← SqlServer/Oracle',
     },
+    visual: {
+      takeaway: tx('Negocio y tecnología apuntan a la misma interfaz: la flecha de la infraestructura se invierte.', 'Business and technology both point at the same interface: the infrastructure arrow is inverted.'),
+      before: {
+        caption: tx('el negocio apunta a la base de datos', 'business points at the database'),
+        description: tx('TransferenciaService crea y usa directamente SqlServerRepository.', 'TransferenciaService creates and uses SqlServerRepository directly.'),
+        rows: [[
+          { title: 'TransferenciaService', layer: tx('Negocio', 'Business') },
+          { arrow: 'forward', label: tx('new + usa', 'new + uses'), tone: 'bad' },
+          { title: 'SqlServerRepository', layer: tx('Infraestructura', 'Infrastructure'), status: 'bad' },
+        ]],
+      },
+      after: {
+        caption: tx('todos apuntan a la abstracción', 'everyone points at the abstraction'),
+        description: tx('TransferenciaService usa la interfaz TransferenciaRepository del negocio; SQL Server y Oracle la implementan.', 'TransferenciaService uses the business interface TransferenciaRepository; SQL Server and Oracle implement it.'),
+        rows: [[
+          { title: 'TransferenciaService', layer: tx('Negocio', 'Business') },
+          { arrow: 'forward', label: tx('usa', 'uses') },
+          { title: 'TransferenciaRepository', kind: 'interface', layer: tx('Negocio', 'Business') },
+          { arrow: 'backward', label: tx('implementan', 'implement') },
+          {
+            group: tx('Infraestructura', 'Infrastructure'),
+            items: [
+              { title: 'SqlServerTransferenciaRepository' },
+              { title: 'OracleTransferenciaRepository' },
+            ],
+          },
+        ]],
+      },
+    },
     steps: {
       simple: [
         {
@@ -142,19 +171,6 @@ public class TransferenciaService {
             tx('La regla de negocio (monto positivo) queda soldada a SQL Server.', 'The business rule (positive amount) is welded to SQL Server.'),
           ],
         }),
-        {
-          type: 'flow',
-          title: tx('ANTES: el negocio depende del detalle técnico', 'BEFORE: business depends on the technical detail'),
-          description: tx(
-            'TransferenciaService, del dominio, depende directamente de SqlServerRepository, de infraestructura.',
-            'TransferenciaService, in the domain, depends directly on SqlServerRepository, in infrastructure.'
-          ),
-          nodes: [
-            { title: 'TransferenciaService', layer: tx('Negocio', 'Business') },
-            { arrow: 'forward', label: tx('crea con new y usa', 'creates with new and uses'), tone: 'bad' },
-            { title: 'SqlServerRepository', layer: tx('Infraestructura', 'Infrastructure'), status: 'bad' },
-          ],
-        },
       ],
       why: [
         {
@@ -371,27 +387,6 @@ class TransferenciaServiceTest {
                   type: 'p',
                   text: tx('El test corre en milisegundos y no necesita ninguna base de datos.', 'The test runs in milliseconds and needs no database at all.'),
                 },
-              ],
-            },
-          ],
-        },
-        {
-          type: 'flow',
-          title: tx('DESPUÉS: los detalles dependen de la abstracción del negocio', 'AFTER: details depend on the business abstraction'),
-          description: tx(
-            'TransferenciaService usa la interfaz TransferenciaRepository, que pertenece al negocio. SqlServerTransferenciaRepository y OracleTransferenciaRepository, de infraestructura, la implementan: su dependencia apunta hacia el negocio.',
-            'TransferenciaService uses the TransferenciaRepository interface, which belongs to the business. SqlServerTransferenciaRepository and OracleTransferenciaRepository, in infrastructure, implement it: their dependency points toward the business.'
-          ),
-          nodes: [
-            { title: 'TransferenciaService', layer: tx('Negocio', 'Business') },
-            { arrow: 'forward', label: tx('usa', 'uses') },
-            { title: 'TransferenciaRepository', kind: 'interface', layer: tx('Negocio', 'Business') },
-            { arrow: 'backward', label: tx('implementan', 'implement') },
-            {
-              group: tx('Infraestructura', 'Infrastructure'),
-              items: [
-                { title: 'SqlServerTransferenciaRepository' },
-                { title: 'OracleTransferenciaRepository' },
               ],
             },
           ],

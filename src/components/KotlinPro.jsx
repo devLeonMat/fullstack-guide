@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Code2, Zap, GitBranch, Layers, Server, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { Code2, Zap, GitBranch, Layers, Server, ArrowRight } from 'lucide-react';
 import { SiKotlin } from 'react-icons/si';
 import CodeBlock from './CodeBlock';
+import InterviewQA from './languages/InterviewQA';
+import WorkNote from './languages/WorkNote';
+import { buildKotlinInterview } from './languages/kotlin';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // ─── Null Safety Diagram ─────────────────────────────────────────────────────
@@ -396,8 +399,8 @@ const renderFundamentals = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'val/var, null safety en tiempo de compilación, data classes y sealed classes.',
-          'val/var, compile-time null safety, data classes and sealed classes.'
+          'Kotlin es Java sin la ceremonia: menos código, nulls controlados por el compilador y clases de datos en una línea. Si vienes de Java, en una semana te sientes en casa.',
+          'Kotlin is Java without the ceremony: less code, nulls checked by the compiler and data classes in one line. Coming from Java, you feel at home within a week.'
         )}
       </p>
     </div>
@@ -411,10 +414,10 @@ const renderFundamentals = (tx) => (
           color: 'border-violet-500/30',
           titleColor: 'text-violet-300',
           points: [
-            tx('val — inmutable (como final en Java)', 'val — immutable (like final in Java)'),
-            tx('var — mutable, reasignable', 'var — mutable, reassignable'),
-            tx('Inferencia de tipos: val x = 42 → Int', 'Type inference: val x = 42 → Int'),
-            tx('Prefiere siempre val sobre var', 'Always prefer val over var'),
+            tx('val no se reasigna, como final en Java', 'val can’t be reassigned, like final in Java'),
+            tx('var sí se puede reasignar', 'var can be reassigned'),
+            tx('El tipo se infiere: val x = 42 ya es Int', 'The type is inferred: val x = 42 is already an Int'),
+            tx('Mi regla: val siempre, var solo si de verdad cambia', 'My rule: val always, var only if it really changes'),
           ],
         },
         {
@@ -422,10 +425,10 @@ const renderFundamentals = (tx) => (
           color: 'border-purple-500/30',
           titleColor: 'text-purple-300',
           points: [
-            tx('"Hola, $nombre!" — referencia simple', '"Hello, $name!" — simple reference'),
-            tx('"${user.age + 1}" — expresión compleja', '"${user.age + 1}" — complex expression'),
-            tx('Multiline strings con triple comilla', 'Multiline strings with triple quote'),
-            tx('trimIndent() para limpiar indentación', 'trimIndent() to clean up indentation'),
+            tx('"Hola, $nombre!" para una variable', '"Hello, $name!" for a variable'),
+            tx('"${user.age + 1}" para una expresión', '"${user.age + 1}" for an expression'),
+            tx('Triple comilla para texto de varias líneas', 'Triple quotes for multi-line text'),
+            tx('trimIndent() le quita la sangría sobrante', 'trimIndent() strips the extra indentation'),
           ],
         },
         {
@@ -433,10 +436,10 @@ const renderFundamentals = (tx) => (
           color: 'border-fuchsia-500/30',
           titleColor: 'text-fuchsia-300',
           points: [
-            tx('Reemplaza switch, pero es una expresión', 'Replaces switch, but is an expression'),
-            tx('Puede matchear rangos: in 1..10', 'Can match ranges: in 1..10'),
-            tx('Puede matchear tipos: is String', 'Can match types: is String'),
-            tx('Smart cast automático dentro del branch', 'Automatic smart cast inside branch'),
+            tx('Reemplaza a switch y además devuelve un valor', 'Replaces switch and also returns a value'),
+            tx('Acepta rangos: in 1..10', 'Accepts ranges: in 1..10'),
+            tx('Y tipos: is String', 'And types: is String'),
+            tx('Dentro de la rama, la variable ya está casteada', 'Inside the branch, the variable is already cast'),
           ],
         },
         {
@@ -444,10 +447,10 @@ const renderFundamentals = (tx) => (
           color: 'border-violet-400/30',
           titleColor: 'text-violet-200',
           points: [
-            tx('Singleton ligado a la clase, como static de Java', 'Singleton tied to the class, like Java static'),
-            tx('Puede implementar interfaces', 'Can implement interfaces'),
-            tx('Factory pattern idiomático con invoke()', 'Idiomatic factory pattern with invoke()'),
-            tx('object declaration para singletons globales', 'object declaration for global singletons'),
+            tx('Un objeto único dentro de la clase: hace el papel de static', 'A single object inside the class: it plays the role of static'),
+            tx('A diferencia de static, puede implementar interfaces', 'Unlike static, it can implement interfaces'),
+            tx('Buen lugar para factories', 'A good place for factories'),
+            tx('Para un singleton suelto: object', 'For a standalone singleton: object'),
           ],
         },
       ].map(({ title, color, titleColor, points }) => (
@@ -542,6 +545,13 @@ class UserRepository private constructor(val db: Database) {
         fun create(db: Database) = UserRepository(db)
     }
 }`} />
+
+    <WorkNote tx={tx} accent="violet">
+      {tx(
+        'Mi primer Kotlin fue la app Android de reparto y operaciones de campo de Olva Courier. Viniendo de Java, lo que más se notó desde el primer día fueron el null safety y las data classes.',
+        'My first Kotlin was Olva Courier’s Android app for delivery and field operations. Coming from Java, what stood out from day one were null safety and data classes.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -553,8 +563,8 @@ const renderFunctional = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Extension functions, lambdas con receiver, scope functions y pipelines de colecciones.',
-          'Extension functions, lambdas with receivers, scope functions and collection pipelines.'
+          'Kotlin anima a escribir código que se lee como una frase: extensiones para agregar métodos donde los necesitas, scope functions para no repetir el nombre de una variable y colecciones con map, filter y groupBy sin ceremonia.',
+          'Kotlin pushes you to write code that reads like a sentence: extensions to add methods where you need them, scope functions so you don’t repeat a variable name, and collections with map, filter and groupBy without ceremony.'
         )}
       </p>
     </div>
@@ -568,11 +578,11 @@ const renderFunctional = (tx) => (
           color: 'border-violet-500/30',
           titleColor: 'text-violet-300',
           points: [
-            tx('let — transforma el objeto, retorna lambda result', 'let — transforms the object, returns lambda result'),
-            tx('run — ejecuta bloque, retorna lambda result', 'run — executes block, returns lambda result'),
-            tx('apply — configura objeto, retorna el objeto', 'apply — configures object, returns the object'),
-            tx('also — efecto secundario, retorna el objeto', 'also — side effect, returns the object'),
-            tx('with — no es extension, retorna lambda result', 'with — not an extension, returns lambda result'),
+            tx('let: trabaja con el valor (ideal con ?.) y devuelve lo que calcules', 'let: work with the value (great with ?.) and return what you compute'),
+            tx('run: un bloque con this que devuelve un resultado', 'run: a block with this that returns a result'),
+            tx('apply: configura el objeto y lo devuelve', 'apply: configure the object and return it'),
+            tx('also: un efecto secundario (un log) sin cambiar nada', 'also: a side effect (a log) without changing anything'),
+            tx('with: como run, pero recibe el objeto como argumento', 'with: like run, but takes the object as an argument'),
           ],
         },
         {
@@ -580,9 +590,9 @@ const renderFunctional = (tx) => (
           color: 'border-purple-500/30',
           titleColor: 'text-purple-300',
           points: [
-            tx('List/Set/Map son inmutables por defecto', 'List/Set/Map are immutable by default'),
-            tx('MutableList/MutableMap para mutabilidad', 'MutableList/MutableMap for mutability'),
-            tx('asSequence() — lazy evaluation (evita allocs)', 'asSequence() — lazy evaluation (avoids allocs)'),
+            tx('List, Set y Map son de solo lectura por defecto', 'List, Set and Map are read-only by default'),
+            tx('Si necesitas modificar, lo pides explícito: MutableList', 'If you need to modify, you ask for it: MutableList'),
+            tx('Las operaciones no son lazy; para cadenas largas, asSequence()', 'Operations aren’t lazy; for long chains, asSequence()'),
             tx('groupBy/partition/associate/zip/flatten', 'groupBy/partition/associate/zip/flatten'),
           ],
         },
@@ -591,10 +601,10 @@ const renderFunctional = (tx) => (
           color: 'border-fuchsia-500/30',
           titleColor: 'text-fuchsia-300',
           points: [
-            tx('Añaden métodos a clases existentes sin heredar', 'Add methods to existing classes without inheriting'),
-            tx('this dentro = receiver (la instancia)', 'this inside = receiver (the instance)'),
-            tx('Resueltas estáticamente (no polimorfismo)', 'Resolved statically (no polymorphism)'),
-            tx('Idiomáticas: String.toSlug(), List.second()', 'Idiomatic: String.toSlug(), List.second()'),
+            tx('Le agregas métodos a una clase que no es tuya, sin heredar', 'Add methods to a class you don’t own, without inheriting'),
+            tx('Adentro, this es el objeto sobre el que la llamas', 'Inside, this is the object you call it on'),
+            tx('Se resuelven al compilar: no hay polimorfismo', 'They’re resolved at compile time: no polymorphism'),
+            tx('Ejemplos: String.toSlug(), List.second()', 'Examples: String.toSlug(), List.second()'),
           ],
         },
         {
@@ -604,8 +614,8 @@ const renderFunctional = (tx) => (
           points: [
             tx('val (a, b) = Pair(1, 2)', 'val (a, b) = Pair(1, 2)'),
             tx('for ((key, value) in map)', 'for ((key, value) in map)'),
-            tx('Data classes implementan componentN()', 'Data classes implement componentN()'),
-            tx('_ ignora componentes no necesarios', '_ ignores unneeded components'),
+            tx('Funciona con cualquier data class', 'Works with any data class'),
+            tx('Usa _ para lo que no te interesa', 'Use _ for whatever you don’t need'),
           ],
         },
       ].map(({ title, color, titleColor, points }) => (
@@ -705,6 +715,13 @@ val result = products
 for ((name, price) in priceMap) {
     println("\$name costs \$\$price")
 }`} />
+
+    <WorkNote tx={tx} accent="violet">
+      {tx(
+        'Si vienes de los Streams de Java, las colecciones de Kotlin se sienten iguales pero sin .stream() ni collect(). La diferencia a recordar: en Kotlin no son lazy por defecto.',
+        'If you come from Java Streams, Kotlin collections feel the same but without .stream() or collect(). The difference to remember: in Kotlin they aren’t lazy by default.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -716,8 +733,8 @@ const renderCoroutines = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Concurrencia estructurada, suspend functions, Flow y manejo de errores.',
-          'Structured concurrency, suspend functions, Flow and error handling.'
+          'Las coroutines permiten escribir código asíncrono como si fuera secuencial. Lo que las hace seguras es la concurrencia estructurada: cada tarea vive dentro de un scope y nada queda corriendo huérfano.',
+          'Coroutines let you write async code as if it were sequential. What makes them safe is structured concurrency: every task lives inside a scope and nothing is left running orphaned.'
         )}
       </p>
     </div>
@@ -731,10 +748,10 @@ const renderCoroutines = (tx) => (
           color: 'border-violet-500/30',
           titleColor: 'text-violet-300',
           points: [
-            tx('Dispatchers.Main — UI thread (Android)', 'Dispatchers.Main — UI thread (Android)'),
-            tx('Dispatchers.IO — I/O blocking ops (network, disk)', 'Dispatchers.IO — I/O blocking ops (network, disk)'),
-            tx('Dispatchers.Default — CPU-intensive work', 'Dispatchers.Default — CPU-intensive work'),
-            tx('Dispatchers.Unconfined — no confinement', 'Dispatchers.Unconfined — no confinement'),
+            tx('Main: el hilo de la UI en Android', 'Main: the UI thread on Android'),
+            tx('IO: para llamadas bloqueantes de red o disco', 'IO: for blocking network or disk calls'),
+            tx('Default: para cálculo pesado', 'Default: for heavy computation'),
+            tx('Unconfined: casi nunca lo necesitas', 'Unconfined: you almost never need it'),
           ],
         },
         {
@@ -742,10 +759,10 @@ const renderCoroutines = (tx) => (
           color: 'border-purple-500/30',
           titleColor: 'text-purple-300',
           points: [
-            tx('launch — fire-and-forget, retorna Job', 'launch — fire-and-forget, returns Job'),
-            tx('async — retorna Deferred<T>, usa await()', 'async — returns Deferred<T>, use await()'),
-            tx('join() espera Job sin obtener resultado', 'join() waits for Job without result'),
-            tx('coroutineScope lanza hijos en paralelo', 'coroutineScope launches children in parallel'),
+            tx('launch: lánzala y sigue; devuelve un Job', 'launch: fire it and move on; returns a Job'),
+            tx('async: cuando necesitas el resultado; lo obtienes con await()', 'async: when you need the result; you get it with await()'),
+            tx('join() espera un Job sin resultado', 'join() waits for a Job with no result'),
+            tx('coroutineScope espera a que terminen todas sus hijas', 'coroutineScope waits for all its children to finish'),
           ],
         },
         {
@@ -753,10 +770,10 @@ const renderCoroutines = (tx) => (
           color: 'border-fuchsia-500/30',
           titleColor: 'text-fuchsia-300',
           points: [
-            tx('Cold stream — empieza al collect()', 'Cold stream — starts on collect()'),
-            tx('StateFlow — hot, siempre tiene valor actual', 'StateFlow — hot, always has current value'),
-            tx('SharedFlow — hot, multicast a varios colectores', 'SharedFlow — hot, multicast to multiple collectors'),
-            tx('flowOn() cambia el dispatcher de upstream', 'flowOn() changes upstream dispatcher'),
+            tx('Flow es frío: no hace nada hasta que alguien llama collect()', 'Flow is cold: it does nothing until someone calls collect()'),
+            tx('StateFlow siempre tiene un valor actual: para estado', 'StateFlow always has a current value: for state'),
+            tx('SharedFlow reparte eventos a varios suscriptores', 'SharedFlow broadcasts events to several subscribers'),
+            tx('flowOn() cambia dónde corre lo que está arriba en la cadena', 'flowOn() changes where everything upstream runs'),
           ],
         },
         {
@@ -764,10 +781,10 @@ const renderCoroutines = (tx) => (
           color: 'border-violet-400/30',
           titleColor: 'text-violet-200',
           points: [
-            tx('try/catch dentro de suspend function', 'try/catch inside suspend function'),
-            tx('CoroutineExceptionHandler para launch', 'CoroutineExceptionHandler for launch'),
-            tx('SupervisorJob — fallo de hijo no cancela padre', "SupervisorJob — child failure doesn't cancel parent"),
-            tx('runCatching { } retorna Result<T>', 'runCatching { } returns Result<T>'),
+            tx('Dentro de una suspend, try/catch normal', 'Inside a suspend function, a regular try/catch'),
+            tx('CoroutineExceptionHandler atrapa lo que se escapa de un launch', 'CoroutineExceptionHandler catches what escapes a launch'),
+            tx('Con SupervisorJob, una hija que falla no tumba a las demás', 'With SupervisorJob, a failing child doesn’t take down the others'),
+            tx('runCatching { } envuelve el resultado o el error en un Result', 'runCatching { } wraps the result or the error in a Result'),
           ],
         },
       ].map(({ title, color, titleColor, points }) => (
@@ -877,6 +894,13 @@ searchQuery
     .flatMapLatest { query -> searchApi(query) }
     .catch { emit(emptyList()) }
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())`} />
+
+    <WorkNote tx={tx} accent="violet">
+      {tx(
+        'Cuando hice la app de Olva, las coroutines todavía no eran estables (llegaron a fines de 2018). Hoy son el estándar, y la idea es la misma que aplico en Java con WebFlux: no bloquear el hilo mientras esperas.',
+        'When I built the Olva app, coroutines weren’t stable yet (they landed in late 2018). Today they’re the standard, and the idea is the same one I apply in Java with WebFlux: don’t block the thread while you wait.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -888,8 +912,8 @@ const renderAndroid = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'UI declarativa con @Composable, ViewModel, estado reactivo y Navigation Compose.',
-          'Declarative UI with @Composable, ViewModel, reactive state and Navigation Compose.'
+          'Con Compose, la pantalla es una función del estado: cambias el estado y la UI se redibuja sola. Si vienes de React, la idea es la misma con otra sintaxis.',
+          'With Compose, the screen is a function of state: change the state and the UI redraws itself. If you come from React, it’s the same idea with different syntax.'
         )}
       </p>
     </div>
@@ -903,10 +927,10 @@ const renderAndroid = (tx) => (
           color: 'border-violet-500/30',
           titleColor: 'text-violet-300',
           points: [
-            tx('remember — sobrevive recomposiciones', 'remember — survives recompositions'),
-            tx('rememberSaveable — sobrevive rotación de pantalla', 'rememberSaveable — survives screen rotation'),
-            tx('mutableStateOf — State<T> observable', 'mutableStateOf — observable State<T>'),
-            tx('collectAsState() — convierte Flow a State', 'collectAsState() — converts Flow to State'),
+            tx('remember guarda un valor entre recomposiciones', 'remember keeps a value across recompositions'),
+            tx('rememberSaveable además sobrevive a rotar la pantalla', 'rememberSaveable also survives a screen rotation'),
+            tx('mutableStateOf crea estado que redibuja la UI al cambiar', 'mutableStateOf creates state that redraws the UI when it changes'),
+            tx('collectAsState() conecta un Flow con la UI', 'collectAsState() connects a Flow to the UI'),
           ],
         },
         {
@@ -914,10 +938,10 @@ const renderAndroid = (tx) => (
           color: 'border-purple-500/30',
           titleColor: 'text-purple-300',
           points: [
-            tx('LaunchedEffect(key) — lanza coroutine ligada al ciclo', 'LaunchedEffect(key) — launches coroutine tied to lifecycle'),
-            tx('SideEffect — se ejecuta en cada recomposición', 'SideEffect — runs on every recomposition'),
-            tx('DisposableEffect — limpieza al salir', 'DisposableEffect — cleanup on exit'),
-            tx('key1 cambia → LaunchedEffect se relanza', 'key1 changes → LaunchedEffect relaunches'),
+            tx('LaunchedEffect corre una coroutine mientras el composable esté en pantalla', 'LaunchedEffect runs a coroutine while the composable is on screen'),
+            tx('SideEffect corre en cada recomposición', 'SideEffect runs on every recomposition'),
+            tx('DisposableEffect te da un lugar para limpiar al salir', 'DisposableEffect gives you a place to clean up on exit'),
+            tx('Si cambia la key, el efecto se reinicia (como las dependencias de useEffect)', 'If the key changes, the effect restarts (like useEffect dependencies)'),
           ],
         },
         {
@@ -925,10 +949,10 @@ const renderAndroid = (tx) => (
           color: 'border-fuchsia-500/30',
           titleColor: 'text-fuchsia-300',
           points: [
-            tx('Sobrevive cambios de configuración', 'Survives configuration changes'),
-            tx('viewModelScope se cancela con onCleared()', 'viewModelScope cancelled with onCleared()'),
-            tx('Expone StateFlow, nunca MutableStateFlow', 'Exposes StateFlow, never MutableStateFlow'),
-            tx('SavedStateHandle para argumentos de navegación', 'SavedStateHandle for navigation arguments'),
+            tx('Sobrevive a rotaciones y cambios de configuración', 'Survives rotations and configuration changes'),
+            tx('Sus coroutines (viewModelScope) se cancelan solas al destruirse', 'Its coroutines (viewModelScope) cancel themselves when it’s destroyed'),
+            tx('Expone StateFlow de solo lectura; el Mutable queda privado', 'Exposes a read-only StateFlow; the Mutable one stays private'),
+            tx('SavedStateHandle recibe los argumentos de navegación', 'SavedStateHandle receives navigation arguments'),
           ],
         },
         {
@@ -936,10 +960,10 @@ const renderAndroid = (tx) => (
           color: 'border-violet-400/30',
           titleColor: 'text-violet-200',
           points: [
-            tx('MaterialTheme.colorScheme — colores dinámicos', 'MaterialTheme.colorScheme — dynamic colors'),
-            tx('LazyColumn — RecyclerView declarativo, eficiente', 'LazyColumn — declarative RecyclerView, efficient'),
-            tx('items(key = { }) — diff con keys estables', 'items(key = { }) — diff with stable keys'),
-            tx('Modifier.fillMaxWidth().padding() — layout chain', 'Modifier.fillMaxWidth().padding() — layout chain'),
+            tx('Los colores salen de MaterialTheme.colorScheme', 'Colors come from MaterialTheme.colorScheme'),
+            tx('LazyColumn es el RecyclerView de Compose, en pocas líneas', 'LazyColumn is Compose’s RecyclerView, in a few lines'),
+            tx('Dale una key estable a cada item, como en las listas de React', 'Give each item a stable key, like React lists'),
+            tx('El layout se arma encadenando Modifiers; el orden importa', 'Layout is built by chaining Modifiers; order matters'),
           ],
         },
       ].map(({ title, color, titleColor, points }) => (
@@ -1068,6 +1092,13 @@ fun GroupedUserList(usersByDept: Map<String, List<User>>) {
         }
     }
 }`} />
+
+    <WorkNote tx={tx} accent="violet">
+      {tx(
+        'La app de Olva se hizo con vistas XML, antes de que existiera Compose. Mi trabajo móvil más reciente es con React Native (Lynk, Banco GNB, AgentCloud), y Compose se siente muy parecido: componentes, estado y efectos.',
+        'The Olva app used XML views, before Compose existed. My more recent mobile work is in React Native (Lynk, Banco GNB, AgentCloud), and Compose feels very similar: components, state and effects.'
+      )}
+    </WorkNote>
   </div>
 );
 
@@ -1079,8 +1110,8 @@ const renderBackend = (tx) => (
       </h2>
       <p className="text-slate-400 text-sm">
         {tx(
-          'Ktor para microservicios, Spring Boot con Kotlin idiomático y Kotlin Multiplatform.',
-          'Ktor for microservices, idiomatic Spring Boot with Kotlin and Kotlin Multiplatform.'
+          'Kotlin no es solo Android. En backend puedes usar Ktor, liviano y muy Kotlin, o el mismo Spring Boot de siempre con menos código. Y con Multiplatform compartes lógica entre Android e iOS.',
+          'Kotlin isn’t just Android. On the backend you can use Ktor, lightweight and very Kotlin, or the same old Spring Boot with less code. And with Multiplatform you share logic between Android and iOS.'
         )}
       </p>
     </div>
@@ -1094,10 +1125,10 @@ const renderBackend = (tx) => (
           color: 'border-violet-500/30',
           titleColor: 'text-violet-300',
           points: [
-            tx('DSL de routing — install/route/get/post', 'Routing DSL — install/route/get/post'),
-            tx('Plugins: Authentication, ContentNegotiation, CORS', 'Plugins: Authentication, ContentNegotiation, CORS'),
-            tx('kotlinx.serialization para JSON', 'kotlinx.serialization for JSON'),
-            tx('Embeddable — sin servidor externo necesario', 'Embeddable — no external server needed'),
+            tx('Las rutas se escriben como un DSL, parecido a Express', 'Routes are written as a DSL, similar to Express'),
+            tx('Todo es un plugin que instalas: auth, JSON, CORS', 'Everything is a plugin you install: auth, JSON, CORS'),
+            tx('JSON con kotlinx.serialization', 'JSON via kotlinx.serialization'),
+            tx('Liviano y sin servidor externo: arranca rápido', 'Lightweight with no external server: starts fast'),
           ],
         },
         {
@@ -1105,10 +1136,10 @@ const renderBackend = (tx) => (
           color: 'border-purple-500/30',
           titleColor: 'text-purple-300',
           points: [
-            tx('data class reemplaza @Data de Lombok', 'data class replaces Lombok @Data'),
-            tx('Coroutines con spring-boot-starter-webflux', 'Coroutines with spring-boot-starter-webflux'),
-            tx('@Transactional + suspend en Spring 5.2+', '@Transactional + suspend in Spring 5.2+'),
-            tx('Kotlin DSL para Gradle: build.gradle.kts', 'Kotlin DSL for Gradle: build.gradle.kts'),
+            tx('Las data classes reemplazan a Lombok', 'Data classes replace Lombok'),
+            tx('Con WebFlux, los controllers pueden ser funciones suspend', 'With WebFlux, controllers can be suspend functions'),
+            tx('@Transactional también funciona con funciones suspend', '@Transactional works with suspend functions too'),
+            tx('Y el build en Kotlin también: build.gradle.kts', 'And the build in Kotlin too: build.gradle.kts'),
           ],
         },
         {
@@ -1116,10 +1147,10 @@ const renderBackend = (tx) => (
           color: 'border-fuchsia-500/30',
           titleColor: 'text-fuchsia-300',
           points: [
-            tx('@Serializable genera código en compilación', '@Serializable generates code at compile time'),
-            tx('Sin reflection — más rápido, funciona en KMP', 'No reflection — faster, works in KMP'),
-            tx('@SerialName para renombrar campos JSON', '@SerialName to rename JSON fields'),
-            tx('Polymorphic y sealed class soportados', 'Polymorphic and sealed class supported'),
+            tx('@Serializable genera el código al compilar', '@Serializable generates the code at compile time'),
+            tx('Sin reflection: más rápido y funciona en Multiplatform', 'No reflection: faster and works in Multiplatform'),
+            tx('@SerialName cuando el JSON usa otro nombre', '@SerialName when the JSON uses another name'),
+            tx('Soporta sealed classes para JSON polimórfico', 'Supports sealed classes for polymorphic JSON'),
           ],
         },
         {
@@ -1127,10 +1158,10 @@ const renderBackend = (tx) => (
           color: 'border-violet-400/30',
           titleColor: 'text-violet-200',
           points: [
-            tx('commonMain — lógica compartida (domain, repo)', 'commonMain — shared logic (domain, repo)'),
-            tx('androidMain / iosMain — implementaciones nativas', 'androidMain / iosMain — native implementations'),
-            tx('expect/actual — API común, impl específica', 'expect/actual — common API, specific impl'),
-            tx('Compose Multiplatform para UI compartida', 'Compose Multiplatform for shared UI'),
+            tx('commonMain: la lógica compartida (dominio, repositorios)', 'commonMain: shared logic (domain, repositories)'),
+            tx('androidMain e iosMain: lo específico de cada plataforma', 'androidMain and iosMain: what’s specific to each platform'),
+            tx('expect/actual: una API común con implementación por plataforma', 'expect/actual: one common API, implemented per platform'),
+            tx('Compose Multiplatform si también quieres compartir la UI', 'Compose Multiplatform if you want to share the UI too'),
           ],
         },
       ].map(({ title, color, titleColor, points }) => (
@@ -1261,189 +1292,31 @@ actual fun platformName(): String = "Android"
 // iosMain
 actual fun currentTimeMillis(): Long = (NSDate().timeIntervalSince1970 * 1000).toLong()
 actual fun platformName(): String = "iOS"`} />
+
+    <WorkNote tx={tx} accent="violet">
+      {tx(
+        'Mi backend es Java con Spring Boot. Pasar un servicio Spring a Kotlin es una migración natural: mismo framework, mismas anotaciones, menos código y data classes en vez de Lombok.',
+        'My backend is Java with Spring Boot. Moving a Spring service to Kotlin is a natural migration: same framework, same annotations, less code, and data classes instead of Lombok.'
+      )}
+    </WorkNote>
   </div>
 );
 
 // ─── Interview Accordion ──────────────────────────────────────────────────────
 
-const InterviewSection = ({ groups, tx }) => {
-  const [openItems, setOpenItems] = useState({});
-
-  const toggle = (key) => {
-    setOpenItems(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  return (
-    <div className="space-y-6">
+const renderInterview = (tx) => (
+  <div className="space-y-6">
       <div>
         <h2 className="text-xl lg:text-3xl font-bold text-white mb-1">
           {tx('Preguntas de Entrevista', 'Interview Q&A')}
         </h2>
         <p className="text-slate-400 text-sm">
-          {tx(
-            'Preguntas comunes de Junior a Senior para entrevistas de Kotlin.',
-            'Common Junior to Senior interview questions for Kotlin positions.'
-          )}
+          {tx('Respuestas cortas, como las diría en una entrevista, agrupadas por nivel.', 'Short answers, the way I would say them in an interview, grouped by level.')}
         </p>
       </div>
-
-      {groups.map((group) => (
-        <div key={group.level} className={`border ${group.color} rounded-xl p-4 space-y-3`}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${group.badgeColor}`}>
-              {group.level}
-            </span>
-          </div>
-          {group.qa.map((item, qi) => {
-            const key = `${group.level}-${qi}`;
-            const isOpen = !!openItems[key];
-            return (
-              <div key={qi} className="border border-slate-700/50 rounded-xl overflow-hidden">
-                <button
-                  onClick={() => toggle(key)}
-                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-800/40 transition-colors"
-                >
-                  <span className="font-semibold text-sm text-slate-200 pr-2">{item.q}</span>
-                  {isOpen
-                    ? <ChevronUp className="w-4 h-4 text-violet-400 flex-shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-slate-500 flex-shrink-0" />}
-                </button>
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      key="answer"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-4 pt-1 text-sm text-slate-300 leading-relaxed border-t border-slate-700/50 bg-slate-900/30">
-                        {item.a}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const renderInterview = (tx) => {
-  const groups = [
-    {
-      level: 'Junior',
-      color: 'border-green-500/30 bg-green-500/5',
-      badgeColor: 'bg-green-500/20 text-green-300',
-      qa: [
-        {
-          q: tx('¿Diferencia entre val y var?', 'val vs var — what\'s the difference?'),
-          a: tx(
-            'val es inmutable (como final en Java) — no puede reasignarse. var es mutable. El compilador de Kotlin fuerza el uso de val siempre que sea posible, haciendo el código más seguro y predecible.',
-            "val is immutable (like Java final) — cannot be reassigned. var is mutable. Kotlin's compiler encourages val whenever possible, making code safer and more predictable."
-          ),
-        },
-        {
-          q: tx('¿Qué es null safety en Kotlin?', 'What is null safety in Kotlin?'),
-          a: tx(
-            'El sistema de tipos distingue entre tipos nullable (String?) y non-nullable (String). El compilador rechaza en tiempo de compilación cualquier acceso que pueda causar NPE. Los operadores ?. (safe call), ?: (Elvis) y !! (not-null assertion) gestionan los nulls explícitamente.',
-            "The type system distinguishes nullable (String?) from non-nullable (String) types. The compiler rejects at compile time any access that could cause NPE. The ?. (safe call), ?: (Elvis) and !! (not-null assertion) operators handle nulls explicitly."
-          ),
-        },
-        {
-          q: tx('¿Data class vs clase regular?', 'Data class vs regular class?'),
-          a: tx(
-            'data class auto-genera equals/hashCode/toString/copy y componentN() para destructuring. Ideal para DTOs y Value Objects. No está diseñada para herencia (es final por defecto). Una clase regular necesita escribir todo eso a mano.',
-            'data class auto-generates equals/hashCode/toString/copy and componentN() for destructuring. Ideal for DTOs and Value Objects. Not designed for inheritance (final by default). A regular class needs to write all of that manually.'
-          ),
-        },
-        {
-          q: tx('¿Qué es un companion object?', 'What is a companion object?'),
-          a: tx(
-            'Es un singleton asociado a la clase, que actúa como reemplazo de los miembros static de Java. Puede implementar interfaces y se accede con NombreClase.metodo(). Útil para factory functions y constantes relacionadas con la clase.',
-            "A singleton associated with the class, acting as a replacement for Java's static members. Can implement interfaces, accessed as ClassName.method(). Useful for factory functions and class-related constants."
-          ),
-        },
-      ],
-    },
-    {
-      level: 'Mid',
-      color: 'border-yellow-500/30 bg-yellow-500/5',
-      badgeColor: 'bg-yellow-500/20 text-yellow-300',
-      qa: [
-        {
-          q: tx('Coroutines vs threads — ¿cuándo usar cada uno?', 'Coroutines vs threads — when to use each?'),
-          a: tx(
-            'Los threads son pesados (~1MB stack, scheduling del OS). Las coroutines son ligeras — puedes lanzar miles en el mismo thread usando suspension points. Coroutines no bloquean el thread; cuando hacen suspend, el thread se libera para otro trabajo. Para I/O y trabajo asíncrono en Kotlin, siempre coroutines.',
-            "Threads are heavyweight (~1MB stack, OS scheduling). Coroutines are lightweight — you can launch thousands on the same thread using suspension points. Coroutines don't block the thread; on suspend, the thread is freed for other work. For I/O and async work in Kotlin, always use coroutines."
-          ),
-        },
-        {
-          q: tx('¿Scope functions: let/run/apply/also/with?', 'Scope functions: let/run/apply/also/with?'),
-          a: tx(
-            'let: receptor como it, retorna lambda result. Útil para transformar non-null. run: receptor como this, retorna lambda result. Útil para inicializar. apply: receptor como this, retorna el receptor. Patrón builder. also: receptor como it, retorna el receptor. Para efectos secundarios/logging. with: no es extension, receptor como this, retorna lambda result.',
-            'let: receiver as it, returns lambda result. Useful for transforming non-null. run: receiver as this, returns lambda result. Useful for initialization. apply: receiver as this, returns receiver. Builder pattern. also: receiver as it, returns receiver. For side-effects/logging. with: not an extension, receiver as this, returns lambda result.'
-          ),
-        },
-        {
-          q: tx('¿Sealed classes — cuándo y por qué?', 'Sealed classes — when and why?'),
-          a: tx(
-            'Sealed classes modelan un conjunto cerrado de subtipos conocidos en tiempo de compilación. El compilador verifica que el when sea exhaustivo, sin necesidad de else. Perfectas para estados de UI (Loading/Success/Error), resultados de operaciones y eventos unidireccionales.',
-            'Sealed classes model a closed set of subtypes known at compile time. The compiler verifies that when is exhaustive — no need for else. Perfect for UI states (Loading/Success/Error), operation results and unidirectional events.'
-          ),
-        },
-        {
-          q: tx('Flow vs LiveData — ¿cuándo usar cada uno?', 'Flow vs LiveData — when to use each?'),
-          a: tx(
-            'LiveData está acoplado a Android y solo activo con lifecycle. Flow es puro Kotlin, testeable sin Android, composable con operadores (debounce, flatMapLatest, combine). StateFlow es equivalente a LiveData pero agnóstico de plataforma. Prefiere Flow en ViewModel; solo transforma a LiveData si necesitas compatibilidad con código legacy.',
-            'LiveData is Android-coupled and only active with lifecycle. Flow is pure Kotlin, testable without Android, composable with operators (debounce, flatMapLatest, combine). StateFlow is the LiveData equivalent but platform-agnostic. Prefer Flow in ViewModel; only convert to LiveData for legacy code compatibility.'
-          ),
-        },
-      ],
-    },
-    {
-      level: 'Senior',
-      color: 'border-red-500/30 bg-red-500/5',
-      badgeColor: 'bg-red-500/20 text-red-300',
-      qa: [
-        {
-          q: tx('¿Cómo evita structured concurrency los memory leaks?', 'How does structured concurrency prevent memory leaks?'),
-          a: tx(
-            "Toda coroutine tiene un padre explícito (CoroutineScope). Cuando el scope se cancela (p.ej. onCleared() del ViewModel), cancela automáticamente todas las coroutines hijas. Esto evita el patrón de GlobalScope.launch que crea coroutines huérfanas sin ciclo de vida. Si una hija falla, propaga el error al padre que cancela las otras hijas (a menos que uses SupervisorJob).",
-            "Every coroutine has an explicit parent (CoroutineScope). When the scope is cancelled (e.g. ViewModel's onCleared()), it automatically cancels all child coroutines. This prevents the GlobalScope.launch pattern that creates orphaned coroutines with no lifecycle. If a child fails, the error propagates to the parent which cancels other children (unless you use SupervisorJob)."
-          ),
-        },
-        {
-          q: tx('StateFlow vs SharedFlow — diferencias de diseño', 'StateFlow vs SharedFlow — design differences'),
-          a: tx(
-            'StateFlow: siempre tiene un valor inicial, replay=1 (último valor), solo retiene el más reciente. Ideal para estado de UI que siempre necesita un valor actual. SharedFlow: configurable (replay, buffer, onBufferOverflow). Sin valor inicial necesario. Ideal para eventos one-shot (navegación, mensajes) donde no quieres que nuevos suscriptores vean eventos pasados.',
-            "StateFlow: always has an initial value, replay=1 (latest value), only retains the most recent. Ideal for UI state that always needs a current value. SharedFlow: configurable (replay, buffer, onBufferOverflow). No required initial value. Ideal for one-shot events (navigation, messages) where new subscribers shouldn't see past events."
-          ),
-        },
-        {
-          q: tx('¿Cuándo usarías Kotlin Multiplatform?', 'When would you use Kotlin Multiplatform?'),
-          a: tx(
-            'KMP es ideal cuando la lógica de negocio es idéntica entre Android/iOS/web/JVM pero las UIs son nativas. El patrón es: domain models, repository interfaces, use cases en commonMain; implementaciones de red/DB en androidMain/iosMain con expect/actual. Evita duplicar reglas de validación, parsers y transformaciones. No lo usaría si el equipo de iOS no sabe Kotlin o si el 90% del código es UI.',
-            "KMP is ideal when business logic is identical across Android/iOS/web/JVM but UIs are native. The pattern is: domain models, repository interfaces, use cases in commonMain; network/DB implementations in androidMain/iosMain with expect/actual. Avoids duplicating validation rules, parsers and transformations. I wouldn't use it if the iOS team doesn't know Kotlin or if 90% of the code is UI."
-          ),
-        },
-        {
-          q: tx('inline functions + reified generics — ¿cómo funcionan?', 'inline functions + reified generics — how do they work?'),
-          a: tx(
-            'Las inline functions copian el cuerpo de la función en el call site durante la compilación (elimina la overhead de lambda). Esto permite reified T: el tipo genérico es accesible en tiempo de ejecución (T::class.java) porque el compilador lo sustituye en el call site. Sin inline, los genéricos se borran por type erasure. Uso idiomático: inline fun <reified T> fromJson(json: String): T. Atención: el cuerpo inline aumenta el bytecode.',
-            'inline functions copy the function body to the call site at compile time (eliminates lambda overhead). This enables reified T: the generic type is accessible at runtime (T::class.java) because the compiler substitutes it at each call site. Without inline, generics are erased by type erasure. Idiomatic use: inline fun <reified T> fromJson(json: String): T. Note: inlining increases bytecode size.'
-          ),
-        },
-      ],
-    },
-  ];
-
-  return <InterviewSection groups={groups} tx={tx} />;
-};
+    <InterviewQA groups={buildKotlinInterview(tx)} tx={tx} accent="violet" />
+  </div>
+);
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 

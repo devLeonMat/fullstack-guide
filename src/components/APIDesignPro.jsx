@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Lock, ChevronDown, ChevronUp, ArrowRight, Zap, Shield, RefreshCw } from 'lucide-react';
 import CodeBlock from './CodeBlock';
+import Tabs from './solid/Tabs';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // ─── REST Diagram ────────────────────────────────────────────────────────────
@@ -465,6 +466,7 @@ export default function APIDesignPro() {
     { id: 'auth',      title: tx('Autenticación', 'Authentication'), subtitle: tx('JWT, OAuth2 y refresh tokens', 'JWT, OAuth2 & refresh tokens') },
     { id: 'pagination',title: tx('Paginación', 'Pagination'),  subtitle: tx('Offset vs cursor, filtros y orden', 'Offset vs cursor, filters & sorting') },
     { id: 'ratelimit', title: tx('Rate Limiting', 'Rate Limiting'), subtitle: tx('Token bucket, caché y compresión', 'Token bucket, caching & compression') },
+    { id: 'idempotency', title: tx('Idempotencia', 'Idempotency'), subtitle: tx('Idempotency-Key, consumidores y outbox', 'Idempotency-Key, consumers & outbox') },
     { id: 'interview', title: 'Interview',           subtitle: tx('Preguntas Junior / Mid / Senior', 'Junior / Mid / Senior questions') },
   ];
 
@@ -1227,6 +1229,267 @@ router.get('/products', cacheResponse(300), productController.list); // caché 5
     </div>
   );
 
+  // ─── Idempotency ──────────────────────────────────────────────────────────
+
+  const renderIdempotency = () => {
+    const flow = [
+      { label: tx('Cliente', 'Client'), detail: tx('POST /payments + Idempotency-Key: 7f3a…', 'POST /payments + Idempotency-Key: 7f3a…'), color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5' },
+      { label: tx('¿Key nueva?', 'New key?'), detail: tx('INSERT atómico: solo un request gana', 'Atomic INSERT: only one request wins'), color: 'text-amber-300', border: 'border-amber-500/30 bg-amber-500/5' },
+      { label: tx('Sí → procesar', 'Yes → process'), detail: tx('Cobrar y guardar la respuesta con la key', 'Charge and store the response with the key'), color: 'text-emerald-300', border: 'border-emerald-500/30 bg-emerald-500/5' },
+      { label: tx('No → replay', 'No → replay'), detail: tx('Devolver la respuesta guardada, sin cobrar otra vez', 'Return the stored response, no second charge'), color: 'text-violet-300', border: 'border-violet-500/30 bg-violet-500/5' },
+    ];
+
+    const pitfalls = [
+      { title: tx('Check-then-insert', 'Check-then-insert'), text: tx('SELECT y luego INSERT deja pasar dos requests simultáneos. Reclama la key con un INSERT atómico (PK / ON CONFLICT / SETNX).', 'SELECT then INSERT lets two concurrent requests through. Claim the key with an atomic INSERT (PK / ON CONFLICT / SETNX).') },
+      { title: tx('Key global', 'Global key'), text: tx('La key va asociada al cliente (userId + key). Si no, un cliente puede recibir la respuesta de otro.', 'Scope the key to the client (userId + key). Otherwise one client can receive another one’s response.') },
+      { title: tx('Mismo key, otro body', 'Same key, different body'), text: tx('Guarda un hash del body. Si no coincide, responde 422: es un error del cliente, no un reintento.', 'Store a hash of the body. If it doesn’t match, return 422: it’s a client bug, not a retry.') },
+      { title: tx('Errores 5xx', '5xx errors'), text: tx('Si falló el servidor, libera la key para que el reintento pueda procesarse. Los 2xx y 4xx sí se guardan y se repiten.', 'If the server failed, release the key so the retry can be processed. 2xx and 4xx are stored and replayed.') },
+      { title: tx('Exactly-once', 'Exactly-once'), text: tx('Entre sistemas no existe. Lo real es at-least-once + consumidor idempotente = efecto una sola vez ("effectively once").', 'It doesn’t exist across systems. What you get is at-least-once + idempotent consumer = effect applied once ("effectively once").') },
+      { title: tx('Idempotencia natural primero', 'Natural idempotency first'), text: tx('SET en vez de INCREMENT, transiciones con WHERE estado = \'PENDIENTE\', upserts por clave natural. Si la operación ya es idempotente, no necesitas tabla de dedup.', 'SET instead of INCREMENT, transitions with WHERE status = \'PENDING\', upserts by natural key. If the operation is already idempotent, you don’t need a dedup table.') },
+      { title: tx('Misma respuesta ≠ mismo estado', 'Same response ≠ same state'), text: tx('Un segundo DELETE puede devolver 404 y sigue siendo idempotente: lo que cuenta es el estado del servidor, no el código.', 'A second DELETE can return 404 and is still idempotent: what counts is server state, not the status code.') },
+      { title: 'TTL', text: tx('Las keys se borran tras 24 h (o lo que dure la ventana de reintentos del cliente). No las guardes para siempre.', 'Keys are purged after 24 h (or whatever the client retry window is). Don’t keep them forever.') },
+    ];
+
+    const tabs = [
+      {
+        id: 'pitch',
+        label: tx('Respuesta corta', 'Short answer'),
+        content: (
+          <div className="space-y-4">
+            <div className="border border-orange-500/30 bg-orange-500/5 rounded-xl p-4">
+              <p className="text-sm text-slate-300 leading-relaxed">
+                {tx(
+                  'Idempotente significa que repetir la operación deja el sistema en el mismo estado que hacerla una vez. GET, PUT y DELETE lo son por definición; POST no. En pagos o pedidos uso un Idempotency-Key: el servidor guarda la key con la respuesta y, si el cliente reintenta por un timeout, devuelve la misma respuesta sin cobrar otra vez. En mensajería la entrega es at-least-once, así que el consumidor registra el id del mensaje en la misma transacción que el efecto y descarta duplicados. Y para no perder eventos entre la base de datos y el broker uso Transactional Outbox.',
+                  'Idempotent means repeating the operation leaves the system in the same state as doing it once. GET, PUT and DELETE are idempotent by definition; POST isn’t. For payments or orders I use an Idempotency-Key: the server stores the key with the response and, if the client retries after a timeout, returns the same response without charging again. In messaging, delivery is at-least-once, so the consumer records the message id in the same transaction as the effect and drops duplicates. And to avoid losing events between the database and the broker I use Transactional Outbox.'
+                )}
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { title: 'HTTP', text: tx('Idempotency-Key en POST', 'Idempotency-Key on POST'), color: 'text-blue-300', border: 'border-blue-500/30 bg-blue-500/5' },
+                { title: tx('Mensajería', 'Messaging'), text: tx('Consumidor con tabla de dedup', 'Consumer with a dedup table'), color: 'text-emerald-300', border: 'border-emerald-500/30 bg-emerald-500/5' },
+                { title: tx('DB → broker', 'DB → broker'), text: tx('Transactional Outbox', 'Transactional Outbox'), color: 'text-violet-300', border: 'border-violet-500/30 bg-violet-500/5' },
+              ].map(card => (
+                <div key={card.title} className={`border rounded-xl p-3 ${card.border}`}>
+                  <p className={`font-bold text-sm ${card.color}`}>{card.title}</p>
+                  <p className="text-xs text-slate-300 mt-1">{card.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'key',
+        label: 'Idempotency-Key',
+        content: (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {tx(
+                'El cliente genera un UUID por operación (no por intento) y lo manda en cada reintento. Es el mismo mecanismo que usan Stripe y PayPal.',
+                'The client generates one UUID per operation (not per attempt) and sends it on every retry. It’s the same mechanism Stripe and PayPal use.'
+              )}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+              {flow.map(step => (
+                <div key={step.label} className={`border rounded-xl p-3 ${step.border}`}>
+                  <p className={`font-bold text-sm ${step.color}`}>{step.label}</p>
+                  <p className="text-xs text-slate-300 mt-1">{step.detail}</p>
+                </div>
+              ))}
+            </div>
+            <CodeBlock language="typescript" code={`// Idempotency-Key en el servidor (Express + PostgreSQL)
+// CREATE TABLE idempotency_keys (
+//   key          TEXT PRIMARY KEY,           -- userId:key
+//   request_hash TEXT NOT NULL,
+//   status       TEXT NOT NULL,              -- 'processing' | 'done'
+//   response     JSONB,
+//   created_at   TIMESTAMPTZ DEFAULT now()   -- un job borra las de más de 24 h
+// );
+import { createHash } from 'crypto';
+import { Request, Response, NextFunction } from 'express';
+import { pool } from './db';
+
+const hashBody = (body: unknown) =>
+  createHash('sha256').update(JSON.stringify(body)).digest('hex');
+
+export async function idempotent(req: Request, res: Response, next: NextFunction) {
+  const clientKey = req.header('Idempotency-Key');
+  if (!clientKey) return res.status(400).json({ error: 'Idempotency-Key required' });
+
+  const key = \`\${req.user.id}:\${clientKey}\`;   // por cliente, nunca global
+  const requestHash = hashBody(req.body);
+
+  // 1. Reclamar la key de forma atómica: solo un request gana el INSERT
+  const claimed = await pool.query(
+    \`INSERT INTO idempotency_keys (key, request_hash, status)
+     VALUES ($1, $2, 'processing')
+     ON CONFLICT (key) DO NOTHING\`,
+    [key, requestHash]
+  );
+
+  if (claimed.rowCount === 0) {
+    const { rows: [saved] } = await pool.query(
+      'SELECT * FROM idempotency_keys WHERE key = $1', [key]);
+    if (saved.request_hash !== requestHash)
+      return res.status(422).json({ error: 'Idempotency-Key reused with a different body' });
+    if (saved.status === 'processing')
+      return res.status(409).json({ error: 'Request already in progress' });
+    // 2. Replay: misma respuesta, sin volver a ejecutar el handler
+    return res.status(saved.response.status).json(saved.response.body);
+  }
+
+  // 3. Primera vez: guardar la respuesta antes de enviarla
+  const send = res.json.bind(res);
+  res.json = (body: unknown) => {
+    const query = res.statusCode >= 500
+      ? pool.query('DELETE FROM idempotency_keys WHERE key = $1', [key])   // dejar reintentar
+      : pool.query(\`UPDATE idempotency_keys SET status = 'done', response = $2 WHERE key = $1\`,
+          [key, { status: res.statusCode, body }]);
+    query.finally(() => send(body));
+    return res;
+  };
+  next();
+}
+
+router.post('/payments', authenticate, idempotent, paymentController.create);`} />
+          </div>
+        ),
+      },
+      {
+        id: 'consumer',
+        label: tx('Consumidor', 'Consumer'),
+        content: (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {tx(
+                'Kafka, RabbitMQ y SQS entregan at-least-once: si el consumidor cae después de aplicar el efecto pero antes de confirmar, el mensaje llega otra vez. La clave es guardar el id del mensaje en la misma transacción que el efecto.',
+                'Kafka, RabbitMQ and SQS deliver at-least-once: if the consumer crashes after applying the effect but before acknowledging, the message arrives again. The key is storing the message id in the same transaction as the effect.'
+              )}
+            </p>
+            <CodeBlock language="java" code={`// Consumidor idempotente: dedup + efecto en la MISMA transacción
+// CREATE TABLE mensajes_procesados (
+//   mensaje_id   VARCHAR(64) PRIMARY KEY,
+//   procesado_en TIMESTAMP NOT NULL
+// );
+@Component
+public class PagoConfirmadoListener {
+
+    private final MensajeProcesadoRepository procesados;
+    private final PedidoService pedidos;
+
+    public PagoConfirmadoListener(MensajeProcesadoRepository procesados, PedidoService pedidos) {
+        this.procesados = procesados;
+        this.pedidos = pedidos;
+    }
+
+    @KafkaListener(topics = "pagos-confirmados", groupId = "pedidos")
+    @Transactional
+    public void onPagoConfirmado(PagoConfirmado evento) {
+        if (procesados.marcarSiNoExiste(evento.eventoId()) == 0) {
+            return; // duplicado: el efecto ya se aplicó
+        }
+        pedidos.marcarComoPagado(evento.pedidoId());
+    }
+    // Primero commit en la DB, después Kafka confirma el offset.
+    // Si cae entre los dos, el mensaje vuelve y el INSERT lo descarta.
+}
+
+public interface MensajeProcesadoRepository extends JpaRepository<MensajeProcesado, String> {
+
+    @Modifying
+    @Query(value = """
+        INSERT INTO mensajes_procesados (mensaje_id, procesado_en)
+        VALUES (:id, now())
+        ON CONFLICT (mensaje_id) DO NOTHING
+        """, nativeQuery = true)
+    int marcarSiNoExiste(@Param("id") String mensajeId);
+}`} />
+            <div className="border border-amber-500/30 bg-amber-500/5 rounded-xl p-3">
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {tx(
+                  'Alternativa sin tabla: hacer el efecto idempotente por sí mismo. UPDATE pedidos SET estado = \'PAGADO\' WHERE id = ? AND estado = \'PENDIENTE\' se puede ejecutar diez veces y el resultado es el mismo.',
+                  'Alternative without a table: make the effect idempotent on its own. UPDATE orders SET status = \'PAID\' WHERE id = ? AND status = \'PENDING\' can run ten times with the same result.'
+                )}
+              </p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'outbox',
+        label: 'Transactional Outbox',
+        content: (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-300 leading-relaxed">
+              {tx(
+                'Problema de la doble escritura: guardas el pedido y publicas el evento, pero si el broker falla después del commit, el evento se pierde. Outbox guarda el evento en una tabla dentro de la misma transacción y un proceso aparte lo publica.',
+                'The dual-write problem: you save the order and publish the event, but if the broker fails after the commit, the event is lost. Outbox stores the event in a table inside the same transaction and a separate process publishes it.'
+              )}
+            </p>
+            <CodeBlock language="java" code={`@Service
+public class PedidoService {
+
+    @Transactional
+    public Pedido crear(CrearPedido cmd) {
+        Pedido pedido = pedidos.save(Pedido.de(cmd));
+        // Mismo commit que el pedido: se guardan los dos o ninguno
+        outbox.save(OutboxEvento.de("pedidos-creados", pedido.getId(), PedidoCreado.de(pedido)));
+        return pedido;
+    }
+}
+
+@Component
+public class OutboxRelay {
+
+    @Scheduled(fixedDelay = 1000)
+    @Transactional
+    public void publicarPendientes() {
+        // SELECT ... FOR UPDATE SKIP LOCKED: varias instancias sin pisarse
+        for (OutboxEvento e : outbox.bloquearPendientes(100)) {
+            kafka.send(e.getTopico(), e.getAgregadoId(), e.getPayload()).join(); // espera el ack del broker
+            e.marcarPublicado();
+        }
+    }
+    // Si cae después de publicar y antes del commit, el evento sale dos veces:
+    // por eso el consumidor también tiene que ser idempotente (usa e.getId() como eventoId).
+}`} />
+            <div className="border border-violet-500/30 bg-violet-500/5 rounded-xl p-3">
+              <p className="text-xs text-slate-300 leading-relaxed">
+                {tx(
+                  'En vez del polling, Debezium (CDC) puede leer la tabla outbox desde el log de la base de datos y publicarla en Kafka con menos latencia y sin carga de queries.',
+                  'Instead of polling, Debezium (CDC) can read the outbox table from the database log and publish it to Kafka with lower latency and no query load.'
+                )}
+              </p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: 'pitfalls',
+        label: tx('Trampas', 'Pitfalls'),
+        content: (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {pitfalls.map(p => (
+              <div key={p.title} className="border border-red-500/30 bg-red-500/5 rounded-xl p-3">
+                <p className="font-bold text-sm text-red-300">{p.title}</p>
+                <p className="text-xs text-slate-300 mt-1 leading-relaxed">{p.text}</p>
+              </div>
+            ))}
+          </div>
+        ),
+      },
+    ];
+
+    return (
+      <div className="space-y-6">
+        <SectionTitle title={tx('Idempotencia', 'Idempotency')}
+          subtitle={tx('Reintentar no puede duplicar efectos: claves de idempotencia, consumidores idempotentes y outbox.', 'Retrying must never duplicate effects: idempotency keys, idempotent consumers and outbox.')} />
+        <Tabs items={tabs} label={tx('Idempotencia', 'Idempotency')} tx={tx} variant="secondary" />
+      </div>
+    );
+  };
+
   // ─── Interview ────────────────────────────────────────────────────────────
 
   const interviewQs = {
@@ -1251,6 +1514,8 @@ router.get('/products', cacheResponse(300), productController.list); // caché 5
         a: tx('Estructura consistente: { error: { code: "USER_NOT_FOUND", message: "...", details: [...] } }. Usa códigos internos específicos (no solo HTTP status). Incluye timestamp y un requestId para trazabilidad.', 'Consistent structure: { error: { code: "USER_NOT_FOUND", message: "...", details: [...] } }. Use specific internal codes (not just HTTP status). Include timestamp and requestId for traceability.') },
       { q: tx('¿Qué es un idempotency key?', 'What is an idempotency key?'),
         a: tx('Un UUID que el cliente envía en el header Idempotency-Key. El servidor guarda el resultado del primer request y lo devuelve en repeticiones. Esencial para operaciones de pago: si hay un timeout, el cliente reintenta sin duplicar el cargo.', 'A UUID the client sends in the Idempotency-Key header. The server stores the first request result and returns it on retries. Essential for payment operations: if there\'s a timeout, the client retries without duplicating the charge.') },
+      { q: tx('¿Por qué PATCH no es idempotente y PUT sí?', 'Why is PATCH not idempotent while PUT is?'),
+        a: tx('PUT manda el estado completo: aplicarlo dos veces deja lo mismo. PATCH puede describir operaciones relativas ({ op: "add" } en una lista, "sumar 1 al stock"), y repetirlas cambia el resultado. Un PATCH con valores absolutos ({ email: "x" }) sí es idempotente en la práctica, pero el estándar no lo garantiza.', 'PUT sends the full state: applying it twice leaves the same result. PATCH can describe relative operations ({ op: "add" } on a list, "add 1 to stock"), and repeating them changes the result. A PATCH with absolute values ({ email: "x" }) is idempotent in practice, but the standard doesn\'t guarantee it.') },
       { q: tx('¿Cómo versionarías una API con millones de usuarios?', 'How would you version an API with millions of users?'),
         a: tx('URL Path (/v2/) para visibilidad. Soporte simultáneo de v1 y v2 durante 12+ meses. Headers Deprecation + Sunset en v1. Analytics por versión para ver cuándo la mayoría migró. Feature flags para gradual rollout.', 'URL Path (/v2/) for visibility. Simultaneous support of v1 and v2 for 12+ months. Deprecation + Sunset headers on v1. Per-version analytics to see when most users migrated. Feature flags for gradual rollout.') },
     ],
@@ -1261,6 +1526,8 @@ router.get('/products', cacheResponse(300), productController.list); // caché 5
         a: tx('Redis con scripts Lua para operaciones atómicas (INCR + EXPIRE). Sliding window con sorted sets: ZADD con score=timestamp, ZREMRANGEBYSCORE para limpiar, ZCARD para contar. El algoritmo token bucket en Redis permite ráfagas controladas. Considera rate limiting por IP, por usuario y por API key con límites distintos.', 'Redis with Lua scripts for atomic operations (INCR + EXPIRE). Sliding window with sorted sets: ZADD with score=timestamp, ZREMRANGEBYSCORE to clean, ZCARD to count. Token bucket algorithm in Redis allows controlled bursts. Consider rate limiting by IP, by user and by API key with different limits.') },
       { q: tx('¿Cómo garantizas consistencia en una API de pagos?', 'How do you guarantee consistency in a payment API?'),
         a: tx('Idempotency keys almacenados en Redis/DB con TTL de 24h. Transacciones de base de datos para operaciones atómicas. Outbox pattern: escribe el evento y el estado en la misma transacción, procesa asíncronamente. Saga pattern para operaciones distribuidas: compensating transactions si algo falla.', 'Idempotency keys stored in Redis/DB with 24h TTL. Database transactions for atomic operations. Outbox pattern: write event and state in the same transaction, process asynchronously. Saga pattern for distributed operations: compensating transactions if something fails.') },
+      { q: tx('¿Se puede tener exactly-once entre un servicio y un broker?', 'Can you get exactly-once between a service and a broker?'),
+        a: tx('De punta a punta no. Kafka ofrece exactly-once dentro de Kafka (producer idempotente + transacciones), pero en cuanto el efecto toca una base de datos o una API externa vuelves a at-least-once. Lo que se construye es "effectively once": entrega at-least-once + consumidor idempotente que guarda el id del mensaje en la misma transacción que el efecto, y Transactional Outbox del lado del productor.', 'Not end to end. Kafka offers exactly-once inside Kafka (idempotent producer + transactions), but as soon as the effect touches a database or an external API you\'re back to at-least-once. What you build is "effectively once": at-least-once delivery + an idempotent consumer that stores the message id in the same transaction as the effect, plus Transactional Outbox on the producer side.') },
       { q: tx('¿Cómo diseñas una API para que sea hypermedia-driven (HATEOAS)?', 'How do you design a truly hypermedia-driven (HATEOAS) API?'),
         a: tx('Cada respuesta incluye _links con las acciones disponibles según el estado del recurso. Ejemplo: un order con status=pending incluye links a cancel y confirm; con status=shipped solo a track. El cliente navega por links, no construye URLs. Esto desacopla completamente al cliente de la estructura de la API.', 'Each response includes _links with available actions based on the resource state. Example: an order with status=pending includes links to cancel and confirm; with status=shipped only to track. The client navigates by links, not by constructing URLs. This completely decouples the client from the API structure.') },
       { q: tx('¿Cómo mitigas los 10 riesgos del OWASP API Security Top 10?', 'How do you mitigate the OWASP API Security Top 10 risks?'),
@@ -1318,6 +1585,7 @@ router.get('/products', cacheResponse(300), productController.list); // caché 5
       case 'auth':       return renderAuth();
       case 'pagination': return renderPagination();
       case 'ratelimit':  return renderRateLimit();
+      case 'idempotency': return renderIdempotency();
       case 'interview':  return renderInterview();
       default:           return renderRest();
     }
